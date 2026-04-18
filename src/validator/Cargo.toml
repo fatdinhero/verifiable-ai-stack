@@ -1,0 +1,23 @@
+[package]
+name    = "agentsprotocol-validator"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["Fatih Dinc <fatdinhero@gmail.com>"]
+description = "Validator client skeleton for AgentsProtocol. DOI:10.5281/zenodo.19642292"
+
+[dependencies]
+tokio          = { version = "1", features = ["full"] }
+serde          = { version = "1", features = ["derive"] }
+serde_json     = "1"
+sha2           = "0.10"
+ed25519-dalek  = "2"
+libp2p         = { version = "0.54", features = ["tcp","quic","noise","yamux","gossipsub","mdns","tokio"] }
+anyhow         = "1"
+thiserror      = "1"
+rocksdb        = "0.22"
+
+[features]
+default = []
+zkvm-risc0 = []
+zkvm-nexus = []

@@ -1,0 +1,8 @@
+include README.md
+include LICENSE-CODE
+include LICENSE-DOCS
+include CITATION.cff
+include requirements.txt
+recursive-include src/agentsprotocol *.py *.typed
+recursive-include schema *.json
+recursive-include examples *.py *.json

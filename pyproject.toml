@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentsprotocol"
+version = "1.0.0"
+description = "Semantic validation protocol — DOI:10.5281/zenodo.19642292"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Fatih Dinc", email = "fatdinhero@gmail.com" }]
+keywords = ["consensus", "GHOSTDAG", "zkVM", "semantic-validation", "Meta-Bell"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Security :: Cryptography",
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+kaspa = ["aiohttp>=3.9"]
+dev   = ["pytest>=7", "flake8>=6"]
+
+[project.urls]
+Homepage      = "https://agentsprotocol.org"
+Repository    = "https://github.com/fatdinhero/agentsprotocol"
+Documentation = "https://agentsprotocol.org/docs"
+DOI           = "https://doi.org/10.5281/zenodo.19642292"
+
+[project.scripts]
+agentsprotocol = "agentsprotocol.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agentsprotocol = ["py.typed"]
