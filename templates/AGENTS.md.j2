@@ -14,5 +14,20 @@ https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 
 ## ADR Index
 {% for adr in masterplan.adrs %}
-- [{{ adr.id }}] {{ adr.title }} ({{ adr.status }})
+- [{{ adr.id }}] {{ adr.title }} ({{ adr.status }}){% if adr.superseded_by %} → ersetzt durch {{ adr.superseded_by }}{% endif %}
+
 {% endfor %}
+
+{% if masterplan.privacy_invariants %}
+## Privacy-Invarianten (UNVERRUECKBAR)
+{% for inv in masterplan.privacy_invariants %}
+- **{{ inv.id }}**: {{ inv.description }}
+{% endfor %}
+{% endif %}
+
+{% if masterplan.iso_23894_risks %}
+## Bekannte Risiken
+{% for risk in masterplan.iso_23894_risks %}
+- **{{ risk.id }}** ({{ risk.probability }}): {{ risk.description }}
+{% endfor %}
+{% endif %}
