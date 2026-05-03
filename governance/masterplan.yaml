@@ -1,0 +1,154 @@
+version: "1.2.0"
+generated: "2026-05-03T12:00:00Z"
+author: "Fatih Dinc"
+organization: "datalabel.tech"
+repository: "https://gitlab.com/fatdinhero/cognitum"
+constitution: "constitution.md"
+glossary: "glossary.md"
+
+adrs:
+  - id: "ADR-2026-05-03-001"
+    title: "Annahme des DaySensOS-Konstruktionsprotokolls"
+    status: accepted
+    date: "2026-05-03"
+    context: "Verbindlicher Entwicklungsstandard nach VDI 2221/2222/2225"
+    decision: "Protokoll als systemischer Gate-Mechanismus uebernommen"
+    consequences: "Jede Implementierungsentscheidung durchlaeuft morphologisches Gate"
+    links:
+      upstream: []
+      downstream: ["ADR-2026-05-03-003"]
+  - id: "ADR-2026-05-03-002"
+    title: "G2G Cert AI als externer Compliance-Pruefservice"
+    status: deprecated
+    date: "2026-05-03"
+    context: "Evaluierung der G2G-Integration"
+    decision: "Externer Pruefservice per API"
+    consequences: "Wurde durch ADR-003 revidiert"
+    superseded_by: "ADR-2026-05-03-003"
+    links:
+      upstream: ["ADR-2026-05-03-001"]
+      downstream: ["ADR-2026-05-03-003"]
+  - id: "ADR-2026-05-03-003"
+    title: "Make-or-Buy COGNITUM Norm-Adapter statt G2G"
+    status: accepted
+    date: "2026-05-03"
+    context: "G2G verletzt Zero-Retention. Eigenentwicklung."
+    decision: "CNA, YAML-Regelwerk + zkVM-Proof"
+    consequences: "CNA als MCP-Server. Keine G2G-Abhaengigkeit."
+    links:
+      upstream: ["ADR-2026-05-03-002"]
+      downstream: ["ADR-2026-05-03-004"]
+  - id: "ADR-2026-05-03-004"
+    title: "CNA v0.1 Architektur"
+    status: accepted
+    date: "2026-05-03"
+    context: "Erster Bauplan Norm-Adapter"
+    decision: "MCP-Server, YAML-Regeln, zkVM-Proof"
+    consequences: "Erste Anwendung GEG/KfW"
+    links:
+      upstream: ["ADR-2026-05-03-003"]
+      downstream: ["ADR-2026-05-03-005"]
+  - id: "ADR-2026-05-03-005"
+    title: "CNA v0.2 Morphologische Systemanalyse"
+    status: accepted
+    date: "2026-05-03"
+    context: "Multimodale Bedingungen, Consent-Gate"
+    decision: "Regeln referenzieren Sensorkanaele"
+    consequences: "CNA wird nativer COGNITUM-Buerger"
+    links:
+      upstream: ["ADR-2026-05-03-004"]
+      downstream: ["ADR-2026-05-03-006"]
+  - id: "ADR-2026-05-03-006"
+    title: "Lebendiger Masterplan YAML-SSoT-System"
+    status: accepted
+    date: "2026-05-03"
+    context: "YAML-zentrische Single Source of Truth"
+    decision: "masterplan.yaml, Pydantic+Yamale, Jinja2, Pandoc, GitLab-CI"
+    consequences: "Phase 7 Bootstrap abgeschlossen"
+    links:
+      upstream: ["ADR-2026-05-03-005"]
+      downstream: ["ADR-2026-05-03-007"]
+  - id: "ADR-2026-05-03-007"
+    title: "Tool-Auswahl SSoT-System"
+    status: accepted
+    date: "2026-05-03"
+    context: "VDI 2221 Phase 4 morphologische Bewertung"
+    decision: "Jinja2, Pandoc, Pydantic+Yamale, git-cliff, pytest+networkx"
+    consequences: "Alle Tools offline-first, Python-nativ"
+    links:
+      upstream: ["ADR-2026-05-03-006"]
+      downstream: []
+
+modules:
+  - id: "L1"
+    name: "Perception"
+    version: "0.9.0"
+    status: accepted
+    description: "8-Kanal multimodale Sensorfusion"
+    layer: "L1"
+    inputs: ["Kamera (Opt-In)","GPS","Accelerometer","Frequenzspektrum","Lichtsensor","BT-Scan","Bildschirmzeit-API","System-Uhr"]
+    outputs: ["Frequenzspektrum","GPS-Koordinaten","Bewegungsvektor","Consent-State"]
+    validation: "839 Tests, 97% Coverage"
+    coverage: 97.0
+    tests: 839
+    links: {upstream: [], downstream: ["L2"]}
+  - id: "L2"
+    name: "Situation"
+    version: "0.8.0"
+    status: accepted
+    description: "YAML-Regelwerk + optionaler RF-Classifier"
+    layer: "L2"
+    inputs: ["L1 Outputs"]
+    outputs: ["Context-ID","Confidence-Score"]
+    validation: "97% Coverage"
+    links: {upstream: ["L1"], downstream: ["L3"]}
+  - id: "L3"
+    name: "Episodes"
+    version: "0.8.0"
+    status: accepted
+    description: "Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer"
+    layer: "L3"
+    inputs: ["Context-IDs von L2"]
+    outputs: ["Episodes (history.db)"]
+    validation: "839 Tests gruen"
+    links: {upstream: ["L2"], downstream: ["L4"]}
+  - id: "L4"
+    name: "Features"
+    version: "0.8.0"
+    status: accepted
+    description: "Feature-Extraktion mit relativer 14-Tage-Normalisierung"
+    layer: "L4"
+    inputs: ["Episodes von L3"]
+    outputs: ["DayFeatures"]
+    validation: "100% Coverage"
+    links: {upstream: ["L3"], downstream: ["L5","CNA"]}
+  - id: "L5"
+    name: "Intelligence"
+    version: "0.8.0"
+    status: accepted
+    description: "DayScore, WellnessState, Evening Coach (Guided Journaling)"
+    layer: "L5"
+    inputs: ["DayFeatures von L4"]
+    outputs: ["DayScore","WellnessState","Recommendations"]
+    validation: "100% Coverage"
+    links: {upstream: ["L4"], downstream: []}
+  - id: "CNA"
+    name: "Norm-Adapter"
+    version: "0.2.0"
+    status: proposed
+    description: "Generischer Norm-Pruefadapter mit Consent-Gate"
+    layer: "L3-Compliance"
+    inputs: ["Merkmalsvektor von L4","Consent-State von L1"]
+    outputs: ["Konformitaetserklaerung","Pruefbericht","zkVM-Proof"]
+    validation: "Noch nicht implementiert"
+    links: {upstream: ["L4","L1"], downstream: []}
+
+exit_plan:
+  - {phase: "Phase 0", milestones: "v0.8.0 839 Tests DPMA ISO", asset_sale: "EUR 30k-250k", equity_round: "Nicht finanzierbar"}
+  - {phase: "Phase 1", milestones: "Multimodale Pipeline Smartphone NGI0", asset_sale: "EUR 300k-1.5M", equity_round: "EUR 2-5M"}
+  - {phase: "Phase 2", milestones: "500-2k Nutzer MRR B2B-Pilot", asset_sale: "EUR 2-8M", equity_round: "EUR 8-18M"}
+  - {phase: "Phase 3", milestones: "EUR 5-50k MRR B2B-Kunde", asset_sale: "EUR 10-40M", equity_round: "EUR 30-80M"}
+  - {phase: "Exit", milestones: "Retention Scale", asset_sale: "EUR 30-150M", equity_round: "EUR 100-500M+", comps: "Limitless Meta Bee Amazon Base44 Wix"}
+
+audit_trail:
+  - {timestamp: "2026-05-03T12:00:00Z", commit_sha: "initial", reason: "Phase 7 Bootstrap", adr_ref: "ADR-2026-05-03-006", actor: "Fatih Dinc"}

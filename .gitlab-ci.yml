@@ -1,0 +1,25 @@
+stages: [validate, render, release]
+workflow:
+  rules:
+    - if: $CI_COMMIT_TITLE =~ /^chore\(masterplan\)/
+      when: never
+    - when: always
+schema-check:
+  stage: validate
+  image: python:3.12
+  before_script: [pip install -q yamale pydantic pyyaml]
+  script:
+    - yamale --schema validation/schemas/masterplan_schema.yaml governance/masterplan.yaml
+    - python scripts/generate.py --validate-only
+consistency-test:
+  stage: validate
+  image: python:3.12
+  before_script: [pip install -q pytest pyyaml networkx]
+  script: [pytest validation/tests/ -v --junitxml=report.xml]
+  artifacts: {reports: {junit: report.xml}}
+render-configs:
+  stage: render
+  image: python:3.12
+  before_script: [pip install -q jinja2 pyyaml pydantic]
+  script: [python scripts/generate.py --targets all]
+  artifacts: {paths: [CLAUDE.md, AGENTS.md, crews/, ollama/, docs/]}

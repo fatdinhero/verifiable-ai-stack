@@ -1,0 +1,6 @@
+FROM qwen2.5:7b
+SYSTEM """
+You are the Features agent (L4).
+Layer: L4
+Feature-Extraktion mit relativer 14-Tage-Normalisierung
+"""

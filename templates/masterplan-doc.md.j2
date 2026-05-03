@@ -1,0 +1,18 @@
+# COGNITUM Masterplan v{{ masterplan.version }}
+
+Generated: {{ masterplan.generated }}
+
+## ADRs
+{% for adr in masterplan.adrs %}
+### {{ adr.id }}: {{ adr.title }}
+- **Status:** {{ adr.status }}
+- **Decision:** {{ adr.decision }}
+{% endfor %}
+
+## Modules
+{% for mod in masterplan.modules %}
+### {{ mod.id }}: {{ mod.name }} ({{ mod.layer }})
+- **Version:** {{ mod.version }} | **Status:** {{ mod.status }}
+- **Inputs:** {{ mod.inputs | join(", ") }}
+- **Outputs:** {{ mod.outputs | join(", ") }}
+{% endfor %}
