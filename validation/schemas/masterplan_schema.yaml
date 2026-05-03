@@ -5,6 +5,7 @@ organization: str(required=True)
 repository: str(required=True)
 constitution: str(required=True)
 glossary: str(required=True)
+constitution_articles: list(include('constitution_article'), required=False)
 adrs: list(include('adr'), required=False)
 modules: list(include('module'), required=False)
 iso_25010: list(include('iso25010_char'), required=False)
@@ -13,6 +14,10 @@ privacy_invariants: list(include('privacy_inv'), required=False)
 exit_plan: list(include('exit_phase'), required=False)
 audit_trail: list(include('audit_entry'), required=False)
 ---
+constitution_article:
+  id: int(required=True)
+  title: str(required=True)
+  text: str(required=True)
 adr:
   id: str(required=True)
   title: str(required=True)

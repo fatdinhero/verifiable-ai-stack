@@ -14,6 +14,11 @@ class LinkSet(BaseModel):
     upstream: List[str] = Field(default_factory=list)
     downstream: List[str] = Field(default_factory=list)
 
+class ConstitutionArticle(BaseModel):
+    id: int = Field(..., ge=1)
+    title: str
+    text: str
+
 class ADR(BaseModel):
     id: str = Field(..., pattern=r"^ADR-\d{4}-\d{2}-\d{2}-\d{3}$")
     title: str
@@ -100,6 +105,7 @@ class Masterplan(BaseModel):
     repository: str = "https://gitlab.com/fatdinhero/cognitum"
     constitution: str = "constitution.md"
     glossary: str = "glossary.md"
+    constitution_articles: List[ConstitutionArticle] = Field(default_factory=list)
     adrs: List[ADR] = Field(default_factory=list)
     modules: List[Module] = Field(default_factory=list)
     iso_25010: List[Iso25010Characteristic] = Field(default_factory=list)

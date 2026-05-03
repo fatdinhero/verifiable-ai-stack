@@ -1,6 +1,6 @@
 # CLAUDE.md – COGNITUM Projektkonfiguration
 
-> Auto-generiert aus masterplan.yaml v1.3.0 am 2026-05-03T18:00:00Z
+> Auto-generiert aus masterplan.yaml v1.4.0 am 2026-05-03T20:00:00Z
 > NICHT MANUELL EDITIEREN. Aenderungen nur ueber governance/masterplan.yaml.
 
 ## WICHTIG: Immer aktuellen Masterplan laden
@@ -9,9 +9,20 @@ Vor jeder Arbeit in diesem Projekt MUSS der aktuelle Masterplan gelesen werden:
 https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Module und Regeln.
 
-## Verfassung
-Die globale Verfassung ist in `constitution.md` definiert.
-Glossar: `glossary.md`
+## Verfassung (13 Artikel)
+1. **Privacy-First**: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.
+2. **Per-Sensor-Consent**: Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF.
+3. **Local-First**: Keine Cloud-Abhaengigkeit. Alle Kernfunktionen muessen offline funktionieren.
+4. **Morphologisches Gate**: Jede Funktionsentscheidung durchlaeuft VDI 2221/2222/2225 Konstruktionsprotokoll.
+5. **ADR-Pflicht**: Keine Implementierung ohne dokumentierte Architekturentscheidung (ADR).
+6. **Halal-Gate**: AAOIFI 6-Faktor-Screening auf alle Revenue-Streams.
+7. **Zakat**: 2.5% automatische Berechnung auf alle Einnahmen.
+8. **OTS-First**: OpenTimestamps-Anker vor jeder Veroeffentlichung.
+9. **SAFE Mode**: Externes Backup vor jeder destruktiven Aktion.
+10. **Golden ZIP**: Vollstaendige One-Shot-Deliverables.
+11. **Halluzinations-Kennzeichnung**: Jede LLM-generierte Aussage MUSS mit Confidence-Score >= 0.8 ODER explizitem [Unverified]-Marker ausgegeben werden. Keine Erfindung von Normen, Zahlen, Paragrafen.
+12. **Output-Format-Regeln**: Jeder Agent-Output MUSS strukturiert sein: { summary, detail, sources[], confidence }. Kein reiner Fliesstext bei sicherheitsrelevanten Ausgaben.
+13. **Glossar-Verweis**: Alle fachspezifischen Begriffe MUESSEN mit Verweis auf glossary.md versehen werden. Kein Term wird ohne Definition verwendet.
 
 ## Aktive ADRs
 | ID | Titel | Status |
@@ -34,7 +45,7 @@ Glossar: `glossary.md`
 | L3 | Episodes SQLite | L3 | 0.8.0 | accepted |
 | L4 | Features Engineer | L4 | 0.8.0 | accepted |
 | L5 | Intelligence DayScore | L5 | 0.8.0 | accepted |
-| CNA | COGNITUM Norm-Adapter | L3-Compliance | 0.2.0 | proposed |
+| CNA | COGNITUM Norm-Adapter | L3-Compliance | 0.3.0 | proposed |
 
 ## ISO 25010 Qualitaetsstatus
 ### Funktionale Eignung
@@ -81,7 +92,7 @@ Glossar: `glossary.md`
 | RISK-02 | RF-Classifier in L2 produziert diskriminierende Kontextklassifikation | medium | Primaer YAML-Regelwerk. RF nur optional. Fairness-Tests als Privacy-Invariante | accepted |
 | RISK-03 | SQLite-Datenbank in L3 wird von Drittapp exfiltriert | medium | SQLCipher-Verschluesselung. Android Scoped Storage. Kein Export ohne expliziten User-Intent | proposed |
 | RISK-04 | DayScore-Algorithmus erzeugt psychischen Druck durch Gamification | medium | Evening Coach als Guided Journaling statt Ranking. Keine Streaks. Kein Leaderboard | accepted |
-| RISK-05 | Ollama-Modell halluziniert in Evening Coach Recommendations | high | LLM nur fuer Formulierung, nicht fuer medizinische Aussagen. Disclaimer. Fakten aus L4-Features | accepted |
+| RISK-05 | Ollama-Modell halluziniert in Evening Coach Recommendations | high | LLM nur fuer Formulierung, nicht fuer medizinische Aussagen. Disclaimer. Fakten aus L4-Features. Art. 11 Halluzinations-Kennzeichnung | accepted |
 | RISK-06 | zkVM-Proof in CNA ist zu rechenintensiv fuer Smartphone | medium | Proof-Generierung optional asynchron. Fallback auf signierte YAML-Attestation | proposed |
 | RISK-07 | Solo-Entwickler-Risiko: Bus-Faktor 1 | high | SSoT-Pipeline macht Repo selbstdokumentierend. CLAUDE.md und AGENTS.md als Onboarding. IP via OTS gesichert | accepted |
 
@@ -93,6 +104,9 @@ Glossar: `glossary.md`
 - **PRIV-05**: SQLite-DB nicht durch Drittapps lesbar
 - **PRIV-06**: Keine biometrischen Daten in DayFeatures
 - **PRIV-07**: Audit-Trail enthaelt keine personenbezogenen Daten
+- **PRIV-08**: DSAR-Funktion: Auskunft, Berichtigung, Loeschung innerhalb 30 Tage
+- **PRIV-09**: Verschluesselung ruhend (SQLCipher) und im Transport (TLS 1.3)
+- **PRIV-10**: Membership-Inference-Schutz: DayGraph-Export gegen MIA robust
 
 > WARNUNG: Jede Code-Aenderung die eine Privacy-Invariante verletzt ist VERBOTEN.
 

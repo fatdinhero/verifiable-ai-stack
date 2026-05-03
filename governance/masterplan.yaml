@@ -1,10 +1,51 @@
-version: "1.3.0"
-generated: "2026-05-03T18:00:00Z"
+version: "1.4.0"
+generated: "2026-05-03T20:00:00Z"
 author: "Fatih Dinc"
 organization: "datalabel.tech"
 repository: "https://gitlab.com/fatdinhero/cognitum"
 constitution: "constitution.md"
 glossary: "glossary.md"
+
+constitution_articles:
+  - id: 1
+    title: "Privacy-First"
+    text: "Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet."
+  - id: 2
+    title: "Per-Sensor-Consent"
+    text: "Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF."
+  - id: 3
+    title: "Local-First"
+    text: "Keine Cloud-Abhaengigkeit. Alle Kernfunktionen muessen offline funktionieren."
+  - id: 4
+    title: "Morphologisches Gate"
+    text: "Jede Funktionsentscheidung durchlaeuft VDI 2221/2222/2225 Konstruktionsprotokoll."
+  - id: 5
+    title: "ADR-Pflicht"
+    text: "Keine Implementierung ohne dokumentierte Architekturentscheidung (ADR)."
+  - id: 6
+    title: "Halal-Gate"
+    text: "AAOIFI 6-Faktor-Screening auf alle Revenue-Streams."
+  - id: 7
+    title: "Zakat"
+    text: "2.5% automatische Berechnung auf alle Einnahmen."
+  - id: 8
+    title: "OTS-First"
+    text: "OpenTimestamps-Anker vor jeder Veroeffentlichung."
+  - id: 9
+    title: "SAFE Mode"
+    text: "Externes Backup vor jeder destruktiven Aktion."
+  - id: 10
+    title: "Golden ZIP"
+    text: "Vollstaendige One-Shot-Deliverables."
+  - id: 11
+    title: "Halluzinations-Kennzeichnung"
+    text: "Jede LLM-generierte Aussage MUSS mit Confidence-Score >= 0.8 ODER explizitem [Unverified]-Marker ausgegeben werden. Keine Erfindung von Normen, Zahlen, Paragrafen."
+  - id: 12
+    title: "Output-Format-Regeln"
+    text: "Jeder Agent-Output MUSS strukturiert sein: { summary, detail, sources[], confidence }. Kein reiner Fliesstext bei sicherheitsrelevanten Ausgaben."
+  - id: 13
+    title: "Glossar-Verweis"
+    text: "Alle fachspezifischen Begriffe MUESSEN mit Verweis auf glossary.md versehen werden. Kein Term wird ohne Definition verwendet."
 
 adrs:
   - id: "ADR-2026-05-03-001"
@@ -155,16 +196,80 @@ modules:
 
   - id: "CNA"
     name: "COGNITUM Norm-Adapter"
-    version: "0.2.0"
+    version: "0.3.0"
     status: proposed
-    description: "Generischer Norm-Pruefadapter mit Consent-Gate"
+    description: "Generischer Norm-Pruefadapter mit Consent-Gate und zkVM-Proof"
     layer: "L3-Compliance"
-    inputs: ["Merkmalsvektor von L4", "Consent-State von L1"]
+    inputs: ["Merkmalsvektor von L4", "Consent-State von L1", "Sensordaten von L1"]
     outputs: ["Konformitaetserklaerung", "Pruefbericht", "zkVM-Proof"]
     validation: "Noch nicht implementiert"
     links:
       upstream: ["L4", "L1"]
       downstream: []
+    norms:
+      - id: "geg_71_abstand_grundstuecksgrenze"
+        description: "GEG Paragraph 71: Abstand WP-Aussengeraet zur Grundstuecksgrenze >= 3.0m"
+        sensor_requirements:
+          - { sensor: "GPS", required: true, consent: false }
+          - { sensor: "Kamera", required: true, consent: true }
+        condition_yaml: "gps_distance_to_boundary > 3.0"
+      - id: "geg_71_schallschutz_tag"
+        description: "GEG Paragraph 71 / TA Laerm: Tagpegel (6-22h) <= 50 dB(A) in Wohngebieten"
+        sensor_requirements:
+          - { sensor: "Mikrofon-Frequenzspektrum", required: true, consent: false }
+        condition_yaml: "sound_pressure_db <= 50 AND context_time == 'day'"
+      - id: "geg_71_schallschutz_nacht"
+        description: "GEG Paragraph 71 / TA Laerm: Nachtpegel (22-6h) <= 35 dB(A)"
+        sensor_requirements:
+          - { sensor: "Mikrofon-Frequenzspektrum", required: true, consent: false }
+        condition_yaml: "sound_pressure_db <= 35 AND context_time == 'night'"
+      - id: "geg_72_effizienz_jaz"
+        description: "GEG Paragraph 72: Jahresarbeitszahl (JAZ) >= 3.5 fuer Luft-WP"
+        sensor_requirements:
+          - { sensor: "Kamera", required: true, consent: true }
+          - { sensor: "Stromzaehler", required: true, consent: false }
+        condition_yaml: "jaz_calculated >= 3.5"
+      - id: "kfw_beg_vorlauftemperatur"
+        description: "KfW-BEG: Max. Vorlauftemperatur <= 55 Grad C fuer Foerderfaehigkeit"
+        sensor_requirements:
+          - { sensor: "Temperatursensor", required: true, consent: false }
+        condition_yaml: "flow_temp_max <= 55"
+      - id: "kfw_beg_heizstab_sperrzeit"
+        description: "KfW-BEG: Heizstab < 5% der Jahresbetriebsstunden"
+        sensor_requirements:
+          - { sensor: "Stromzaehler", required: true, consent: false }
+        condition_yaml: "heating_rod_hours / total_hours < 0.05"
+      - id: "ta_laerm_mischgebiet_tag"
+        description: "TA Laerm: Immissionsrichtwert Mischgebiet tags <= 55 dB(A)"
+        sensor_requirements:
+          - { sensor: "Mikrofon-Frequenzspektrum", required: true, consent: false }
+        condition_yaml: "ambient_noise_db <= 55 AND zone_type == 'mixed'"
+      - id: "ta_laerm_reines_wohngebiet_nacht"
+        description: "TA Laerm: Nachtpegel reines Wohngebiet <= 35 dB(A)"
+        sensor_requirements:
+          - { sensor: "Mikrofon-Frequenzspektrum", required: true, consent: false }
+        condition_yaml: "ambient_noise_db <= 35 AND zone_type == 'residential' AND context_time == 'night'"
+      - id: "vdi_4645_abstand_wand"
+        description: "VDI 4645: Abstand WP-Aussengeraet zur Hauswand >= 0.5m"
+        sensor_requirements:
+          - { sensor: "Kamera", required: true, consent: true }
+        condition_yaml: "camera_distance_wall >= 0.5"
+      - id: "vdi_4645_abstand_oeffnungen"
+        description: "VDI 4645: Keine Fenster/Tueren im Umkreis von 2m um Aussengeraet"
+        sensor_requirements:
+          - { sensor: "Kamera", required: true, consent: true }
+          - { sensor: "GPS", required: true, consent: false }
+        condition_yaml: "camera_clear_zone >= 2.0"
+      - id: "geg_74_dokumentation"
+        description: "GEG Paragraph 74: Vollstaendige Dokumentation aller Pruefpunkte"
+        sensor_requirements:
+          - { sensor: "System-Uhr", required: true, consent: false }
+        condition_yaml: "all_checks_passed == true AND report_complete == true"
+      - id: "kfw_beg_waermebruecken"
+        description: "KfW-BEG: Keine Waermebruecken > 0.2 W/(mK) an Schnittstellen"
+        sensor_requirements:
+          - { sensor: "Infrarot-Kamera", required: true, consent: true }
+        condition_yaml: "thermal_bridge_max < 0.2"
 
 iso_25010:
   - name: "Funktionale Eignung"
@@ -310,7 +415,7 @@ iso_23894_risks:
     description: "Ollama-Modell halluziniert in Evening Coach Recommendations"
     probability: high
     impact: "Falsche Gesundheits- oder Verhaltensempfehlungen"
-    mitigation: "LLM nur fuer Formulierung, nicht fuer medizinische Aussagen. Disclaimer. Fakten aus L4-Features"
+    mitigation: "LLM nur fuer Formulierung, nicht fuer medizinische Aussagen. Disclaimer. Fakten aus L4-Features. Art. 11 Halluzinations-Kennzeichnung"
     status: accepted
   - id: "RISK-06"
     description: "zkVM-Proof in CNA ist zu rechenintensiv fuer Smartphone"
@@ -354,6 +459,18 @@ privacy_invariants:
     description: "Audit-Trail enthaelt keine personenbezogenen Daten"
     test_tool: "pytest"
     test_method: "Audit-PII-Scan: Regex-Scan auf Email, Telefon, GPS-Koordinaten in audit_trail"
+  - id: "PRIV-08"
+    description: "DSAR-Funktion: Auskunft, Berichtigung, Loeschung innerhalb 30 Tage"
+    test_tool: "pytest"
+    test_method: "API-Endpoint-Test: GET /dsar/export und DELETE /dsar/data mit Auth"
+  - id: "PRIV-09"
+    description: "Verschluesselung ruhend (SQLCipher) und im Transport (TLS 1.3)"
+    test_tool: "pytest + openssl"
+    test_method: "TLS-Config-Test plus SQLite PRAGMA key-Check"
+  - id: "PRIV-10"
+    description: "Membership-Inference-Schutz: DayGraph-Export gegen MIA robust"
+    test_tool: "Hypothesis"
+    test_method: "Property-based: Gegner-Modell aus 100 Episoden darf kein Re-Identifikationsmerkmal enthalten"
 
 exit_plan:
   - phase: "Phase 0 (heute)"
@@ -385,7 +502,12 @@ audit_trail:
     adr_ref: "ADR-2026-05-03-006"
     actor: "Fatih Dinc"
   - timestamp: "2026-05-03T18:00:00Z"
-    commit_sha: "798cee34acfab273056ead4cca2b8a19d3eada94"
+    commit_sha: "5e6362d"
     reason: "v1.3.0 — ISO 25010, Risikoregister, Privacy-Invarianten, Template-Fixes"
     adr_ref: "ADR-2026-05-03-006"
+    actor: "Fatih Dinc"
+  - timestamp: "2026-05-03T20:00:00Z"
+    commit_sha: "pending"
+    reason: "v1.4.0 — Constitution-Artikel, PRIV-08 bis PRIV-10, 12 CNA-Norms (GEG/KfW/TA Laerm/VDI 4645)"
+    adr_ref: "ADR-2026-05-03-005"
     actor: "Fatih Dinc"

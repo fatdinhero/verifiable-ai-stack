@@ -9,9 +9,10 @@ Vor jeder Arbeit in diesem Projekt MUSS der aktuelle Masterplan gelesen werden:
 https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Module und Regeln.
 
-## Verfassung
-Die globale Verfassung ist in `{{ masterplan.constitution }}` definiert.
-Glossar: `{{ masterplan.glossary }}`
+## Verfassung ({{ masterplan.constitution_articles | length }} Artikel)
+{% for art in masterplan.constitution_articles %}
+{{ art.id }}. **{{ art.title }}**: {{ art.text }}
+{% endfor %}
 
 ## Aktive ADRs
 | ID | Titel | Status |

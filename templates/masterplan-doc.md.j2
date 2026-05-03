@@ -4,8 +4,13 @@
 **Author:** {{ masterplan.author }}
 **Organization:** {{ masterplan.organization }}
 **Repository:** {{ masterplan.repository }}
-**Constitution:** {{ masterplan.constitution }}
-**Glossary:** {{ masterplan.glossary }}
+
+---
+
+## Verfassung ({{ masterplan.constitution_articles | length }} Artikel)
+{% for art in masterplan.constitution_articles %}
+{{ art.id }}. **{{ art.title }}**: {{ art.text }}
+{% endfor %}
 
 ---
 
@@ -35,6 +40,14 @@
 {% endif %}{% if mod.tests is not none %}- **Tests:** {{ mod.tests }}
 {% endif %}- **Links:**{% if mod.links.upstream %} upstream → {{ mod.links.upstream | join(", ") }}{% endif %}{% if mod.links.downstream %} | downstream → {{ mod.links.downstream | join(", ") }}{% endif %}
 
+{% if mod.norms %}
+#### Norm-Regeln ({{ mod.norms | length }})
+{% for norm in mod.norms %}
+- **{{ norm.id }}**: {{ norm.description }}
+  - Sensoren: {{ norm.sensor_requirements | map(attribute='sensor') | join(', ') }}
+  - Bedingung: `{{ norm.condition_yaml }}`
+{% endfor %}
+{% endif %}
 {% endfor %}
 {% if masterplan.iso_25010 %}---
 

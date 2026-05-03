@@ -1,6 +1,6 @@
 # AGENTS.md – COGNITUM Multi-Agent-Konfiguration
 
-> Auto-generiert aus masterplan.yaml v1.3.0
+> Auto-generiert aus masterplan.yaml v1.4.0
 
 ## WICHTIG: Single Source of Truth
 
@@ -13,7 +13,7 @@ https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 - **L3** (Episodes SQLite): Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer [accepted]
 - **L4** (Features Engineer): Feature-Extraktion mit relativer 14-Tage-Normalisierung [accepted]
 - **L5** (Intelligence DayScore): DayScore, WellnessState, Evening Coach Guided Journaling [accepted]
-- **CNA** (COGNITUM Norm-Adapter): Generischer Norm-Pruefadapter mit Consent-Gate [proposed]
+- **CNA** (COGNITUM Norm-Adapter): Generischer Norm-Pruefadapter mit Consent-Gate und zkVM-Proof [proposed]
 
 ## ADR Index
 - [ADR-2026-05-03-001] Annahme des DaySensOS-Konstruktionsprotokolls (accepted)
@@ -32,6 +32,9 @@ https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 - **PRIV-05**: SQLite-DB nicht durch Drittapps lesbar
 - **PRIV-06**: Keine biometrischen Daten in DayFeatures
 - **PRIV-07**: Audit-Trail enthaelt keine personenbezogenen Daten
+- **PRIV-08**: DSAR-Funktion: Auskunft, Berichtigung, Loeschung innerhalb 30 Tage
+- **PRIV-09**: Verschluesselung ruhend (SQLCipher) und im Transport (TLS 1.3)
+- **PRIV-10**: Membership-Inference-Schutz: DayGraph-Export gegen MIA robust
 
 ## Bekannte Risiken
 - **RISK-01** (low): Sensor-Consent wird ignoriert oder umgangen

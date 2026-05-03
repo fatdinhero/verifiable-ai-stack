@@ -50,6 +50,71 @@ class TestMasterplanConsistency:
         assert not missing, f"Kein Test: {missing}"
 
 
+class TestConstitution:
+    @pytest.fixture(scope="class")
+    def masterplan(self): return load_masterplan()
+
+    def test_constitution_not_empty(self, masterplan):
+        arts = masterplan.get("constitution_articles", [])
+        assert len(arts) >= 10, f"Constitution braucht mindestens 10 Artikel, hat {len(arts)}"
+
+    def test_constitution_ids_sequential(self, masterplan):
+        ids = [a["id"] for a in masterplan.get("constitution_articles", [])]
+        expected = list(range(1, len(ids) + 1))
+        assert ids == expected, f"Artikel-IDs nicht sequentiell: {ids}"
+
+    def test_constitution_no_duplicate_titles(self, masterplan):
+        titles = [a["title"] for a in masterplan.get("constitution_articles", [])]
+        dupes = set(x for x in titles if titles.count(x) > 1)
+        assert not dupes, f"Doppelte Artikel-Titel: {dupes}"
+
+    def test_constitution_has_privacy_first(self, masterplan):
+        titles = [a["title"].lower() for a in masterplan.get("constitution_articles", [])]
+        assert any("privacy" in t for t in titles), "Constitution muss Privacy-Artikel enthalten"
+
+    def test_constitution_has_halluzination(self, masterplan):
+        titles = [a["title"].lower() for a in masterplan.get("constitution_articles", [])]
+        assert any("halluzin" in t for t in titles), "Art. 11 Halluzinations-Kennzeichnung fehlt"
+
+
+class TestCNANorms:
+    @pytest.fixture(scope="class")
+    def masterplan(self): return load_masterplan()
+
+    def test_cna_has_norms(self, masterplan):
+        cna = next((m for m in masterplan.get("modules", []) if m["id"] == "CNA"), None)
+        assert cna, "CNA-Modul fehlt"
+        norms = cna.get("norms", [])
+        assert len(norms) >= 10, f"CNA braucht mindestens 10 Norms, hat {len(norms)}"
+
+    def test_cna_norm_ids_unique(self, masterplan):
+        cna = next((m for m in masterplan.get("modules", []) if m["id"] == "CNA"), None)
+        ids = [n["id"] for n in cna.get("norms", [])]
+        dupes = set(x for x in ids if ids.count(x) > 1)
+        assert not dupes, f"Doppelte Norm-IDs: {dupes}"
+
+    def test_cna_norms_have_sensors(self, masterplan):
+        cna = next((m for m in masterplan.get("modules", []) if m["id"] == "CNA"), None)
+        missing = [n["id"] for n in cna.get("norms", [])
+                   if not n.get("sensor_requirements")]
+        assert not missing, f"Norms ohne Sensor-Requirements: {missing}"
+
+    def test_cna_norms_have_condition(self, masterplan):
+        cna = next((m for m in masterplan.get("modules", []) if m["id"] == "CNA"), None)
+        missing = [n["id"] for n in cna.get("norms", [])
+                   if not n.get("condition_yaml")]
+        assert not missing, f"Norms ohne Condition-YAML: {missing}"
+
+    def test_cna_norms_consent_sensors_flagged(self, masterplan):
+        cna = next((m for m in masterplan.get("modules", []) if m["id"] == "CNA"), None)
+        camera_norms = []
+        for n in cna.get("norms", []):
+            for sr in n.get("sensor_requirements", []):
+                if sr["sensor"] in ("Kamera", "Infrarot-Kamera") and not sr.get("consent"):
+                    camera_norms.append(f"{n['id']}/{sr['sensor']}")
+        assert not camera_norms, f"Kamera-Sensoren ohne consent=true: {camera_norms}"
+
+
 class TestISO25010:
     @pytest.fixture(scope="class")
     def masterplan(self): return load_masterplan()
@@ -108,7 +173,7 @@ class TestPrivacyInvariants:
 
     def test_privacy_not_empty(self, masterplan):
         privs = masterplan.get("privacy_invariants", [])
-        assert len(privs) > 0, "Privacy-Invarianten sind leer"
+        assert len(privs) >= 10, f"Privacy braucht mindestens 10 Invarianten, hat {len(privs)}"
 
     def test_privacy_id_format(self, masterplan):
         import re
@@ -126,6 +191,12 @@ class TestPrivacyInvariants:
                        for inv in masterplan.get("privacy_invariants", [])]
         assert any("zero-retention" in d for d in descriptions), \
             "PRIV mit Zero-Retention fehlt — Constitution-Verstoss"
+
+    def test_dsar_exists(self, masterplan):
+        descriptions = [inv.get("description", "").lower()
+                       for inv in masterplan.get("privacy_invariants", [])]
+        assert any("dsar" in d or "auskunft" in d for d in descriptions), \
+            "PRIV mit DSAR-Funktion fehlt"
 
 
 class TestExitPlan:

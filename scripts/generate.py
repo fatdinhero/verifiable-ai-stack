@@ -34,7 +34,7 @@ def render(tpl, out, **ctx):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--targets", nargs="+", default=["all"],
-        choices=["claude_md","agents_md","crews","modelfiles","docs","all"])
+        choices=["claude_md","agents_md","crews","modelfiles","docs","constitution","all"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--validate-only", action="store_true")
     args = ap.parse_args()
@@ -57,6 +57,8 @@ def main():
             do("Modelfile.j2", ROOT/"ollama"/"modelfiles"/f"{mod['id'].lower()}.Modelfile", module=mod)
     if "all" in t or "docs" in t:
         do("masterplan-doc.md.j2", ROOT/"docs"/"masterplan.md")
+    if "all" in t or "constitution" in t:
+        do("constitution.md.j2", ROOT/"governance"/"constitution.md")
     print("\n✅ Generierung abgeschlossen." if not dr else "\n✅ Dry-Run abgeschlossen.")
 
 if __name__ == "__main__":

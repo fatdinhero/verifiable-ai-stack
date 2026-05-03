@@ -1,0 +1,8 @@
+# COGNITUM Constitution
+
+> Auto-generiert aus masterplan.yaml v{{ masterplan.version }}
+> NICHT MANUELL EDITIEREN.
+
+{% for art in masterplan.constitution_articles %}
+{{ art.id }}. **{{ art.title }}**: {{ art.text }}
+{% endfor %}
