@@ -1,0 +1,72 @@
+# DaySensOS — L2 Kontextregeln
+# Primaersystem: YAML-Regelwerk (VDI 2225 Score 3.60/4.00)
+# Regeln werden in Prioritaetsreihenfolge evaluiert. Erste matched gewinnt.
+
+rules:
+  # --- Schlaf ---
+  - id: "sleep_night_still"
+    context: "sleep"
+    confidence: 0.9
+    conditions:
+      - { field: "movement_magnitude", op: "lt", value: 0.3 }
+      - { field: "light_lux", op: "lt", value: 10 }
+      - { field: "screen_time_min", op: "lte", value: 0 }
+
+  # --- Deep Work ---
+  - id: "deep_work_screen_still"
+    context: "deep_work"
+    confidence: 0.85
+    conditions:
+      - { field: "screen_time_min", op: "gt", value: 20 }
+      - { field: "movement_magnitude", op: "lt", value: 0.5 }
+      - { field: "bt_device_count", op: "lte", value: 2 }
+
+  # --- Meeting ---
+  - id: "meeting_social_indoor"
+    context: "meeting"
+    confidence: 0.75
+    conditions:
+      - { field: "bt_device_count", op: "gte", value: 3 }
+      - { field: "movement_magnitude", op: "lt", value: 1.0 }
+      - { field: "poi_context", op: "eq", value: "office" }
+
+  # --- Exercise ---
+  - id: "exercise_high_movement"
+    context: "exercise"
+    confidence: 0.85
+    conditions:
+      - { field: "movement_magnitude", op: "gt", value: 3.0 }
+
+  # --- Commute ---
+  - id: "commute_moderate_movement"
+    context: "commute"
+    confidence: 0.7
+    conditions:
+      - { field: "movement_magnitude", op: "gt", value: 1.0 }
+      - { field: "movement_magnitude", op: "lt", value: 3.0 }
+      - { field: "screen_time_min", op: "lte", value: 5 }
+
+  # --- Social ---
+  - id: "social_many_devices"
+    context: "social"
+    confidence: 0.7
+    conditions:
+      - { field: "bt_device_count", op: "gte", value: 3 }
+      - { field: "movement_magnitude", op: "lt", value: 2.0 }
+
+  # --- Light Work ---
+  - id: "light_work_screen"
+    context: "light_work"
+    confidence: 0.6
+    conditions:
+      - { field: "screen_time_min", op: "gt", value: 5 }
+      - { field: "movement_magnitude", op: "lt", value: 1.0 }
+
+  # --- Rest ---
+  - id: "rest_low_activity"
+    context: "rest"
+    confidence: 0.5
+    conditions:
+      - { field: "movement_magnitude", op: "lt", value: 0.5 }
+      - { field: "screen_time_min", op: "lte", value: 5 }
+      - { field: "light_lux", op: "gt", value: 10 }
