@@ -1,6 +1,6 @@
 # AGENTS.md – COGNITUM Multi-Agent-Konfiguration
 
-> Auto-generiert aus masterplan.yaml v1.4.0
+> Auto-generiert aus masterplan.yaml v1.4.1
 
 ## WICHTIG: Single Source of Truth
 
@@ -23,6 +23,7 @@ https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 - [ADR-2026-05-03-005] CNA v0.2 Integration der Morphologischen Systemanalyse (accepted)
 - [ADR-2026-05-03-006] Lebendiger Masterplan YAML-SSoT-System (accepted)
 - [ADR-2026-05-03-007] Tool-Auswahl fuer das Masterplan-SSoT-System (accepted)
+- [ADR-2026-05-03-008] Naechster Produktschritt: CNA CLI vor NGI0 und Smartphone MVP (accepted)
 
 ## Privacy-Invarianten (UNVERRUECKBAR)
 - **PRIV-01**: Zero-Retention: Keine Nutzerdaten verlassen das Geraet

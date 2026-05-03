@@ -1,13 +1,13 @@
-# COGNITUM Masterplan v1.4.0
+# COGNITUM Masterplan v1.4.1
 
-**Generated:** 2026-05-03T20:00:00Z
+**Generated:** 2026-05-03T21:00:00Z
 **Author:** Fatih Dinc
 **Organization:** datalabel.tech
 **Repository:** https://gitlab.com/fatdinhero/cognitum
 
 ---
 
-## Verfassung (13 Artikel)
+## Verfassung (14 Artikel)
 1. **Privacy-First**: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.
 2. **Per-Sensor-Consent**: Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF.
 3. **Local-First**: Keine Cloud-Abhaengigkeit. Alle Kernfunktionen muessen offline funktionieren.
@@ -21,6 +21,7 @@
 11. **Halluzinations-Kennzeichnung**: Jede LLM-generierte Aussage MUSS mit Confidence-Score >= 0.8 ODER explizitem [Unverified]-Marker ausgegeben werden. Keine Erfindung von Normen, Zahlen, Paragrafen.
 12. **Output-Format-Regeln**: Jeder Agent-Output MUSS strukturiert sein: { summary, detail, sources[], confidence }. Kein reiner Fliesstext bei sicherheitsrelevanten Ausgaben.
 13. **Glossar-Verweis**: Alle fachspezifischen Begriffe MUESSEN mit Verweis auf glossary.md versehen werden. Kein Term wird ohne Definition verwendet.
+14. **Morphologisches Entscheidungsprotokoll**: Jede Entscheidung (Produkt, Architektur, Priorisierung) MUSS den morphologischen Kasten (VDI 2221) und die Bewertungsmatrix (VDI 2225) durchlaufen. Agenten liefern begruendete Empfehlungen, keine Optionslisten.
 
 ---
 
@@ -75,6 +76,13 @@
 - **Decision:** Jinja2, Pandoc, Pydantic plus Yamale, git-cliff, pytest plus networkx
 - **Consequences:** Alle Tools offline-first, Python-nativ, CI-freundlich.
 - **Links:** upstream → ADR-2026-05-03-006
+### ADR-2026-05-03-008: Naechster Produktschritt: CNA CLI vor NGI0 und Smartphone MVP
+- **Status:** accepted
+- **Date:** 2026-05-03
+- **Context:** Drei Kandidaten fuer naechsten Schritt nach Governance v1.4.0: NGI0-Antrag, CNA CLI Gumroad, Smartphone MVP
+- **Decision:** CNA CLI zuerst (VDI 2225 Score 3.65). NGI0 danach (3.10). Phone MVP nach Funding (2.10). Begruendung: YAML-Regeln existieren, Wrapper minimal, Revenue in 3-5 Tagen moeglich.
+- **Consequences:** CNA CLI wird als erstes verkaufbares Produkt auf Gumroad gebaut. NGI0-Antrag folgt nach erstem Revenue-Signal.
+- **Links:** upstream → ADR-2026-05-03-005
 ---
 
 ## Module
@@ -247,3 +255,4 @@
 | 2026-05-03T12:00:00Z | initial | Phase 7 Bootstrap alle Artefakte deployt | ADR-2026-05-03-006 | Fatih Dinc |
 | 2026-05-03T18:00:00Z | 5e6362d | v1.3.0 — ISO 25010, Risikoregister, Privacy-Invarianten, Template-Fixes | ADR-2026-05-03-006 | Fatih Dinc |
 | 2026-05-03T20:00:00Z | pending | v1.4.0 — Constitution-Artikel, PRIV-08 bis PRIV-10, 12 CNA-Norms (GEG/KfW/TA Laerm/VDI 4645) | ADR-2026-05-03-005 | Fatih Dinc |
+| 2026-05-03T21:00:00Z | pending | v1.4.1 — Art. 14 Morphologisches Entscheidungsprotokoll, ADR-008 CNA-CLI-Priorisierung | ADR-2026-05-03-008 | Fatih Dinc |

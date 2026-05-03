@@ -1,6 +1,6 @@
 # CLAUDE.md – COGNITUM Projektkonfiguration
 
-> Auto-generiert aus masterplan.yaml v1.4.0 am 2026-05-03T20:00:00Z
+> Auto-generiert aus masterplan.yaml v1.4.1 am 2026-05-03T21:00:00Z
 > NICHT MANUELL EDITIEREN. Aenderungen nur ueber governance/masterplan.yaml.
 
 ## WICHTIG: Immer aktuellen Masterplan laden
@@ -9,7 +9,7 @@ Vor jeder Arbeit in diesem Projekt MUSS der aktuelle Masterplan gelesen werden:
 https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
 Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Module und Regeln.
 
-## Verfassung (13 Artikel)
+## Verfassung (14 Artikel)
 1. **Privacy-First**: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.
 2. **Per-Sensor-Consent**: Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF.
 3. **Local-First**: Keine Cloud-Abhaengigkeit. Alle Kernfunktionen muessen offline funktionieren.
@@ -23,6 +23,7 @@ Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Modul
 11. **Halluzinations-Kennzeichnung**: Jede LLM-generierte Aussage MUSS mit Confidence-Score >= 0.8 ODER explizitem [Unverified]-Marker ausgegeben werden. Keine Erfindung von Normen, Zahlen, Paragrafen.
 12. **Output-Format-Regeln**: Jeder Agent-Output MUSS strukturiert sein: { summary, detail, sources[], confidence }. Kein reiner Fliesstext bei sicherheitsrelevanten Ausgaben.
 13. **Glossar-Verweis**: Alle fachspezifischen Begriffe MUESSEN mit Verweis auf glossary.md versehen werden. Kein Term wird ohne Definition verwendet.
+14. **Morphologisches Entscheidungsprotokoll**: Jede Entscheidung (Produkt, Architektur, Priorisierung) MUSS den morphologischen Kasten (VDI 2221) und die Bewertungsmatrix (VDI 2225) durchlaufen. Agenten liefern begruendete Empfehlungen, keine Optionslisten.
 
 ## Aktive ADRs
 | ID | Titel | Status |
@@ -33,6 +34,7 @@ Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Modul
 | ADR-2026-05-03-005 | CNA v0.2 Integration der Morphologischen Systemanalyse | accepted |
 | ADR-2026-05-03-006 | Lebendiger Masterplan YAML-SSoT-System | accepted |
 | ADR-2026-05-03-007 | Tool-Auswahl fuer das Masterplan-SSoT-System | accepted |
+| ADR-2026-05-03-008 | Naechster Produktschritt: CNA CLI vor NGI0 und Smartphone MVP | accepted |
 
 ### Deprecated ADRs
 - ~~ADR-2026-05-03-002: G2G Cert AI als externer Compliance-Pruefservice~~ → ersetzt durch ADR-2026-05-03-003

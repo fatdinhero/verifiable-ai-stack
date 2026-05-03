@@ -1,6 +1,6 @@
 # COGNITUM Constitution
 
-> Auto-generiert aus masterplan.yaml v1.4.0
+> Auto-generiert aus masterplan.yaml v1.4.1
 > NICHT MANUELL EDITIEREN.
 
 1. **Privacy-First**: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.
@@ -16,3 +16,4 @@
 11. **Halluzinations-Kennzeichnung**: Jede LLM-generierte Aussage MUSS mit Confidence-Score >= 0.8 ODER explizitem [Unverified]-Marker ausgegeben werden. Keine Erfindung von Normen, Zahlen, Paragrafen.
 12. **Output-Format-Regeln**: Jeder Agent-Output MUSS strukturiert sein: { summary, detail, sources[], confidence }. Kein reiner Fliesstext bei sicherheitsrelevanten Ausgaben.
 13. **Glossar-Verweis**: Alle fachspezifischen Begriffe MUESSEN mit Verweis auf glossary.md versehen werden. Kein Term wird ohne Definition verwendet.
+14. **Morphologisches Entscheidungsprotokoll**: Jede Entscheidung (Produkt, Architektur, Priorisierung) MUSS den morphologischen Kasten (VDI 2221) und die Bewertungsmatrix (VDI 2225) durchlaufen. Agenten liefern begruendete Empfehlungen, keine Optionslisten.
