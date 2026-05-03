@@ -6,3 +6,5 @@ dist/
 .env
 *.egg-info/
 .venv/
+daysensos-app/node_modules/
+daysensos-app/.expo/
