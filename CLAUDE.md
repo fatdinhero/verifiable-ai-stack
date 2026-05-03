@@ -1,8 +1,13 @@
 # CLAUDE.md – COGNITUM Projektkonfiguration
 
 > Auto-generiert aus masterplan.yaml v1.2.0 am 2026-05-03T12:00:00Z
-> Quelle: https://gitlab.com/fatdinhero/cognitum
 > NICHT MANUELL EDITIEREN. Aenderungen nur ueber governance/masterplan.yaml.
+
+## WICHTIG: Immer aktuellen Masterplan laden
+
+Vor jeder Arbeit in diesem Projekt MUSS der aktuelle Masterplan gelesen werden:
+https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
+Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Module und Regeln.
 
 ## Verfassung
 Die globale Verfassung ist in `constitution.md` definiert.
@@ -32,3 +37,4 @@ Die globale Verfassung ist in `constitution.md` definiert.
 2. Keine Implementierung ohne abgeschlossenes ADR.
 3. Privacy-Invarianten (Zero-Retention, Per-Sensor-Consent) sind unverrueckbar.
 4. Alle Entscheidungen als ADR dokumentieren.
+5. Nach jeder Entscheidung: masterplan.yaml aktualisieren und generate.py ausfuehren.

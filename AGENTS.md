@@ -2,6 +2,11 @@
 
 > Auto-generiert aus masterplan.yaml v1.2.0
 
+## WICHTIG: Single Source of Truth
+
+Alle Agenten in diesem System MUESSEN den aktuellen Masterplan lesen bevor sie arbeiten:
+https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
+
 ## Active Modules
 - **L1** (Perception): 8-Kanal multimodale Sensorfusion [Status.ACCEPTED]
 - **L2** (Situation RuleEngine): YAML-Regelwerk plus optionaler RF-Classifier [Status.ACCEPTED]

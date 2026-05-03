@@ -2,6 +2,11 @@
 
 > Auto-generiert aus masterplan.yaml v{{ masterplan.version }}
 
+## WICHTIG: Single Source of Truth
+
+Alle Agenten in diesem System MUESSEN den aktuellen Masterplan lesen bevor sie arbeiten:
+https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
+
 ## Active Modules
 {% for mod in masterplan.modules %}
 - **{{ mod.id }}** ({{ mod.name }}): {{ mod.description }} [{{ mod.status }}]
