@@ -4,6 +4,8 @@ workflow:
     - if: $CI_COMMIT_TITLE =~ /^chore\(masterplan\)/
       when: never
     - when: always
+
+# ─── Governance Validation ──────────────────────────────────
 schema-check:
   stage: validate
   image: python:3.12
@@ -12,16 +14,31 @@ schema-check:
   script:
     - yamale --schema validation/schemas/masterplan_schema.yaml governance/masterplan.yaml
     - python scripts/generate.py --validate-only
+
 consistency-test:
   stage: validate
   image: python:3.12
   before_script:
     - pip install -q pytest pyyaml networkx
   script:
-    - pytest validation/tests/ -v --junitxml=report.junit.xml
+    - pytest validation/tests/ -v --junitxml=report-governance.junit.xml
   artifacts:
     reports:
-      junit: report.junit.xml
+      junit: report-governance.junit.xml
+
+# ─── DaySensOS Product Tests ───────────────────────────────
+daysensos-test:
+  stage: validate
+  image: python:3.12
+  before_script:
+    - pip install -q pytest pydantic pyyaml fastapi uvicorn
+  script:
+    - pytest tests/ -v --junitxml=report-daysensos.junit.xml
+  artifacts:
+    reports:
+      junit: report-daysensos.junit.xml
+
+# ─── Artifact Rendering ───────────────────────────────────
 render-configs:
   stage: render
   image: python:3.12
