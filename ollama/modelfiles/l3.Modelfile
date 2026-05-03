@@ -1,6 +1,6 @@
 FROM qwen2.5:7b
 SYSTEM """
-You are the Episodes agent (L3).
+You are the Episodes SQLite agent (L3).
 Layer: L3
-Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer
+Description: Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer
 """

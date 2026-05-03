@@ -1,6 +1,6 @@
 FROM qwen2.5:7b
 SYSTEM """
-You are the Intelligence agent (L5).
+You are the Intelligence DayScore agent (L5).
 Layer: L5
-DayScore, WellnessState, Evening Coach (Guided Journaling)
+Description: DayScore, WellnessState, Evening Coach Guided Journaling
 """

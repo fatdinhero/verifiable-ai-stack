@@ -2,5 +2,5 @@ FROM qwen2.5:7b
 SYSTEM """
 You are the {{ module.name }} agent ({{ module.id }}).
 Layer: {{ module.layer }}
-{{ module.description }}
+Description: {{ module.description }}
 """

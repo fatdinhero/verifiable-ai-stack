@@ -2,10 +2,7 @@
 
 > Auto-generiert aus masterplan.yaml v{{ masterplan.version }}
 
-## Constitution
-See `{{ masterplan.constitution }}` for global rules.
-
-## Modules
+## Active Modules
 {% for mod in masterplan.modules %}
 - **{{ mod.id }}** ({{ mod.name }}): {{ mod.description }} [{{ mod.status }}]
 {% endfor %}

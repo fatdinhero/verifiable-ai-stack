@@ -1,6 +1,6 @@
 FROM qwen2.5:7b
 SYSTEM """
-You are the Situation agent (L2).
+You are the Situation RuleEngine agent (L2).
 Layer: L2
-YAML-Regelwerk + optionaler RF-Classifier
+Description: YAML-Regelwerk plus optionaler RF-Classifier
 """

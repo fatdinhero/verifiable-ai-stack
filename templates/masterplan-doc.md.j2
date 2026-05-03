@@ -11,8 +11,8 @@ Generated: {{ masterplan.generated }}
 
 ## Modules
 {% for mod in masterplan.modules %}
-### {{ mod.id }}: {{ mod.name }} ({{ mod.layer }})
-- **Version:** {{ mod.version }} | **Status:** {{ mod.status }}
+### {{ mod.id }}: {{ mod.name }}
+- **Layer:** {{ mod.layer }} | **Version:** {{ mod.version }} | **Status:** {{ mod.status }}
 - **Inputs:** {{ mod.inputs | join(", ") }}
 - **Outputs:** {{ mod.outputs | join(", ") }}
 {% endfor %}

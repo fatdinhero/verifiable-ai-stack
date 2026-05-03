@@ -2,5 +2,5 @@ FROM qwen2.5:7b
 SYSTEM """
 You are the Perception agent (L1).
 Layer: L1
-8-Kanal multimodale Sensorfusion
+Description: 8-Kanal multimodale Sensorfusion
 """

@@ -1,21 +1,21 @@
-# CrewAI Agents – Auto-generated from masterplan.yaml
+# CrewAI Agent Configuration – Auto-generated
 L1:
   role: "Perception Specialist"
-  goal: "Operate within L1 layer."
+  goal: "Operate within the L1 layer."
   backstory: "8-Kanal multimodale Sensorfusion"
 L2:
-  role: "Situation Specialist"
-  goal: "Operate within L2 layer."
-  backstory: "YAML-Regelwerk + optionaler RF-Classifier"
+  role: "Situation RuleEngine Specialist"
+  goal: "Operate within the L2 layer."
+  backstory: "YAML-Regelwerk plus optionaler RF-Classifier"
 L3:
-  role: "Episodes Specialist"
-  goal: "Operate within L3 layer."
+  role: "Episodes SQLite Specialist"
+  goal: "Operate within the L3 layer."
   backstory: "Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer"
 L4:
-  role: "Features Specialist"
-  goal: "Operate within L4 layer."
+  role: "Features Engineer Specialist"
+  goal: "Operate within the L4 layer."
   backstory: "Feature-Extraktion mit relativer 14-Tage-Normalisierung"
 L5:
-  role: "Intelligence Specialist"
-  goal: "Operate within L5 layer."
-  backstory: "DayScore, WellnessState, Evening Coach (Guided Journaling)"
+  role: "Intelligence DayScore Specialist"
+  goal: "Operate within the L5 layer."
+  backstory: "DayScore, WellnessState, Evening Coach Guided Journaling"

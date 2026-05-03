@@ -1,6 +1,8 @@
 # CLAUDE.md – COGNITUM Projektkonfiguration
 
 > Auto-generiert aus masterplan.yaml v{{ masterplan.version }} am {{ masterplan.generated }}
+> Quelle: {{ masterplan.repository }}
+> NICHT MANUELL EDITIEREN. Aenderungen nur ueber governance/masterplan.yaml.
 
 ## Verfassung
 Die globale Verfassung ist in `{{ masterplan.constitution }}` definiert.
@@ -19,8 +21,8 @@ Die globale Verfassung ist in `{{ masterplan.constitution }}` definiert.
 | {{ mod.id }} | {{ mod.name }} | {{ mod.layer }} | {{ mod.version }} | {{ mod.status }} |
 {% endfor %}
 
-## Konstruktionsregeln
-1. Morphologisches Analyse-Gate vor jeder Implementierung (VDI 2221/2222/2225).
-2. Keine Implementierung ohne ADR.
-3. Privacy-Invarianten (Zero-Retention, Per-Sensor-Consent) unverrückbar.
+## Verbindliche Konstruktionsregeln
+1. Vor jeder Implementierung: Morphologisches Analyse-Gate (VDI 2221/2222/2225).
+2. Keine Implementierung ohne abgeschlossenes ADR.
+3. Privacy-Invarianten (Zero-Retention, Per-Sensor-Consent) sind unverrueckbar.
 4. Alle Entscheidungen als ADR dokumentieren.

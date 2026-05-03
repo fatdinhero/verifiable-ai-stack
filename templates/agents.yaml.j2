@@ -1,7 +1,7 @@
-# CrewAI Agents – Auto-generated from masterplan.yaml
+# CrewAI Agent Configuration – Auto-generated
 {% for mod in masterplan.modules if mod.status == "accepted" %}
 {{ mod.id }}:
   role: "{{ mod.name }} Specialist"
-  goal: "Operate within {{ mod.layer }} layer."
+  goal: "Operate within the {{ mod.layer }} layer."
   backstory: "{{ mod.description }}"
 {% endfor %}

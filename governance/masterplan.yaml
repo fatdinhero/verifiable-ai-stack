@@ -17,6 +17,7 @@ adrs:
     links:
       upstream: []
       downstream: ["ADR-2026-05-03-003"]
+
   - id: "ADR-2026-05-03-002"
     title: "G2G Cert AI als externer Compliance-Pruefservice"
     status: deprecated
@@ -28,53 +29,58 @@ adrs:
     links:
       upstream: ["ADR-2026-05-03-001"]
       downstream: ["ADR-2026-05-03-003"]
+
   - id: "ADR-2026-05-03-003"
-    title: "Make-or-Buy COGNITUM Norm-Adapter statt G2G"
+    title: "Make-or-Buy COGNITUM Norm-Adapter statt G2G Cert AI"
     status: accepted
     date: "2026-05-03"
-    context: "G2G verletzt Zero-Retention. Eigenentwicklung."
-    decision: "CNA, YAML-Regelwerk + zkVM-Proof"
-    consequences: "CNA als MCP-Server. Keine G2G-Abhaengigkeit."
+    context: "G2G verletzt Zero-Retention. COGNITUM baut eigenen Norm-Adapter."
+    decision: "Eigenentwicklung CNA, YAML-Regelwerk plus zkVM-Proof"
+    consequences: "CNA wird als MCP-Server integriert."
     links:
       upstream: ["ADR-2026-05-03-002"]
       downstream: ["ADR-2026-05-03-004"]
+
   - id: "ADR-2026-05-03-004"
-    title: "CNA v0.1 Architektur"
+    title: "CNA v0.1 COGNITUM Norm-Adapter Architektur"
     status: accepted
     date: "2026-05-03"
-    context: "Erster Bauplan Norm-Adapter"
+    context: "Erster Bauplan fuer den Norm-Adapter"
     decision: "MCP-Server, YAML-Regeln, zkVM-Proof"
-    consequences: "Erste Anwendung GEG/KfW"
+    consequences: "Erste Anwendung GEG/KfW fuer Waermepumpen"
     links:
       upstream: ["ADR-2026-05-03-003"]
       downstream: ["ADR-2026-05-03-005"]
+
   - id: "ADR-2026-05-03-005"
-    title: "CNA v0.2 Morphologische Systemanalyse"
+    title: "CNA v0.2 Integration der Morphologischen Systemanalyse"
     status: accepted
     date: "2026-05-03"
-    context: "Multimodale Bedingungen, Consent-Gate"
-    decision: "Regeln referenzieren Sensorkanaele"
+    context: "Multimodale Bedingungen, Consent-Gate, Offline-Faehigkeit"
+    decision: "Regeln referenzieren Sensorkanaele. Per-Sensor-Consent respektiert."
     consequences: "CNA wird nativer COGNITUM-Buerger"
     links:
       upstream: ["ADR-2026-05-03-004"]
       downstream: ["ADR-2026-05-03-006"]
+
   - id: "ADR-2026-05-03-006"
     title: "Lebendiger Masterplan YAML-SSoT-System"
     status: accepted
     date: "2026-05-03"
-    context: "YAML-zentrische Single Source of Truth"
-    decision: "masterplan.yaml, Pydantic+Yamale, Jinja2, Pandoc, GitLab-CI"
-    consequences: "Phase 7 Bootstrap abgeschlossen"
+    context: "Architektur-Report bestaetigt YAML-zentrische Single Source of Truth"
+    decision: "masterplan.yaml als SSoT, Pydantic plus Yamale, Jinja2, Pandoc, GitLab-CI"
+    consequences: "Phase 7 Implementierung abgeschlossen."
     links:
       upstream: ["ADR-2026-05-03-005"]
       downstream: ["ADR-2026-05-03-007"]
+
   - id: "ADR-2026-05-03-007"
-    title: "Tool-Auswahl SSoT-System"
+    title: "Tool-Auswahl fuer das Masterplan-SSoT-System"
     status: accepted
     date: "2026-05-03"
-    context: "VDI 2221 Phase 4 morphologische Bewertung"
-    decision: "Jinja2, Pandoc, Pydantic+Yamale, git-cliff, pytest+networkx"
-    consequences: "Alle Tools offline-first, Python-nativ"
+    context: "Phase 4 VDI 2221 morphologische Bewertung aller Tools"
+    decision: "Jinja2, Pandoc, Pydantic plus Yamale, git-cliff, pytest plus networkx"
+    consequences: "Alle Tools offline-first, Python-nativ, CI-freundlich."
     links:
       upstream: ["ADR-2026-05-03-006"]
       downstream: []
@@ -86,69 +92,106 @@ modules:
     status: accepted
     description: "8-Kanal multimodale Sensorfusion"
     layer: "L1"
-    inputs: ["Kamera (Opt-In)","GPS","Accelerometer","Frequenzspektrum","Lichtsensor","BT-Scan","Bildschirmzeit-API","System-Uhr"]
-    outputs: ["Frequenzspektrum","GPS-Koordinaten","Bewegungsvektor","Consent-State"]
+    inputs: ["Kamera (Opt-In)", "GPS", "Accelerometer", "Mikrofon-Frequenzspektrum", "Lichtsensor", "BT-Scan", "Bildschirmzeit-API", "System-Uhr"]
+    outputs: ["Frequenzspektrum", "GPS-Koordinaten", "Bewegungsvektor", "Consent-State"]
     validation: "839 Tests, 97% Coverage"
+    links:
+      upstream: []
+      downstream: ["L2"]
     coverage: 97.0
     tests: 839
-    links: {upstream: [], downstream: ["L2"]}
+
   - id: "L2"
-    name: "Situation"
+    name: "Situation RuleEngine"
     version: "0.8.0"
     status: accepted
-    description: "YAML-Regelwerk + optionaler RF-Classifier"
+    description: "YAML-Regelwerk plus optionaler RF-Classifier"
     layer: "L2"
     inputs: ["L1 Outputs"]
-    outputs: ["Context-ID","Confidence-Score"]
+    outputs: ["Context-ID", "Confidence-Score"]
     validation: "97% Coverage"
-    links: {upstream: ["L1"], downstream: ["L3"]}
+    links:
+      upstream: ["L1"]
+      downstream: ["L3"]
+
   - id: "L3"
-    name: "Episodes"
+    name: "Episodes SQLite"
     version: "0.8.0"
     status: accepted
     description: "Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer"
     layer: "L3"
-    inputs: ["Context-IDs von L2"]
+    inputs: ["Context-IDs plus Timestamps von L2"]
     outputs: ["Episodes (history.db)"]
     validation: "839 Tests gruen"
-    links: {upstream: ["L2"], downstream: ["L4"]}
+    links:
+      upstream: ["L2"]
+      downstream: ["L4"]
+
   - id: "L4"
-    name: "Features"
+    name: "Features Engineer"
     version: "0.8.0"
     status: accepted
     description: "Feature-Extraktion mit relativer 14-Tage-Normalisierung"
     layer: "L4"
     inputs: ["Episodes von L3"]
-    outputs: ["DayFeatures"]
+    outputs: ["DayFeatures (focus, energy, social, movement)"]
     validation: "100% Coverage"
-    links: {upstream: ["L3"], downstream: ["L5","CNA"]}
+    links:
+      upstream: ["L3"]
+      downstream: ["L5", "CNA"]
+
   - id: "L5"
-    name: "Intelligence"
+    name: "Intelligence DayScore"
     version: "0.8.0"
     status: accepted
-    description: "DayScore, WellnessState, Evening Coach (Guided Journaling)"
+    description: "DayScore, WellnessState, Evening Coach Guided Journaling"
     layer: "L5"
     inputs: ["DayFeatures von L4"]
-    outputs: ["DayScore","WellnessState","Recommendations"]
+    outputs: ["DayScore (0-10)", "WellnessState", "Recommendations"]
     validation: "100% Coverage"
-    links: {upstream: ["L4"], downstream: []}
+    links:
+      upstream: ["L4"]
+      downstream: []
+
   - id: "CNA"
-    name: "Norm-Adapter"
+    name: "COGNITUM Norm-Adapter"
     version: "0.2.0"
     status: proposed
     description: "Generischer Norm-Pruefadapter mit Consent-Gate"
     layer: "L3-Compliance"
-    inputs: ["Merkmalsvektor von L4","Consent-State von L1"]
-    outputs: ["Konformitaetserklaerung","Pruefbericht","zkVM-Proof"]
+    inputs: ["Merkmalsvektor von L4", "Consent-State von L1"]
+    outputs: ["Konformitaetserklaerung", "Pruefbericht", "zkVM-Proof"]
     validation: "Noch nicht implementiert"
-    links: {upstream: ["L4","L1"], downstream: []}
+    links:
+      upstream: ["L4", "L1"]
+      downstream: []
 
 exit_plan:
-  - {phase: "Phase 0", milestones: "v0.8.0 839 Tests DPMA ISO", asset_sale: "EUR 30k-250k", equity_round: "Nicht finanzierbar"}
-  - {phase: "Phase 1", milestones: "Multimodale Pipeline Smartphone NGI0", asset_sale: "EUR 300k-1.5M", equity_round: "EUR 2-5M"}
-  - {phase: "Phase 2", milestones: "500-2k Nutzer MRR B2B-Pilot", asset_sale: "EUR 2-8M", equity_round: "EUR 8-18M"}
-  - {phase: "Phase 3", milestones: "EUR 5-50k MRR B2B-Kunde", asset_sale: "EUR 10-40M", equity_round: "EUR 30-80M"}
-  - {phase: "Exit", milestones: "Retention Scale", asset_sale: "EUR 30-150M", equity_round: "EUR 100-500M+", comps: "Limitless Meta Bee Amazon Base44 Wix"}
+  - phase: "Phase 0 (heute)"
+    milestones: "v0.8.0, 839 Tests, DPMA, ISO-Docs"
+    asset_sale: "EUR 30k-250k"
+    equity_round: "Nicht finanzierbar"
+  - phase: "Phase 1"
+    milestones: "Multimodale Pipeline plus Smartphone MVP plus NGI0"
+    asset_sale: "EUR 300k-1.5M"
+    equity_round: "EUR 2-5M"
+  - phase: "Phase 2"
+    milestones: "500-2k Nutzer, MRR, B2B-Pilot"
+    asset_sale: "EUR 2-8M"
+    equity_round: "EUR 8-18M"
+  - phase: "Phase 3"
+    milestones: "EUR 5-50k MRR, B2B-Kunde"
+    asset_sale: "EUR 10-40M"
+    equity_round: "EUR 30-80M"
+  - phase: "Exit"
+    milestones: "Retention plus Scale"
+    asset_sale: "EUR 30-150M"
+    equity_round: "EUR 100-500M+"
+    comps: "Limitless Meta, Bee Amazon, Humane HP, Base44 Wix"
 
 audit_trail:
-  - {timestamp: "2026-05-03T12:00:00Z", commit_sha: "initial", reason: "Phase 7 Bootstrap", adr_ref: "ADR-2026-05-03-006", actor: "Fatih Dinc"}
+  - timestamp: "2026-05-03T12:00:00Z"
+    commit_sha: "initial"
+    reason: "Phase 7 Bootstrap alle Artefakte deployt"
+    adr_ref: "ADR-2026-05-03-006"
+    actor: "Fatih Dinc"
