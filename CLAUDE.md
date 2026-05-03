@@ -119,3 +119,8 @@ Dieser Masterplan ist die Single Source of Truth fuer alle Entscheidungen, Modul
 4. Alle Entscheidungen als ADR dokumentieren.
 5. Nach jeder Entscheidung: masterplan.yaml aktualisieren und generate.py ausfuehren.
 6. Kein generiertes Artefakt manuell editieren.
+
+## WICHTIG: Produkt-Kontext lesen
+
+DaySensOS ist das KERNPRODUKT. Vor jeder produktbezogenen Arbeit:
+https://gitlab.com/fatdinhero/cognitum/-/raw/main/docs/daysensos-product-context.md
