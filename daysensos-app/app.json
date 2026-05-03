@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "DaySensOS",
+    "slug": "daysensos",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "daysensos",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "DaySensOS nutzt deinen Standort fuer Kontexterkennung. Daten bleiben lokal."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "DaySensOS kann optional die Kamera fuer visuelle Kontexterkennung nutzen. Default: AUS."
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "DaySensOS nutzt Bewegungsdaten fuer Aktivitaetserkennung."
+        }
+      ]
+    ],
+    "android": {
+      "package": "tech.datalabel.daysensos",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "BODY_SENSORS",
+        "PACKAGE_USAGE_STATS"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "tech.datalabel.daysensos",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "DaySensOS nutzt deinen Standort fuer Kontexterkennung.",
+        "NSLocationAlwaysUsageDescription": "DaySensOS nutzt deinen Standort im Hintergrund.",
+        "NSCameraUsageDescription": "Optional: Visuelle Kontexterkennung. Default AUS.",
+        "NSMicrophoneUsageDescription": "Optional: Frequenzspektrum. Kein Rohaudio. Default AUS.",
+        "NSMotionUsageDescription": "Bewegungsdaten fuer Aktivitaetserkennung."
+      }
+    }
+  }
+}
