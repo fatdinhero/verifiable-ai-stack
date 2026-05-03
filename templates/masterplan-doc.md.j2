@@ -1,18 +1,89 @@
 # COGNITUM Masterplan v{{ masterplan.version }}
 
-Generated: {{ masterplan.generated }}
+**Generated:** {{ masterplan.generated }}
+**Author:** {{ masterplan.author }}
+**Organization:** {{ masterplan.organization }}
+**Repository:** {{ masterplan.repository }}
+**Constitution:** {{ masterplan.constitution }}
+**Glossary:** {{ masterplan.glossary }}
+
+---
 
 ## ADRs
 {% for adr in masterplan.adrs %}
 ### {{ adr.id }}: {{ adr.title }}
 - **Status:** {{ adr.status }}
+- **Date:** {{ adr.date }}
+- **Context:** {{ adr.context }}
 - **Decision:** {{ adr.decision }}
-{% endfor %}
+- **Consequences:** {{ adr.consequences }}
+{% if adr.superseded_by %}- **Superseded by:** {{ adr.superseded_by }}
+{% endif %}- **Links:**{% if adr.links.upstream %} upstream → {{ adr.links.upstream | join(", ") }}{% endif %}{% if adr.links.downstream %} | downstream → {{ adr.links.downstream | join(", ") }}{% endif %}
 
-## Modules
+{% endfor %}
+---
+
+## Module
 {% for mod in masterplan.modules %}
 ### {{ mod.id }}: {{ mod.name }}
 - **Layer:** {{ mod.layer }} | **Version:** {{ mod.version }} | **Status:** {{ mod.status }}
+- **Description:** {{ mod.description }}
 - **Inputs:** {{ mod.inputs | join(", ") }}
 - **Outputs:** {{ mod.outputs | join(", ") }}
+{% if mod.validation %}- **Validation:** {{ mod.validation }}
+{% endif %}{% if mod.coverage is not none %}- **Coverage:** {{ mod.coverage }}%
+{% endif %}{% if mod.tests is not none %}- **Tests:** {{ mod.tests }}
+{% endif %}- **Links:**{% if mod.links.upstream %} upstream → {{ mod.links.upstream | join(", ") }}{% endif %}{% if mod.links.downstream %} | downstream → {{ mod.links.downstream | join(", ") }}{% endif %}
+
+{% endfor %}
+{% if masterplan.iso_25010 %}---
+
+## ISO 25010 Qualitaetsmerkmale
+{% for char in masterplan.iso_25010 %}
+### {{ char.name }}
+{% for sub in char.sub_characteristics %}
+- **{{ sub.name }}:** {{ sub.status }}{% if sub.test_marker %} (Test: `{{ sub.test_marker }}`){% endif %}{% if sub.notes %} — {{ sub.notes }}{% endif %}
+
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if masterplan.iso_23894_risks %}---
+
+## ISO 23894 Risikoregister
+| ID | Beschreibung | Wahrscheinlichkeit | Impact | Mitigation | Status |
+|----|-------------|-------------------|--------|------------|--------|
+{% for risk in masterplan.iso_23894_risks %}
+| {{ risk.id }} | {{ risk.description }} | {{ risk.probability }} | {{ risk.impact }} | {{ risk.mitigation }} | {{ risk.status }} |
+{% endfor %}
+{% endif %}
+{% if masterplan.privacy_invariants %}---
+
+## Privacy-Invarianten
+| ID | Beschreibung | Test-Tool | Test-Methode |
+|----|-------------|-----------|-------------|
+{% for inv in masterplan.privacy_invariants %}
+| {{ inv.id }} | {{ inv.description }} | {{ inv.test_tool | default("-") }} | {{ inv.test_method | default("-") }} |
+{% endfor %}
+{% endif %}
+---
+
+## Exit-Plan
+
+| Phase | Milestones | Asset Sale | Equity Round |
+|-------|-----------|------------|-------------|
+{% for ep in masterplan.exit_plan %}
+| {{ ep.phase }} | {{ ep.milestones }} | {{ ep.asset_sale }} | {{ ep.equity_round }} |
+{% endfor %}
+{% if masterplan.exit_plan[-1].comps is defined and masterplan.exit_plan[-1].comps %}
+**Comps:** {{ masterplan.exit_plan[-1].comps }}
+{% endif %}
+
+---
+
+## Audit-Trail
+
+| Timestamp | Commit SHA | Reason | ADR Ref | Actor |
+|-----------|-----------|--------|---------|-------|
+{% for entry in masterplan.audit_trail %}
+| {{ entry.timestamp }} | {{ entry.commit_sha }} | {{ entry.reason }} | {{ entry.adr_ref | default("-") }} | {{ entry.actor }} |
 {% endfor %}

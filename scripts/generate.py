@@ -18,7 +18,7 @@ def load_and_validate(p):
     try:
         mp = Masterplan(**raw)
         print(f"✅ masterplan.yaml validiert (v{mp.version})")
-        return mp.model_dump()
+        return mp.model_dump(mode="json")
     except ValidationError as e:
         print("❌ Validation-Fehler:")
         for err in e.errors():

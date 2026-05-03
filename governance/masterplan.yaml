@@ -1,5 +1,5 @@
-version: "1.2.0"
-generated: "2026-05-03T12:00:00Z"
+version: "1.3.0"
+generated: "2026-05-03T18:00:00Z"
 author: "Fatih Dinc"
 organization: "datalabel.tech"
 repository: "https://gitlab.com/fatdinhero/cognitum"
@@ -166,6 +166,195 @@ modules:
       upstream: ["L4", "L1"]
       downstream: []
 
+iso_25010:
+  - name: "Funktionale Eignung"
+    sub_characteristics:
+      - name: "Funktionale Vollstaendigkeit"
+        status: accepted
+        test_marker: "pytest -m functional_completeness"
+        notes: "L1-L5 Pipeline vollstaendig, CNA proposed"
+      - name: "Funktionale Korrektheit"
+        status: accepted
+        test_marker: "pytest -m functional_correctness"
+        notes: "839 Tests gruen, DayScore-Berechnung verifiziert"
+      - name: "Funktionale Angemessenheit"
+        status: accepted
+        notes: "VDI-Gate stellt sicher dass nur benoetigte Funktionen implementiert werden"
+
+  - name: "Leistungseffizienz"
+    sub_characteristics:
+      - name: "Zeitverhalten"
+        status: proposed
+        notes: "Noch kein Benchmark. Ziel: L1-L5 Pipeline unter 200ms auf Smartphone"
+      - name: "Ressourcenverbrauch"
+        status: proposed
+        notes: "SQLite statt Cloud-DB. Ollama-Modelle lokal. RAM-Budget TBD"
+      - name: "Kapazitaet"
+        status: proposed
+        notes: "14-Tage-Fenster begrenzt Speicherwachstum"
+
+  - name: "Kompatibilitaet"
+    sub_characteristics:
+      - name: "Koexistenz"
+        status: accepted
+        notes: "Android-App laeuft neben anderen Apps, keine exklusiven Sensor-Locks"
+      - name: "Interoperabilitaet"
+        status: proposed
+        notes: "MCP-Server-Interface fuer CNA geplant. DayGraph-Export als JSON"
+
+  - name: "Benutzbarkeit"
+    sub_characteristics:
+      - name: "Erlernbarkeit"
+        status: proposed
+        notes: "Evening Coach als Guided Journaling. Onboarding-Flow TBD"
+      - name: "Bedienbarkeit"
+        status: proposed
+        notes: "Smartphone-First. Smart Glasses spaeter"
+      - name: "Barrierefreiheit"
+        status: proposed
+        notes: "WCAG 2.1 AA als Ziel. Noch nicht implementiert"
+
+  - name: "Zuverlaessigkeit"
+    sub_characteristics:
+      - name: "Reife"
+        status: accepted
+        test_marker: "pytest -m reliability"
+        notes: "839 Tests, 97% Coverage, keine bekannten Crashes"
+      - name: "Verfuegbarkeit"
+        status: accepted
+        notes: "Offline-First Architektur. Kein Cloud-Dependency"
+      - name: "Fehlertoleranz"
+        status: accepted
+        notes: "3-Kontext-Sequenz-Buffer in L3 toleriert Sensor-Ausfaelle"
+      - name: "Wiederherstellbarkeit"
+        status: proposed
+        notes: "SQLite-WAL-Modus. Backup-Strategie TBD"
+
+  - name: "Sicherheit"
+    sub_characteristics:
+      - name: "Vertraulichkeit"
+        status: accepted
+        test_marker: "pytest -m privacy"
+        notes: "Zero-Retention. Alle Daten lokal. Kein Cloud-Upload"
+      - name: "Integritaet"
+        status: accepted
+        notes: "zkVM-Proof fuer CNA-Konformitaetserklaerungen"
+      - name: "Nichtabstreitbarkeit"
+        status: accepted
+        notes: "OpenTimestamps-Anker auf alle kritischen Artefakte"
+      - name: "Zurechenbarkeit"
+        status: accepted
+        notes: "Audit-Trail in masterplan.yaml. Git-History als Nachweis"
+      - name: "Authentizitaet"
+        status: proposed
+        notes: "Per-Sensor-Consent. Biometrische Auth TBD"
+
+  - name: "Wartbarkeit"
+    sub_characteristics:
+      - name: "Modularitaet"
+        status: accepted
+        notes: "5+1 Layer-Architektur. Jedes Modul unabhaengig testbar"
+      - name: "Wiederverwendbarkeit"
+        status: accepted
+        notes: "CNA als generischer Norm-Adapter fuer beliebige Regelwerke"
+      - name: "Analysierbarkeit"
+        status: accepted
+        test_marker: "pytest -m consistency"
+        notes: "NetworkX-Graph-Tests pruefen ADR/Modul-Konsistenz"
+      - name: "Aenderbarkeit"
+        status: accepted
+        notes: "SSoT-Pipeline: YAML aendern, generate.py, CI rendert alles"
+      - name: "Testbarkeit"
+        status: accepted
+        test_marker: "pytest validation/tests/ -v"
+        notes: "Pydantic-Schema plus Yamale plus pytest plus networkx"
+
+  - name: "Portabilitaet"
+    sub_characteristics:
+      - name: "Anpassbarkeit"
+        status: proposed
+        notes: "Android-First. iOS und Smart Glasses als Roadmap"
+      - name: "Installierbarkeit"
+        status: proposed
+        notes: "Android APK geplant. Kein App Store noetig fuer MVP"
+      - name: "Austauschbarkeit"
+        status: proposed
+        notes: "DayGraph-Export ermoeglicht Datenmigration"
+
+iso_23894_risks:
+  - id: "RISK-01"
+    description: "Sensor-Consent wird ignoriert oder umgangen"
+    probability: low
+    impact: "Datenschutzverletzung, DSGVO-Verstoss"
+    mitigation: "Per-Sensor-Consent-Gate in L1 mit Default-OFF fuer Kamera und Mikrofon"
+    status: accepted
+  - id: "RISK-02"
+    description: "RF-Classifier in L2 produziert diskriminierende Kontextklassifikation"
+    probability: medium
+    impact: "Unfaire DayScore-Bewertung, Nutzervertrauensverlust"
+    mitigation: "Primaer YAML-Regelwerk. RF nur optional. Fairness-Tests als Privacy-Invariante"
+    status: accepted
+  - id: "RISK-03"
+    description: "SQLite-Datenbank in L3 wird von Drittapp exfiltriert"
+    probability: medium
+    impact: "Vollstaendiger Episoden-Verlauf kompromittiert"
+    mitigation: "SQLCipher-Verschluesselung. Android Scoped Storage. Kein Export ohne expliziten User-Intent"
+    status: proposed
+  - id: "RISK-04"
+    description: "DayScore-Algorithmus erzeugt psychischen Druck durch Gamification"
+    probability: medium
+    impact: "Nutzer-Wellbeing verschlechtert sich statt verbessert"
+    mitigation: "Evening Coach als Guided Journaling statt Ranking. Keine Streaks. Kein Leaderboard"
+    status: accepted
+  - id: "RISK-05"
+    description: "Ollama-Modell halluziniert in Evening Coach Recommendations"
+    probability: high
+    impact: "Falsche Gesundheits- oder Verhaltensempfehlungen"
+    mitigation: "LLM nur fuer Formulierung, nicht fuer medizinische Aussagen. Disclaimer. Fakten aus L4-Features"
+    status: accepted
+  - id: "RISK-06"
+    description: "zkVM-Proof in CNA ist zu rechenintensiv fuer Smartphone"
+    probability: medium
+    impact: "CNA-Konformitaetspruefung nur auf Desktop moeglich"
+    mitigation: "Proof-Generierung optional asynchron. Fallback auf signierte YAML-Attestation"
+    status: proposed
+  - id: "RISK-07"
+    description: "Solo-Entwickler-Risiko: Bus-Faktor 1"
+    probability: high
+    impact: "Projekt stirbt bei Ausfall"
+    mitigation: "SSoT-Pipeline macht Repo selbstdokumentierend. CLAUDE.md und AGENTS.md als Onboarding. IP via OTS gesichert"
+    status: accepted
+
+privacy_invariants:
+  - id: "PRIV-01"
+    description: "Zero-Retention: Keine Nutzerdaten verlassen das Geraet"
+    test_tool: "pytest"
+    test_method: "Network-Monitor-Test: Kein HTTP-Egress waehrend 24h-Betrieb"
+  - id: "PRIV-02"
+    description: "Per-Sensor-Consent: Jeder Sensor individuell aktivierbar/deaktivierbar"
+    test_tool: "pytest"
+    test_method: "Consent-Matrix-Test: Alle 8 Sensoren einzeln togglen, Pipeline laeuft weiter"
+  - id: "PRIV-03"
+    description: "Kamera und Mikrofon Default-OFF"
+    test_tool: "pytest"
+    test_method: "Fresh-Install-Test: Nach Erstinstallation beide Sensoren verifiziert OFF"
+  - id: "PRIV-04"
+    description: "DayGraph-Export nur durch expliziten User-Intent"
+    test_tool: "pytest"
+    test_method: "No-Auto-Export-Test: Kein DayGraph-File ohne User-Tap"
+  - id: "PRIV-05"
+    description: "SQLite-DB nicht durch Drittapps lesbar"
+    test_tool: "adb"
+    test_method: "Scoped-Storage-Test: adb shell versucht DB-Zugriff, wird verweigert"
+  - id: "PRIV-06"
+    description: "Keine biometrischen Daten in DayFeatures"
+    test_tool: "pytest"
+    test_method: "Feature-Schema-Test: DayFeatures enthalten nur focus/energy/social/movement, keine biometrischen Rohdaten"
+  - id: "PRIV-07"
+    description: "Audit-Trail enthaelt keine personenbezogenen Daten"
+    test_tool: "pytest"
+    test_method: "Audit-PII-Scan: Regex-Scan auf Email, Telefon, GPS-Koordinaten in audit_trail"
+
 exit_plan:
   - phase: "Phase 0 (heute)"
     milestones: "v0.8.0, 839 Tests, DPMA, ISO-Docs"
@@ -193,5 +382,10 @@ audit_trail:
   - timestamp: "2026-05-03T12:00:00Z"
     commit_sha: "initial"
     reason: "Phase 7 Bootstrap alle Artefakte deployt"
+    adr_ref: "ADR-2026-05-03-006"
+    actor: "Fatih Dinc"
+  - timestamp: "2026-05-03T18:00:00Z"
+    commit_sha: "798cee34acfab273056ead4cca2b8a19d3eada94"
+    reason: "v1.3.0 — ISO 25010, Risikoregister, Privacy-Invarianten, Template-Fixes"
     adr_ref: "ADR-2026-05-03-006"
     actor: "Fatih Dinc"
