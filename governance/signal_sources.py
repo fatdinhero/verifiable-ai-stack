@@ -996,20 +996,22 @@ class RealSignalFetcher:
         all_signals.extend(items)
         source_counts["product_hunt"] = len(items)
 
-        # 9. EU Research & Innovation
-        eu_texts = self._fetch_eu_research()
-        for t in eu_texts:
-            all_signals.append({
-                "title":   t[:80],
-                "problem": t,
-                "domain":  "eu_research",
-                "source":  self._EU_RESEARCH_HTML,
-            })
-        source_counts["eu_research"] = len(eu_texts)
-
-        # 10. Genesis-Graph (alle 10 Batches — 764 Objekte)
         import os as _os
         _batch_hint = int(_os.environ.get("COGNITUM_BATCH_NUM", "0"))
+
+        # 9. EU Research & Innovation (alle 5 Batches)
+        if _batch_hint % 5 == 0:
+            eu_texts = self._fetch_eu_research()
+            for t in eu_texts:
+                all_signals.append({
+                    "title":   t[:80],
+                    "problem": t,
+                    "domain":  "eu_research",
+                    "source":  self._EU_RESEARCH_FEEDS[0],
+                })
+            source_counts["eu_research"] = len(eu_texts)
+
+        # 10. Genesis-Graph (alle 10 Batches — 764 Objekte)
         if _batch_hint % 10 == 0:
             texts = self._fetch_genesis_graph()
             for t in texts:
