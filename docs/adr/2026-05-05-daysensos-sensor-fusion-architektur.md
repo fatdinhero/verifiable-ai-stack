@@ -11,12 +11,12 @@ DaySensOS Sensor-Fusion Architektur
 {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}
 
 ## Begruendung (VDI 2225)
-V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die beste Gesamtleistung aller vorgeschlagenen Varianten aufzeigt. Da alle Varianten den gleichen Architektur- und Datenhaltungsansatz haben, liegt der Unterschied im Bereich Schnittstelle und Deployment, bei denen V1 lokal bereitgestellt wird, was für einfache Anwendungen oft am effizientesten ist.
+V1 ist die optimale Lösung, da es den höchsten Score von 0.88 erreicht hat. Die Wahl der lokalen Deployment-Option (Local-Only) bietet eine einfache Implementierung und Wartung ohne Komplexitätssteigerung durch Netzwerkabhängigkeiten oder Containerisierung.
 
 ## Lessons Learned
-- Bei der Wahl der Architektur ist zu beachten, dass eine Monolitharchitektur für komplexere Systeme oft nicht flexibel genug ist und zukünftige Skalierungsschritte erschweren kann.
-- Die Verwendung von SQLite als Datenbank war in diesem Fall ausreichend, aber es wäre ratsam, die Anforderungen an die Datenspeicherung gründlicher zu analysieren, um eine optimale Lösung zu finden.
-- Eine CLI-Schnittstelle ist für einfache Systeme geeignet, bei komplexeren Anwendungen könnte jedoch eine grafische Benutzeroberfläche oder Web-Interface bessere Interaktionsmöglichkeiten bieten.
+- Bei der Wahl der Architektur sollte stets berücksichtigt werden, wie die zukünftigen Anforderungen und Skalierungsmöglichkeiten beeinflusst werden.
+- Die Datenhaltung durch SQLite ist für den aktuellen Projektumfang geeignet, aber möglicherweise nicht flexibel genug für komplexere Anwendungsanforderungen oder -szenarien.
+- Obwohl eine CLI-Schnittstelle für einfache Prototypen und Tests gut geeignet ist, könnte sie im Produktionsbetrieb zu Einschränkungen führen; daher sollte man bereits frühzeitig alternative Schnittstellen in Betracht ziehen.
 
 ---
 *Generiert durch COGNITUM Engineering Agent v0.2*
