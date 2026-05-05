@@ -25,6 +25,8 @@ sys.path.insert(0, str(REPO_ROOT))
 from governance.models import EngineeringCase, SPALTENPhase, Urgency
 from governance.problem_generator import ProblemGenerator, _generate_llm_problem, _DOMAIN_CYCLE
 from governance.signal_sources import RealSignalFetcher
+from governance.wiki_formatter import WikiFormatter
+from governance.gitops_handler import GitOpsHandler
 import spalten_agent as agent
 
 STATE_FILE     = REPO_ROOT / ".loop_state.json"
@@ -146,9 +148,11 @@ class AutonomousLoop:
     """
 
     def __init__(self):
-        self.generator = ProblemGenerator()
-        self.fetcher   = RealSignalFetcher()
-        self.state     = _load_state()
+        self.generator  = ProblemGenerator()
+        self.fetcher    = RealSignalFetcher()
+        self.state      = _load_state()
+        self.wiki_fmt   = WikiFormatter()
+        self.gitops     = GitOpsHandler()
         self._llm_domain_idx = 0
         LOG_DIR.mkdir(exist_ok=True)
         PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
@@ -367,6 +371,22 @@ class AutonomousLoop:
                             agent._store_in_rag(case)
                         except Exception as e:
                             _log(f"  RAG Fehler: {e}")
+
+                        # ── 5b. Wiki-Push fuer cross_domain_extraction ─────────
+                        if prob.get("source") == "cross_domain_extraction":
+                            try:
+                                entry_type = prob.get("type", "analogy")
+                                if entry_type == "insight":
+                                    wiki_title, wiki_content = self.wiki_fmt.format_insight(prob)
+                                else:
+                                    wiki_title, wiki_content = self.wiki_fmt.format_analogy(prob)
+                                ok = self.gitops.push_to_wiki(wiki_title, wiki_content)
+                                if ok:
+                                    _log(f"  Wiki: '{wiki_title}' veroeffentlicht")
+                                else:
+                                    _log(f"  Wiki: Push fehlgeschlagen fuer '{wiki_title}'")
+                            except Exception as e:
+                                _log(f"  Wiki Fehler: {e}")
 
                         # Quell-Statistik
                         src = prob.get("source", "unknown")

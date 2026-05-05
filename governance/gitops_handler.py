@@ -194,6 +194,65 @@ class GitOpsHandler:
         except Exception as e:
             return {"error": str(e), "status": "failed"}
 
+    # ─── GitLab Wiki ──────────────────────────────────────────────────────
+
+    @staticmethod
+    def _wiki_slug(title: str) -> str:
+        slug = title.lower()
+        slug = slug.replace(" ", "-")
+        slug = slug.replace("/", "%2F")
+        return slug
+
+    def push_to_wiki(self, title: str, content: str) -> bool:
+        """
+        Erstellt oder aktualisiert eine GitLab Wiki-Seite via REST API.
+        Bei 409 Conflict (Seite existiert): PUT zum Update.
+        Returns True bei Erfolg, False bei Fehler.
+        """
+        token = self._read_token()
+        if not token:
+            return False
+
+        api_url = f"{GITLAB_BASE}/projects/{PROJECT_PATH}/wikis"
+        payload = json.dumps({"title": title, "content": content}).encode("utf-8")
+        req = urllib.request.Request(
+            api_url,
+            data=payload,
+            headers={"Content-Type": "application/json", "PRIVATE-TOKEN": token},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                resp.read()
+                return True
+        except urllib.error.HTTPError as e:
+            if e.code == 409:
+                return self._wiki_put(title, content, token)
+            body = e.read().decode("utf-8") if e.fp else ""
+            print(f"  Wiki HTTP {e.code}: {body[:200]}")
+            return False
+        except Exception as e:
+            print(f"  Wiki Fehler: {e}")
+            return False
+
+    def _wiki_put(self, title: str, content: str, token: str) -> bool:
+        slug = self._wiki_slug(title)
+        api_url = f"{GITLAB_BASE}/projects/{PROJECT_PATH}/wikis/{slug}"
+        payload = json.dumps({"content": content}).encode("utf-8")
+        req = urllib.request.Request(
+            api_url,
+            data=payload,
+            headers={"Content-Type": "application/json", "PRIVATE-TOKEN": token},
+            method="PUT",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                resp.read()
+                return True
+        except Exception as e:
+            print(f"  Wiki PUT Fehler: {e}")
+            return False
+
     def _build_mr_description(self, feature_name: str, solution: str,
                                score: float, rationale: str,
                                lessons: List[str]) -> str:
