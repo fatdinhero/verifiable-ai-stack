@@ -23,6 +23,13 @@ try:
 except Exception:
     _rag = None
 
+# Evaluator (optional — graceful)
+try:
+    from governance.evaluator import SPALTENEvaluator
+    _evaluator = SPALTENEvaluator()
+except Exception:
+    _evaluator = None
+
 # ═══════════════════════════════════════════
 # Ollama-Wrapper — REST-API (entspricht ollama.chat() intern)
 # Direkt-HTTP weil das lokale ollama/-Verzeichnis die pip-Library ueberdeckt.
@@ -340,12 +347,15 @@ def _store_in_rag(case: EngineeringCase) -> None:
         print(f"  ⚠️  RAG-Speicherung fehlgeschlagen: {e}")
 
 
-def _export_json(case: EngineeringCase) -> str:
+def _export_json(case: EngineeringCase, evaluation: dict = None) -> str:
     """Exportiert Ergebnis als spalten_result_<timestamp>.json."""
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     filename = f"spalten_result_{ts}.json"
+    data = json.loads(case.model_dump_json())
+    if evaluation:
+        data["evaluation"] = evaluation
     with open(filename, "w", encoding="utf-8") as f:
-        f.write(case.model_dump_json(indent=2))
+        json.dump(data, f, indent=2, ensure_ascii=False)
     print(f"📁 JSON-Export: {filename}")
     return filename
 
@@ -398,8 +408,26 @@ def run_spalten(case: EngineeringCase, human_approve: bool = True) -> Engineerin
     print(f"✅ SPALTEN abgeschlossen | Schritte: {len(case.steps)} | Ø Confidence: {avg_conf:.2f}")
     print(f"{'='*60}\n")
 
-    # JSON-Export nach jedem Durchlauf
-    _export_json(case)
+    # Evaluierung
+    eval_result = None
+    if _evaluator:
+        try:
+            eval_result = _evaluator.evaluate_case(case)
+            score = eval_result["overall_score"]
+            print(f"📊 Evaluation:")
+            print(f"   Overall Score : {score:.2f}")
+            print(f"   Completeness  : {eval_result['spalten_completeness']:.2f}")
+            print(f"   Avg Confidence: {eval_result['avg_confidence']:.2f}")
+            print(f"   VDI2225 Gate  : {'PASS' if eval_result['vdi2225_gate_passed'] else 'FAIL'}")
+            print(f"   Lessons       : {eval_result['lessons_count']}")
+            print(f"   RAG genutzt   : {'Ja' if eval_result['rag_context_used'] else 'Nein'}")
+            if score < 0.6:
+                print(f"  ⚠️  WARNUNG: Overall Score {score:.2f} < 0.6 — Qualitaet unzureichend!")
+        except Exception as e:
+            print(f"  ⚠️  Evaluierung fehlgeschlagen: {e}")
+
+    # JSON-Export nach jedem Durchlauf (mit Evaluation eingebettet)
+    _export_json(case, eval_result)
     return case
 
 
