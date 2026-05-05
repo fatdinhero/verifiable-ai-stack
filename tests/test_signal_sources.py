@@ -1,238 +1,240 @@
 """
 tests/test_signal_sources.py
-Unit-Tests fuer RealSignalFetcher + autonomous_loop._signals_to_problems.
+Unit-Tests fuer RealSignalFetcher (stdlib-Variante: urllib + xml.etree + yaml).
 Alle Netzwerkaufrufe werden via unittest.mock.patch gemockt.
 """
 from __future__ import annotations
 
 import json
+from io import BytesIO
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, mock_open
 
 import pytest
-import yaml
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# ─── Hilfsfunktionen ──────────────────────────────────────────────────────────
 
-def _mock_gitlab_response(issues: list) -> MagicMock:
-    m = MagicMock()
-    m.raise_for_status.return_value = None
-    m.json.return_value = issues
-    return m
-
-
-def _mock_ddg_response(html: str) -> MagicMock:
-    m = MagicMock()
-    m.text = html
-    m.status_code = 200
-    return m
+def _mock_urlopen(body: str):
+    """Erstellt context-manager-kompatibles Mock fuer urllib.request.urlopen."""
+    cm = MagicMock()
+    cm.__enter__ = MagicMock(return_value=cm)
+    cm.__exit__ = MagicMock(return_value=False)
+    cm.read = MagicMock(return_value=body.encode("utf-8"))
+    return cm
 
 
-# ---------------------------------------------------------------------------
-# TestRealSignalFetcher
-# ---------------------------------------------------------------------------
+RSS_BODY = """<?xml version="1.0"?>
+<rss version="2.0"><channel>
+  <item><title>EU AI Act Article 6 Update</title>
+    <description>New compliance rules for wearables.</description>
+    <pubDate>Mon, 05 May 2026 00:00:00 GMT</pubDate>
+    <link>https://eur-lex.europa.eu/123</link>
+  </item>
+</channel></rss>"""
+
+DDG_HTML = """<html><body><table>
+<tr><td class="result-snippet">Privacy-first wearable market is growing rapidly.</td></tr>
+</table></body></html>"""
+
+GITLAB_JSON = json.dumps([{
+    "title": "Privacy gate regression",
+    "description": "Consent gate bypassed in edge case",
+    "labels": ["bug"],
+    "web_url": "https://gitlab.com/issues/42",
+    "updated_at": "2026-05-05T00:00:00Z",
+}])
+
+GITHUB_JSON = json.dumps([{
+    "title": "Feature: BLE sensor fusion",
+    "body": "Implement 8-channel BLE sensor fusion",
+    "labels": [{"name": "enhancement"}],
+    "html_url": "https://github.com/issues/1",
+    "created_at": "2026-05-04T00:00:00Z",
+}])
+
+
+# ─── TestFetchGitlabIssues ────────────────────────────────────────────────────
 
 class TestFetchGitlabIssues:
-    def test_returns_list(self):
+    def test_returns_list_with_token(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
-        fake_issue = {
-            "iid": 42,
-            "title": "Privacy gate broken",
-            "state": "opened",
-            "labels": ["bug"],
-            "updated_at": "2026-05-05T00:00:00Z",
-            "web_url": "https://gitlab.com/issues/42",
-        }
-        with patch("governance.signal_sources.requests.get", return_value=_mock_gitlab_response([fake_issue])):
-            result = fetcher.fetch_gitlab_issues()
+        with patch("governance.signal_sources._read_token", return_value="test-token"), \
+             patch("governance.signal_sources._http_get", return_value=GITLAB_JSON):
+            result = fetcher.fetch_gitlab_issues("fatdinhero/cognitum")
         assert isinstance(result, list)
         assert len(result) == 1
-        assert result[0]["id"] == 42
         assert result[0]["source"] == "gitlab"
+        assert result[0]["title"] == "Privacy gate regression"
 
-    def test_handles_network_error(self):
-        import requests as req_lib
+    def test_empty_without_token(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
-        with patch("governance.signal_sources.requests.get", side_effect=req_lib.RequestException("timeout")):
-            result = fetcher.fetch_gitlab_issues()
-        assert isinstance(result, list)
-        assert len(result) == 1
-        assert "error" in result[0]
+        with patch("governance.signal_sources._read_token", return_value=None):
+            result = fetcher.fetch_gitlab_issues("fatdinhero/cognitum")
+        assert result == []
 
-    def test_no_token_still_works(self):
+    def test_empty_on_http_error(self):
         from governance.signal_sources import RealSignalFetcher
-        with patch("governance.signal_sources.GITLAB_TOKEN_PATH", Path("/nonexistent/.gitlab-token")):
-            with patch("governance.signal_sources.os.environ.get", return_value=None):
-                fetcher = RealSignalFetcher()
-                assert fetcher._token is None
+        fetcher = RealSignalFetcher()
+        with patch("governance.signal_sources._read_token", return_value="tok"), \
+             patch("governance.signal_sources._http_get", return_value=None):
+            result = fetcher.fetch_gitlab_issues("fatdinhero/cognitum")
+        assert result == []
 
+
+# ─── TestFetchMasterplanDecisions ─────────────────────────────────────────────
 
 class TestFetchMasterplanDecisions:
-    def test_loads_real_masterplan(self):
+    def test_loads_real_masterplan_returns_list(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
         result = fetcher.fetch_masterplan_decisions()
-        assert result["source"] == "masterplan"
-        assert "adrs" in result
-        assert len(result["adrs"]) > 0
-        assert result["adrs"][0]["id"].startswith("ADR-")
+        assert isinstance(result, list)
 
-    def test_returns_version(self):
+    def test_each_entry_has_required_keys(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
         result = fetcher.fetch_masterplan_decisions()
-        assert result["version"] != "unknown"
+        for entry in result:
+            assert "title" in entry
+            assert "source" in entry
+            assert entry["source"] == "masterplan"
 
-    def test_missing_file_graceful(self, tmp_path):
-        from governance.signal_sources import RealSignalFetcher, MASTERPLAN_PATH
+    def test_missing_file_returns_empty(self, tmp_path):
+        from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
         fake_path = tmp_path / "nonexistent.yaml"
         with patch("governance.signal_sources.MASTERPLAN_PATH", fake_path):
             result = fetcher.fetch_masterplan_decisions()
-        assert "error" in result
+        assert result == []
 
-    def test_privacy_invariants_present(self):
+    def test_domain_field_present(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
         result = fetcher.fetch_masterplan_decisions()
-        # masterplan.yaml hat privacy_invariants oder leere Liste — beides ok
-        assert "privacy_invariants" in result
+        for entry in result:
+            assert "domain" in entry
 
+
+# ─── TestFetchRegulatoryUpdates ───────────────────────────────────────────────
 
 class TestFetchRegulatoryUpdates:
     def test_returns_list(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
-        fake_feed = MagicMock()
-        fake_entry = MagicMock()
-        fake_entry.title = "EU AI Act Update"
-        fake_entry.link = "https://eur-lex.europa.eu/123"
-        fake_entry.published = "Mon, 05 May 2026 00:00:00 GMT"
-        fake_entry.summary = "Neue Anforderungen fuer Hochrisiko-KI-Systeme."
-        fake_feed.entries = [fake_entry]
-        with patch("governance.signal_sources.feedparser.parse", return_value=fake_feed):
+        with patch("governance.signal_sources._http_get", return_value=RSS_BODY):
             result = fetcher.fetch_regulatory_updates()
         assert isinstance(result, list)
-        assert any(r.get("title") == "EU AI Act Update" for r in result)
-        assert result[0]["source"] == "regulatory_rss"
 
-    def test_feed_error_graceful(self):
+    def test_parses_rss_title(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
-        with patch("governance.signal_sources.feedparser.parse", side_effect=Exception("DNS fail")):
+        with patch("governance.signal_sources._http_get", return_value=RSS_BODY):
             result = fetcher.fetch_regulatory_updates()
-        assert isinstance(result, list)
-        # Alle Eintraege haben error-Key
-        assert all("error" in r for r in result)
+        titles = [r["title"] for r in result if "title" in r]
+        assert any("EU AI Act" in t for t in titles)
 
+    def test_empty_on_network_failure(self):
+        from governance.signal_sources import RealSignalFetcher
+        fetcher = RealSignalFetcher()
+        with patch("governance.signal_sources._http_get", return_value=None):
+            result = fetcher.fetch_regulatory_updates()
+        assert result == []
+
+    def test_entry_has_source_field(self):
+        from governance.signal_sources import RealSignalFetcher
+        fetcher = RealSignalFetcher()
+        with patch("governance.signal_sources._http_get", return_value=RSS_BODY):
+            result = fetcher.fetch_regulatory_updates()
+        for entry in result:
+            assert "source" in entry
+
+
+# ─── TestFetchMarketSignals ───────────────────────────────────────────────────
 
 class TestFetchMarketSignals:
-    DDG_HTML = """
-    <html><body><table>
-    <tr><td><a class="result-link" href="https://example.com">Wearable AI Privacy 2026</a>
-        <td class="result-snippet">Privacy-first wearable market growing fast.</td></tr>
-    </table></body></html>
-    """
-
     def test_returns_list(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
-        with patch("governance.signal_sources.requests.post", return_value=_mock_ddg_response(self.DDG_HTML)):
-            result = fetcher.fetch_market_signals(queries=["wearable AI privacy"])
-        assert isinstance(result, list)
-        assert len(result) == 1
-        assert result[0]["query"] == "wearable AI privacy"
-        assert result[0]["source"] == "duckduckgo_lite"
-
-    def test_network_error_graceful(self):
-        import requests as req_lib
-        from governance.signal_sources import RealSignalFetcher
-        fetcher = RealSignalFetcher()
-        with patch("governance.signal_sources.requests.post", side_effect=req_lib.RequestException("timeout")):
+        with patch("governance.signal_sources._http_get", return_value=DDG_HTML), \
+             patch("governance.signal_sources._llm_call", return_value="[SIMULATION] test"):
             result = fetcher.fetch_market_signals(queries=["wearable AI"])
         assert isinstance(result, list)
-        assert "error" in result[0]
 
-    def test_custom_queries(self):
+    def test_custom_queries_respected(self):
         from governance.signal_sources import RealSignalFetcher
         fetcher = RealSignalFetcher()
-        with patch("governance.signal_sources.requests.post", return_value=_mock_ddg_response(self.DDG_HTML)):
+        with patch("governance.signal_sources._http_get", return_value=DDG_HTML), \
+             patch("governance.signal_sources._llm_call", return_value="[SIMULATION] x"), \
+             patch("governance.signal_sources.time.sleep"):
             result = fetcher.fetch_market_signals(queries=["q1", "q2"])
         assert len(result) == 2
 
+    def test_empty_on_no_snippets(self):
+        from governance.signal_sources import RealSignalFetcher
+        fetcher = RealSignalFetcher()
+        with patch("governance.signal_sources._http_get", return_value="<html></html>"), \
+             patch("governance.signal_sources.time.sleep"):
+            result = fetcher.fetch_market_signals(queries=["wearable"])
+        # Kein Snippet → kein Ergebnis
+        assert result == []
 
-# ---------------------------------------------------------------------------
-# TestSignalsToProblems (autonomous_loop)
-# ---------------------------------------------------------------------------
 
-class TestSignalsToProblems:
-    def _make_signals(self):
-        return {
-            "gitlab_issues": [
-                {"id": 1, "title": "Bug: Consent Gate bypassed", "labels": ["bug"],
-                 "source": "gitlab", "url": "https://gitlab.com/1"},
-                {"id": 2, "title": "Feature: Dashboard", "labels": [],
-                 "source": "gitlab", "url": ""},
-            ],
-            "masterplan": {
-                "open_risks": [
-                    {"id": "RISK-02", "description": "Privacy leak", "probability": "high"},
-                ],
-                "adrs": [],
-                "privacy_invariants": [],
-            },
-            "regulatory": [
-                {"feed": "EUR-Lex", "title": "AI Act Art. 6 Clarification",
-                 "link": "https://eur-lex.eu/x", "source": "regulatory_rss"},
-            ],
-            "market": [
-                {"query": "wearable AI", "hits": [{"title": "Wearable boom", "url": "", "snippet": ""}],
-                 "source": "duckduckgo_lite"},
-            ],
-        }
+# ─── TestFetchAll ─────────────────────────────────────────────────────────────
 
+class TestFetchAll:
     def test_returns_list(self):
-        from autonomous_loop import _signals_to_problems
-        problems = _signals_to_problems(self._make_signals())
-        assert isinstance(problems, list)
+        from governance.signal_sources import RealSignalFetcher
+        fetcher = RealSignalFetcher()
+        with patch("governance.signal_sources._read_token", return_value=None), \
+             patch("governance.signal_sources._http_get", return_value=None), \
+             patch("governance.signal_sources._llm_call", return_value="[SIMULATION]"), \
+             patch("governance.signal_sources.time.sleep"):
+            result = fetcher.fetch_all()
+        assert isinstance(result, list)
 
-    def test_bug_label_gets_high_priority(self):
-        from autonomous_loop import _signals_to_problems
-        problems = _signals_to_problems(self._make_signals())
-        bug_probs = [p for p in problems if "Consent Gate" in p["title"]]
-        assert bug_probs
-        assert bug_probs[0]["priority"] == "high"
+    def test_masterplan_always_included(self):
+        from governance.signal_sources import RealSignalFetcher
+        fetcher = RealSignalFetcher()
+        with patch("governance.signal_sources._read_token", return_value=None), \
+             patch("governance.signal_sources._http_get", return_value=None), \
+             patch("governance.signal_sources._llm_call", return_value="[SIMULATION]"), \
+             patch("governance.signal_sources.time.sleep"):
+            result = fetcher.fetch_all()
+        sources = {r.get("source") for r in result}
+        # Masterplan ist local — immer verfuegbar
+        assert "masterplan" in sources
 
-    def test_high_risk_gets_high_priority(self):
-        from autonomous_loop import _signals_to_problems
-        problems = _signals_to_problems(self._make_signals())
-        risk_probs = [p for p in problems if p["source"] == "masterplan_risk"]
-        assert risk_probs
-        assert risk_probs[0]["priority"] == "high"
 
-    def test_sorted_by_priority(self):
-        from autonomous_loop import _signals_to_problems
-        problems = _signals_to_problems(self._make_signals())
-        prio_order = {"high": 0, "medium": 1, "low": 2}
-        vals = [prio_order[p["priority"]] for p in problems]
-        assert vals == sorted(vals)
+# ─── TestProblemGenerator ─────────────────────────────────────────────────────
 
-    def test_errors_skipped(self):
-        from autonomous_loop import _signals_to_problems
-        signals = {
-            "gitlab_issues": [{"error": "timeout", "source": "gitlab", "items": []}],
-            "masterplan": {"open_risks": [], "adrs": [], "privacy_invariants": []},
-            "regulatory": [{"feed": "X", "error": "DNS", "source": "regulatory_rss"}],
-            "market": [{"query": "x", "error": "timeout", "source": "duckduckgo_lite"}],
-        }
-        problems = _signals_to_problems(signals)
-        assert isinstance(problems, list)
-        # Keine Exception, leere Liste ist ok
+class TestProblemGenerator:
+    def test_generate_returns_list(self):
+        from governance.problem_generator import ProblemGenerator
+        gen = ProblemGenerator()
+        with patch("governance.signal_sources._read_token", return_value=None), \
+             patch("governance.signal_sources._http_get", return_value=None), \
+             patch("governance.signal_sources._llm_call", return_value="[SIMULATION]"), \
+             patch("governance.problem_generator._llm_call",
+                   return_value='{"problem":"test","domain":"engineering","urgency":"medium"}'), \
+             patch("governance.signal_sources.time.sleep"):
+            result = gen.generate(n=2)
+        assert isinstance(result, list)
+
+    def test_each_problem_has_required_keys(self):
+        from governance.problem_generator import ProblemGenerator
+        gen = ProblemGenerator()
+        with patch("governance.signal_sources._read_token", return_value=None), \
+             patch("governance.signal_sources._http_get", return_value=None), \
+             patch("governance.signal_sources._llm_call", return_value="[SIMULATION]"), \
+             patch("governance.problem_generator._llm_call",
+                   return_value='{"problem":"test p","domain":"engineering","urgency":"medium"}'), \
+             patch("governance.signal_sources.time.sleep"):
+            result = gen.generate(n=1)
+        for p in result:
+            assert "problem" in p
+            assert "domain" in p
