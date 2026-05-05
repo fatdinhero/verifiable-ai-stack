@@ -67,7 +67,7 @@ class IngestionLayer:
                 title = info.get("title", "")
                 description = info.get("description", "")
                 # Transcript bevorzugen, fallback auf description
-                text = description[:1000] if description else title
+                text = description[:2000] if description else title
                 return {
                     "text": text.strip(),
                     "source_type": "youtube" if "youtube" in url or "youtu.be" in url else "tiktok",
@@ -99,12 +99,11 @@ class IngestionLayer:
             if meta and meta.get("content"):
                 meta_desc = meta["content"].strip()
 
-            # Erster sinnvoller Absatz
             paragraphs = [p.get_text(strip=True) for p in soup.find_all("p") if len(p.get_text(strip=True)) > 50]
-            first_para = paragraphs[0] if paragraphs else ""
+            full_text = " ".join(paragraphs)
 
-            parts = [x for x in [meta_desc, first_para] if x]
-            text = " ".join(parts)[:1000]
+            parts = [x for x in [meta_desc, full_text] if x]
+            text = " ".join(parts)[:3000]
 
             return {
                 "text": text or title,

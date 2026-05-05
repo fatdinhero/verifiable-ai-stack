@@ -236,10 +236,11 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     logger.info(f"Bot-Queue: +1 Eintrag '{result.get('title', '')[:60]}'")
 
     # Analogien asynchron extrahieren und in Queue speichern
-    analogies = analogy_extractor.extract(extracted_text)
+    full_text = extracted_text[:2000]
+    analogies = analogy_extractor.extract(full_text)
     if analogies:
         analogy_extractor.extract_and_queue(
-            extracted_text,
+            full_text,
             source_url=result.get("source_url", ""),
             title=result.get("title", ""),
         )
@@ -249,14 +250,14 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         )
         await msg.reply_text(
             f"Signal gespeichert\n"
-            f"Extrahiert: {extracted_text[:100]}\n\n"
+            f"Extrahiert: {full_text[:200]}\n\n"
             f"Analogien erkannt:\n{analogy_lines}\n\n"
             f"Alle werden im naechsten Batch verarbeitet."
         )
     else:
         await msg.reply_text(
             f"Signal gespeichert — wird im naechsten Batch verarbeitet\n"
-            f"Extrahiert: {extracted_text[:100]}"
+            f"Extrahiert: {full_text[:200]}"
         )
 
 
