@@ -126,10 +126,16 @@ class AutonomousLoop:
         PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
 
     def _refresh_regulatory(self) -> None:
-        """Holt neue Regulatory-RSS-Signale und speichert sie in RAG-Memory."""
+        """Holt BSI-, EDPB- und arXiv-Signale und speichert sie in RAG-Memory."""
         try:
-            signals = self.fetcher.fetch_regulatory_updates()
-            _log(f"  Regulatory-Refresh: {len(signals)} neue Signale")
+            bsi    = self.fetcher.fetch_bsi_feeds()
+            edpb   = self.fetcher.fetch_edpb()
+            arxiv  = self.fetcher.fetch_arxiv()
+            signals = bsi + edpb + arxiv
+            _log(
+                f"  Regulatory-Refresh: {len(signals)} Signale "
+                f"(BSI={len(bsi)} EDPB={len(edpb)} arXiv={len(arxiv)})"
+            )
             if not signals:
                 return
             # Optional: in RAG-Memory indexieren
@@ -222,7 +228,10 @@ class AutonomousLoop:
 
                 # ── 1. Frische Probleme via ProblemGenerator ──────────────────
                 try:
-                    problems = self.generator.generate(n=batch_size)
+                    problems = self.generator.generate(
+                        n=batch_size,
+                        skip_hashes=set(self.state["processed_hashes"]),
+                    )
                 except Exception as e:
                     _log(f"ProblemGenerator Fehler: {e}")
                     time.sleep(sleep_between)

@@ -537,15 +537,319 @@ class RealSignalFetcher:
             return f"Markt-Signal '{query}': {snippets[:120]}"
         return result
 
+    # ── 6. BSI CERT-Bund Feeds ────────────────────────────────────────────────
+
+    def fetch_bsi_feeds(self) -> List[dict]:
+        """BSI / CERT-Bund RSS-Feeds via feedparser."""
+        try:
+            import feedparser as _fp
+        except ImportError:
+            print("  ⚠️  feedparser nicht verfuegbar fuer BSI-Feeds")
+            return []
+
+        urls = [
+            "https://www.bsi.bund.de/SharedDocs/Abonnements/DE/RSSFeeds/rss_node.html",
+            "https://www.bsi.bund.de/DE/Service-Navi/Abonnements/RSS/rss_node.html",
+        ]
+        results: List[dict] = []
+        for url in urls:
+            try:
+                import socket
+                old_to = socket.getdefaulttimeout()
+                socket.setdefaulttimeout(15)
+                try:
+                    parsed = _fp.parse(url)
+                finally:
+                    socket.setdefaulttimeout(old_to)
+
+                if not parsed.entries:
+                    print(f"  ⚠️  BSI Feed leer oder nicht erreichbar: {url}")
+                    continue
+
+                for entry in parsed.entries[:15]:
+                    title = (getattr(entry, "title", "") or "").strip()
+                    summary = re.sub(
+                        r"<[^>]+>", "",
+                        (getattr(entry, "summary", "") or "")
+                    ).strip()[:300]
+                    if not title:
+                        continue
+                    results.append({
+                        "title":   title,
+                        "problem": f"BSI Sicherheitshinweis: {title}. {summary}",
+                        "domain":  "security_bsi",
+                        "source":  url,
+                        "date":    (getattr(entry, "published", "")
+                                    or getattr(entry, "updated", "")),
+                        "url":     getattr(entry, "link", url),
+                    })
+            except Exception as e:
+                print(f"  ⚠️  BSI Feed Fehler ({url}): {e}")
+
+        return results
+
+    # ── 7. arXiv ─────────────────────────────────────────────────────────────
+
+    def fetch_arxiv(
+        self,
+        categories: List[str] = None,
+        max_results: int = 10,
+    ) -> List[dict]:
+        """arXiv Atom-Feed — feedparser bevorzugt, stdlib-Fallback mit Namespace-Stripping."""
+        if categories is None:
+            categories = ["cs.AI", "cs.SE", "cs.LG"]
+
+        try:
+            import feedparser as _fp
+            _use_fp = True
+        except ImportError:
+            _fp = None
+            _use_fp = False
+
+        results: List[dict] = []
+        for cat in categories:
+            url = (
+                f"http://export.arxiv.org/api/query"
+                f"?search_query=cat:{cat}"
+                f"&max_results={max_results}"
+                f"&sortBy=submittedDate"
+            )
+            # ── feedparser-Pfad ───────────────────────────────────────────────
+            if _use_fp:
+                try:
+                    import socket
+                    old_to = socket.getdefaulttimeout()
+                    socket.setdefaulttimeout(20)
+                    try:
+                        parsed = _fp.parse(url)
+                    finally:
+                        socket.setdefaulttimeout(old_to)
+                    for entry in parsed.entries[:max_results]:
+                        title = re.sub(r"\s+", " ", (getattr(entry, "title", "") or "").strip())
+                        summary = re.sub(r"<[^>]+>", "", (getattr(entry, "summary", "") or "")).strip()[:400]
+                        summary = re.sub(r"\s+", " ", summary)
+                        link = getattr(entry, "link", "") or (getattr(entry, "id", "") or "")
+                        published = getattr(entry, "published", "") or getattr(entry, "updated", "")
+                        if not title:
+                            continue
+                        results.append({
+                            "title":   title,
+                            "problem": f"arXiv {cat}: {title}. {summary[:200]}",
+                            "domain":  f"research_{cat.replace('.', '_').lower()}",
+                            "source":  "arxiv",
+                            "date":    published,
+                            "url":     link,
+                        })
+                    continue
+                except Exception as e:
+                    print(f"  ⚠️  arXiv feedparser Fehler ({cat}): {e} — stdlib-Fallback")
+
+            # ── stdlib-Fallback mit aggressivem Namespace-Stripping ───────────
+            body = _http_get(url, headers={"User-Agent": "COGNITUM-Agent/1.0"}, timeout=20)
+            if not body:
+                print(f"  ⚠️  arXiv {cat} nicht erreichbar")
+                continue
+            try:
+                # Entferne xmlns-Deklarationen UND geprefixte Elemente (z.B. opensearch:*)
+                body_clean = re.sub(r'\s+xmlns(?::[a-zA-Z0-9]+)?=["\'][^"\']*["\']', "", body)
+                body_clean = re.sub(r'</?[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][^>]*>', "", body_clean)
+                root = ET.fromstring(body_clean)
+                atom_ns = "{http://www.w3.org/2005/Atom}"
+                entries = root.findall(f"{atom_ns}entry") or root.findall(".//entry")
+                for entry in entries[:max_results]:
+                    def _txt(tag: str) -> str:
+                        el = entry.find(f"{atom_ns}{tag}") or entry.find(tag)
+                        return (el.text or "").strip() if el is not None else ""
+                    title = re.sub(r"\s+", " ", _txt("title"))
+                    summary = re.sub(r"\s+", " ", _txt("summary"))[:400]
+                    link = ""
+                    for lel in list(entry.findall(f"{atom_ns}link")) + list(entry.findall("link")):
+                        if lel.get("rel", "") == "alternate":
+                            link = lel.get("href", "")
+                            break
+                    if not link:
+                        link = _txt("id")
+                    published = _txt("published")
+                    if not title:
+                        continue
+                    results.append({
+                        "title":   title,
+                        "problem": f"arXiv {cat}: {title}. {summary[:200]}",
+                        "domain":  f"research_{cat.replace('.', '_').lower()}",
+                        "source":  "arxiv",
+                        "date":    published,
+                        "url":     link,
+                    })
+            except ET.ParseError as e:
+                print(f"  ⚠️  arXiv XML-Fehler ({cat}): {e}")
+
+        return results
+
+    # ── 8. Heise Developer ────────────────────────────────────────────────────
+
+    def fetch_heise(self) -> List[dict]:
+        """Heise Developer Atom-Feed via feedparser."""
+        try:
+            import feedparser as _fp
+        except ImportError:
+            return []
+
+        # Spec-URL zuerst; Fallback falls 404
+        urls_to_try = [
+            "https://www.heise.de/rss/heise-developer-atom.xml",
+            "https://www.heise.de/rss/heise-atom.xml",
+        ]
+        results: List[dict] = []
+        active_url = urls_to_try[0]
+        parsed = None
+        for candidate in urls_to_try:
+            try:
+                import socket
+                old_to = socket.getdefaulttimeout()
+                socket.setdefaulttimeout(10)
+                try:
+                    _parsed = _fp.parse(candidate)
+                finally:
+                    socket.setdefaulttimeout(old_to)
+                if _parsed.entries:
+                    parsed = _parsed
+                    active_url = candidate
+                    break
+            except Exception as e:
+                print(f"  ⚠️  Heise Feed Fehler ({candidate}): {e}")
+
+        if not parsed or not parsed.entries:
+            print("  ⚠️  Heise Feed leer: alle URLs erschoepft")
+            return []
+
+        for entry in parsed.entries[:20]:
+            title = (getattr(entry, "title", "") or "").strip()
+            summary = re.sub(
+                r"<[^>]+>", "",
+                (getattr(entry, "summary", "") or "")
+            ).strip()[:300]
+            if not title:
+                continue
+            results.append({
+                "title":   title,
+                "problem": f"Heise Developer: {title}. {summary}",
+                "domain":  "it_news_de",
+                "source":  active_url,
+                "date":    (getattr(entry, "published", "")
+                            or getattr(entry, "updated", "")),
+                "url":     getattr(entry, "link", active_url),
+            })
+
+        return results
+
+    # ── 9. EDPB ──────────────────────────────────────────────────────────────
+
+    def fetch_edpb(self) -> List[dict]:
+        """European Data Protection Board News via feedparser."""
+        try:
+            import feedparser as _fp
+        except ImportError:
+            return []
+
+        url = "https://www.edpb.europa.eu/edpb/api/feeds/news_en"
+        results: List[dict] = []
+        try:
+            import socket
+            old_to = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(10)
+            try:
+                parsed = _fp.parse(url)
+            finally:
+                socket.setdefaulttimeout(old_to)
+
+            if not parsed.entries:
+                print(f"  ⚠️  EDPB Feed leer: {url}")
+                return []
+
+            for entry in parsed.entries[:15]:
+                title = (getattr(entry, "title", "") or "").strip()
+                summary = re.sub(
+                    r"<[^>]+>", "",
+                    (getattr(entry, "summary", "") or "")
+                ).strip()[:300]
+                if not title:
+                    continue
+                results.append({
+                    "title":   title,
+                    "problem": f"EDPB Datenschutz-News: {title}. {summary}",
+                    "domain":  "regulatory_edpb",
+                    "source":  url,
+                    "date":    (getattr(entry, "published", "")
+                                or getattr(entry, "updated", "")),
+                    "url":     getattr(entry, "link", url),
+                })
+        except Exception as e:
+            print(f"  ⚠️  EDPB Feed Fehler: {e}")
+
+        return results
+
+    # ── 10. Product Hunt ─────────────────────────────────────────────────────
+
+    def fetch_product_hunt(self) -> List[dict]:
+        """Product Hunt via RSS-Feed (kein API-Key noetig)."""
+        try:
+            import feedparser as _fp
+        except ImportError:
+            return []
+
+        url = "https://www.producthunt.com/feed"
+        results: List[dict] = []
+        try:
+            import socket
+            old_to = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(10)
+            try:
+                parsed = _fp.parse(url)
+            finally:
+                socket.setdefaulttimeout(old_to)
+
+            if not parsed.entries:
+                return []
+
+            for entry in parsed.entries[:15]:
+                title = (getattr(entry, "title", "") or "").strip()
+                summary = re.sub(
+                    r"<[^>]+>", "",
+                    (getattr(entry, "summary", "") or "")
+                ).strip()[:300]
+                if not title:
+                    continue
+                results.append({
+                    "title":   title,
+                    "problem": f"Product Hunt Launch: {title}. {summary}",
+                    "domain":  "market_product_hunt",
+                    "source":  url,
+                    "date":    (getattr(entry, "published", "")
+                                or getattr(entry, "updated", "")),
+                    "url":     getattr(entry, "link", url),
+                })
+        except Exception as e:
+            print(f"  ⚠️  Product Hunt Feed Fehler (erwartet wenn 401): {e}")
+
+        return results
+
     # ── fetch_all ─────────────────────────────────────────────────────────────
 
     def fetch_all(self, repos: List[str] = None) -> List[dict]:
         """
-        Aggregiert alle Quellen, dedupliziert via Titel-Similarity,
-        sortiert nach Recency. Gibt vereinigte Liste zurueck.
+        Aggregiert alle Quellen, filtert via RelevanceFilter (>= 0.6),
+        dedupliziert via Titel-Similarity, sortiert nach Recency.
         """
         if repos is None:
             repos = ["fatdinhero/cognitum"]
+
+        # RelevanceFilter laden (Graceful: ohne Filter wenn Import fehlschlaegt)
+        try:
+            from governance.relevance_filter import RelevanceFilter
+            _rf = RelevanceFilter()
+        except Exception as e:
+            print(f"  ⚠️  RelevanceFilter nicht verfuegbar: {e}")
+            _rf = None
 
         all_signals: List[dict] = []
         source_counts: Dict[str, int] = {}
@@ -556,7 +860,7 @@ class RealSignalFetcher:
             all_signals.extend(items)
             source_counts["github"] = source_counts.get("github", 0) + len(items)
 
-        # 2. GitLab (slash -> %2F fuer API)
+        # 2. GitLab
         for repo in repos:
             gl_path = repo.replace("/", "%2F")
             items = self.fetch_gitlab_issues(gl_path)
@@ -568,15 +872,58 @@ class RealSignalFetcher:
         all_signals.extend(items)
         source_counts["masterplan"] = len(items)
 
-        # 4. Regulatory
-        items = self.fetch_regulatory_updates()
+        # 4. BSI / CERT-Bund (ersetzt EUR-Lex/BAFA)
+        items = self.fetch_bsi_feeds()
         all_signals.extend(items)
-        source_counts["regulatory"] = len(items)
+        source_counts["bsi"] = len(items)
 
-        # 5. Market Signals
+        # 5. arXiv
+        items = self.fetch_arxiv()
+        all_signals.extend(items)
+        source_counts["arxiv"] = len(items)
+
+        # 6. Heise Developer
+        items = self.fetch_heise()
+        all_signals.extend(items)
+        source_counts["heise"] = len(items)
+
+        # 7. EDPB
+        items = self.fetch_edpb()
+        all_signals.extend(items)
+        source_counts["edpb"] = len(items)
+
+        # 8. Product Hunt
+        items = self.fetch_product_hunt()
+        all_signals.extend(items)
+        source_counts["product_hunt"] = len(items)
+
+        # 9. Market Signals
         items = self.fetch_market_signals()
         all_signals.extend(items)
         source_counts["web"] = len(items)
+
+        # Relevanz-Filter
+        if _rf is not None:
+            total = len(all_signals)
+            relevant_signals: List[dict] = []
+            blocked_count = 0
+            for sig in all_signals:
+                text = (
+                    sig.get("title", "")
+                    + " "
+                    + sig.get("problem", sig.get("body", sig.get("description", "")))
+                )
+                result = _rf.score(text.strip())
+                sig["relevance_score"] = result["score"]
+                if result["score"] == 0.0:
+                    blocked_count += 1
+                elif result["score"] >= 0.6:
+                    relevant_signals.append(sig)
+            print(
+                f"  Relevanz-Filter: {len(relevant_signals)}/{total} Signale relevant "
+                f"({blocked_count} blockiert)"
+            )
+            all_signals = relevant_signals
 
         # Deduplizierung
         deduplicated = self._deduplicate(all_signals)
