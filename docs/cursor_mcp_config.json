@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cognitum": {
+      "command": "/Users/datalabel.tech/COS/cognitum/.venv/bin/python3",
+      "args": ["/Users/datalabel.tech/COS/cognitum/mcp_server.py"],
+      "env": {}
+    }
+  }
+}
