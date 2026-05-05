@@ -54,8 +54,8 @@ class GitOpsHandler:
 
     def create_branch(self, feature_name: str) -> str:
         slug = self._slugify(feature_name)
-        date_str = datetime.utcnow().strftime("%Y%m%d")
-        branch_name = f"agent/{slug}-{date_str}"
+        ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        branch_name = f"agent/{slug}-{ts}"
         self._run(self.git + ["checkout", "-b", branch_name])
         return branch_name
 
