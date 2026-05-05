@@ -4,6 +4,7 @@ spalten_agent.py
 COGNITUM Engineering Agent — SPALTEN als StateGraph
 Laeuft lokal auf Mac Mini M4 mit Ollama qwen2.5:7b
 """
+import hashlib as _hashlib
 import json
 import re
 from typing import List, Dict, Any, Optional
@@ -228,21 +229,16 @@ def node_L(case: EngineeringCase, prev: StepResult) -> StepResult:
         "strategie":     0.25,
         "wartbarkeit":   0.20,
     }
-    # Deterministischer Bewertungs-Fallback (Code, NICHT das LLM)
-    fallback_scores = [
-        {"umsetzbarkeit": 4, "revenue_speed": 3, "strategie": 3, "wartbarkeit": 4},
-        {"umsetzbarkeit": 3, "revenue_speed": 4, "strategie": 4, "wartbarkeit": 3},
-        {"umsetzbarkeit": 3, "revenue_speed": 3, "strategie": 2, "wartbarkeit": 3},
-        {"umsetzbarkeit": 2, "revenue_speed": 2, "strategie": 3, "wartbarkeit": 2},
-        {"umsetzbarkeit": 3, "revenue_speed": 3, "strategie": 3, "wartbarkeit": 3},
-        {"umsetzbarkeit": 4, "revenue_speed": 4, "strategie": 3, "wartbarkeit": 2},
-        {"umsetzbarkeit": 2, "revenue_speed": 3, "strategie": 4, "wartbarkeit": 3},
-        {"umsetzbarkeit": 3, "revenue_speed": 2, "strategie": 3, "wartbarkeit": 4},
-        {"umsetzbarkeit": 4, "revenue_speed": 3, "strategie": 2, "wartbarkeit": 3},
-        {"umsetzbarkeit": 2, "revenue_speed": 4, "strategie": 3, "wartbarkeit": 3},
-    ]
+    criteria = list(gewichte.keys())
+
+    def _variant_scores(variant: dict) -> dict:
+        """Deterministischer Score pro Variante via SHA256 des Variant-Inhalts (1..4 je Kriterium)."""
+        raw = json.dumps(variant, sort_keys=True).encode("utf-8")
+        digest = _hashlib.sha256(raw).digest()
+        return {c: (digest[i] % 4) + 1 for i, c in enumerate(criteria)}
+
     optionen = {
-        f"V{i+1}": fallback_scores[i] if i < len(fallback_scores) else fallback_scores[-1]
+        f"V{i+1}": _variant_scores(varianten[i])
         for i in range(min(len(varianten), 10))
     }
 
