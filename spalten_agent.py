@@ -16,6 +16,13 @@ from governance.registry import (
 )
 from governance.models import StepResult, SPALTENPhase, EngineeringCase
 
+# RAG-Memory (optional — graceful wenn chromadb fehlt)
+try:
+    from governance.rag_memory import RAGMemory
+    _rag = RAGMemory()
+except Exception:
+    _rag = None
+
 # ═══════════════════════════════════════════
 # Ollama-Wrapper — REST-API (entspricht ollama.chat() intern)
 # Direkt-HTTP weil das lokale ollama/-Verzeichnis die pip-Library ueberdeckt.
@@ -66,17 +73,29 @@ def call_llm(prompt: str, system_prompt: str = None, temperature: float = 0.3) -
 
 def node_S(case: EngineeringCase) -> StepResult:
     """Situationsanalyse: LLM analysiert Problem und liefert strukturierten Ist-Zustand."""
+    rag_context = ""
+    if _rag:
+        rag_context = _rag.get_context_for_spalten(case.problem)
+        if rag_context:
+            print(f"  🔍 RAG-Kontext: {rag_context[:120]}...")
+
     prompt = (
         f"Problem: {case.problem}\n"
         f"Domain: {case.domain}\n"
-        f"Dringlichkeit: {case.urgency.value}\n\n"
-        "Liefere eine strukturierte Situationsanalyse mit:\n"
+        f"Dringlichkeit: {case.urgency.value}\n"
+        + (f"Relevante Vorwissen aus ADR-Datenbank: {rag_context}\n" if rag_context else "")
+        + "\nLiefere eine strukturierte Situationsanalyse mit:\n"
         "1. Ist-Zustand\n"
         "2. Rahmenbedingungen\n"
         "3. Betroffene Stakeholder"
     )
     response = call_llm(prompt)
-    return StepResult(phase=SPALTENPhase.S, summary=response, confidence=0.85)
+    return StepResult(
+        phase=SPALTENPhase.S,
+        summary=response,
+        confidence=0.85,
+        artifacts={"rag_context": rag_context} if rag_context else {},
+    )
 
 
 def node_P(case: EngineeringCase, prev: StepResult) -> StepResult:
@@ -287,6 +306,40 @@ def _trigger_gitops(case: EngineeringCase) -> None:
         print(f"  ⚠️  GitOps-Integration nicht verfuegbar: {e}")
 
 
+def _store_in_rag(case: EngineeringCase) -> None:
+    """Speichert fertigen ADR in RAG-Memory nach node_N."""
+    if not _rag:
+        return
+    try:
+        node_e = next((s for s in case.steps if s.phase == SPALTENPhase.E), None)
+        node_n = next((s for s in case.steps if s.phase == SPALTENPhase.N), None)
+        node_l = next((s for s in case.steps if s.phase == SPALTENPhase.L), None)
+
+        adr_id = node_e.artifacts.get("adr_id", case.case_id) if node_e else case.case_id
+        lessons = _extract_lessons(node_n.summary) if node_n else []
+        score = node_l.artifacts.get("vdi2225", {}).get("best_score", 0.0) if node_l else 0.0
+
+        content = (
+            f"Problem: {case.problem}\n"
+            f"Domain: {case.domain}\n"
+            f"Loesung: {case.selected_solution or 'n/a'}\n"
+            f"VDI2225-Score: {score:.2f}\n"
+            f"Lessons: {' | '.join(lessons)}"
+        )
+        metadata = {
+            "adr_id": adr_id,
+            "title": case.title,
+            "domain": case.domain,
+            "score": score,
+            "case_id": case.case_id,
+        }
+        ok = _rag.add_adr(adr_id, content, metadata)
+        if ok:
+            print(f"  🧠 RAG: ADR {adr_id} indexiert")
+    except Exception as e:
+        print(f"  ⚠️  RAG-Speicherung fehlgeschlagen: {e}")
+
+
 def _export_json(case: EngineeringCase) -> str:
     """Exportiert Ergebnis als spalten_result_<timestamp>.json."""
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -336,6 +389,9 @@ def run_spalten(case: EngineeringCase, human_approve: bool = True) -> Engineerin
     # GitOps nach vollstaendigem Lauf (benoetigt node_L + node_N)
     if human_approve and e_executed:
         _trigger_gitops(case)
+
+    # ADR in RAG-Memory speichern (nach node_N)
+    _store_in_rag(case)
 
     avg_conf = sum(s.confidence for s in case.steps) / max(len(case.steps), 1)
     print(f"\n{'='*60}")
