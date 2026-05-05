@@ -11,12 +11,12 @@ DaySensOS Sensor-Fusion Architektur
 {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}
 
 ## Begruendung (VDI 2225)
-V1 wird als die optimale Lösung gewertet, da es den höchsten Score von 0.88 erreicht hat. Dies deutet darauf hin, dass V1 sowohl in der Funktionalität und Benutzerfreundlichkeit (durch CLI-Schnittstelle) als auch in der Implementierbarkeit (Local-Only Deployment) die besten Ergebnisse erbracht hat.
+V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die beste Gesamtleistung aller vorgeschlagenen Varianten aufzeigt. Da alle Varianten den gleichen Architektur- und Datenhaltungsansatz haben, liegt der Unterschied im Bereich Schnittstelle und Deployment, bei denen V1 lokal bereitgestellt wird, was für einfache Anwendungen oft am effizientesten ist.
 
 ## Lessons Learned
-- In der Architektur wurde优先级排序考虑了单一组件的性能，但未充分评估多传感器融合的需求。建议未来项目中应更早进行详细的功能需求分析。
-- Datenhaltung mit SQLite passt gut für lokale Anwendungen, aber eine zukünftige Skalierung könnte Herausforderungen bieten. Eine mögliche Alternative wäre die Überprüfung von NoSQL-Datenbanken.
-- Die CLI-Schnittstelle ist einfach zu implementieren und wartet, aber sie kann benutzerfreundlicher gestaltet werden, um Fehlerbehebungsprozesse zu vereinfachen und Effizienz zu steigern.
+- Bei der Wahl der Architektur ist zu beachten, dass eine Monolitharchitektur für komplexere Systeme oft nicht flexibel genug ist und zukünftige Skalierungsschritte erschweren kann.
+- Die Verwendung von SQLite als Datenbank war in diesem Fall ausreichend, aber es wäre ratsam, die Anforderungen an die Datenspeicherung gründlicher zu analysieren, um eine optimale Lösung zu finden.
+- Eine CLI-Schnittstelle ist für einfache Systeme geeignet, bei komplexeren Anwendungen könnte jedoch eine grafische Benutzeroberfläche oder Web-Interface bessere Interaktionsmöglichkeiten bieten.
 
 ---
 *Generiert durch COGNITUM Engineering Agent v0.2*
