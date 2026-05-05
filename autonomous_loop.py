@@ -27,10 +27,11 @@ from governance.problem_generator import ProblemGenerator, _generate_llm_problem
 from governance.signal_sources import RealSignalFetcher
 import spalten_agent as agent
 
-STATE_FILE = REPO_ROOT / ".loop_state.json"
-LOG_DIR    = REPO_ROOT / "logs"
-LOG_FILE   = LOG_DIR / "autonomous_loop.log"
-PID_FILE   = LOG_DIR / "autonomous_loop.pid"
+STATE_FILE     = REPO_ROOT / ".loop_state.json"
+LOG_DIR        = REPO_ROOT / "logs"
+LOG_FILE       = LOG_DIR / "autonomous_loop.log"
+PID_FILE       = LOG_DIR / "autonomous_loop.pid"
+BOT_QUEUE_FILE = REPO_ROOT / ".bot_queue.json"
 
 _running = True
 
@@ -107,6 +108,33 @@ def _run_dataset_export() -> None:
             _log(f"  Dataset-Export Fehler: {result.stderr[:200]}")
     except Exception as e:
         _log(f"  Dataset-Export Exception: {e}")
+
+
+# ─── Bot-Queue Helpers ────────────────────────────────────────────────────────
+
+def _load_bot_queue() -> list:
+    if BOT_QUEUE_FILE.exists():
+        try:
+            return json.loads(BOT_QUEUE_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return []
+
+
+def _save_bot_queue(queue: list) -> None:
+    BOT_QUEUE_FILE.write_text(
+        json.dumps(queue, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def _pop_bot_queue_entry() -> Optional[dict]:
+    """Holt und entfernt den ersten Eintrag aus der Bot-Queue (FIFO)."""
+    queue = _load_bot_queue()
+    if not queue:
+        return None
+    entry = queue.pop(0)
+    _save_bot_queue(queue)
+    return entry
 
 
 # ─── AutonomousLoop ───────────────────────────────────────────────────────────
@@ -226,10 +254,31 @@ class AutonomousLoop:
                     _log("  Regulatory-Refresh (alle 5 Batches)...")
                     self._refresh_regulatory()
 
+                # ── 0b. Bot-Queue: max 1 Prioritaets-Eintrag pro Batch ───────
+                bot_problems: List[dict] = []
+                bot_entry = _pop_bot_queue_entry()
+                if bot_entry:
+                    bot_title = bot_entry.get("title", "Bot-Signal")[:60]
+                    bot_text  = bot_entry.get("text", "")
+                    _log(f"  Bot-Queue Eintrag: '{bot_title}' (Score: {bot_entry.get('relevance_score', 0):.2f})")
+                    if bot_text:
+                        bot_problems.append({
+                            "problem": bot_text[:500],
+                            "domain": bot_entry.get("relevance_category", "engineering"),
+                            "urgency": "medium",
+                            "source": "bot_queue",
+                            "sig_key": bot_title,
+                            "priority": 0,
+                        })
+                    self.state["signal_sources"]["bot_queue"] = (
+                        self.state["signal_sources"].get("bot_queue", 0) + 1
+                    )
+
                 # ── 1. Frische Probleme via ProblemGenerator ──────────────────
+                normal_n = max(batch_size - len(bot_problems), 0)
                 try:
                     problems = self.generator.generate(
-                        n=batch_size,
+                        n=normal_n,
                         skip_hashes=set(self.state["processed_hashes"]),
                     )
                 except Exception as e:
@@ -237,8 +286,11 @@ class AutonomousLoop:
                     time.sleep(sleep_between)
                     continue
 
+                # Bot-Queue Eintraege vorne einsetzen (Prioritaet 0)
+                problems = bot_problems + problems
+
                 # Direkter LLM-Fallback wenn ProblemGenerator zu wenig liefert
-                if len(problems) < batch_size:
+                if len(problems) < batch_size and normal_n > 0:
                     missing = batch_size - len(problems)
                     _log(f"  Direkt-LLM-Fallback: {missing} fehlende Probleme auffuellen")
                     for i in range(missing):
