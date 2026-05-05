@@ -53,6 +53,11 @@ class RelevanceFilter:
         "Sensor-Architektur Wearable Privacy-First",
         "Regulatorische Änderung technische Umsetzung",
         "Software-Architektur Entscheidung Make-Buy",
+        "AI Agent Workflow Architekturentscheidung",
+        "KI-System Design menschliche Aufsicht",
+        "OpenAI Anthropic Architektur Engineering",
+        "Agentic AI System Autonomie Kontrolle",
+        "LLM Agent Loop menschliche Eingriff",
     ]
 
     BLOCK_KEYWORDS = [

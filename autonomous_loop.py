@@ -260,12 +260,13 @@ class AutonomousLoop:
                 if bot_entry:
                     bot_title = bot_entry.get("title", "Bot-Signal")[:60]
                     bot_text  = bot_entry.get("text", "")
-                    _log(f"  Bot-Queue Eintrag: '{bot_title}' (Score: {bot_entry.get('relevance_score', 0):.2f})")
+                    _log(f"  Bot-Queue Eintrag: '{bot_title}'")
                     if bot_text:
+                        domain = bot_entry.get("relevance_category") or "cognitum"
                         bot_problems.append({
                             "problem": bot_text[:500],
-                            "domain": bot_entry.get("relevance_category", "engineering"),
-                            "urgency": "medium",
+                            "domain": domain,
+                            "urgency": "high",
                             "source": "bot_queue",
                             "sig_key": bot_title,
                             "priority": 0,

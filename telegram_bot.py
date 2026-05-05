@@ -18,7 +18,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 from governance.ingestion import IngestionLayer
-from governance.relevance_filter import RelevanceFilter
 
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -92,7 +91,6 @@ def _load_state() -> dict:
 
 WHITELIST: set[int] = set()
 ingestion = IngestionLayer()
-relevance  = RelevanceFilter()
 
 
 # ── Guards ────────────────────────────────────────────────────────────────────
@@ -215,7 +213,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await msg.reply_text("Medientyp nicht unterstuetzt.")
         return
 
-    # Relevanz-Filter
+    # Kein Relevanz-Filter — User-Eingaben sind immer relevant
     extracted_text = result.get("text", "")
     if not extracted_text or extracted_text in ("Bild ohne extrahierbaren Text", "PDF ohne extrahierbaren Text"):
         await msg.reply_text(
@@ -224,36 +222,22 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         )
         return
 
-    score_result = relevance.score(extracted_text)
-    score  = score_result.get("score", 0.0)
-    reason = score_result.get("reason", "")
-    category = score_result.get("category", "unknown")
+    queue = _load_bot_queue()
+    queue_entry = {
+        **result,
+        "priority": 0,
+        "queued_at": datetime.now(timezone.utc).isoformat(),
+        "telegram_user_id": update.effective_user.id,
+    }
+    queue.append(queue_entry)
+    _save_bot_queue(queue)
+    logger.info(f"Bot-Queue: +1 Eintrag '{result.get('title', '')[:60]}'")
 
-    if score >= 0.6:
-        # In Bot-Queue schreiben
-        queue = _load_bot_queue()
-        queue_entry = {
-            **result,
-            "relevance_score": round(score, 4),
-            "relevance_category": category,
-            "priority": 0,
-            "queued_at": datetime.now(timezone.utc).isoformat(),
-            "telegram_user_id": update.effective_user.id,
-        }
-        queue.append(queue_entry)
-        _save_bot_queue(queue)
-        logger.info(f"Bot-Queue: +1 Eintrag (score={score:.2f}) '{result.get('title','')[:60]}'")
-
-        await msg.reply_text(
-            f"✅ Relevant (Score: {score:.2f}) — wird verarbeitet\n"
-            f"Kategorie: {category}\n"
-            f"Extrahiert: {extracted_text[:100]}"
-        )
-    else:
-        await msg.reply_text(
-            f"ℹ️ Score {score:.2f} — nicht Engineering-relevant\n"
-            f"Grund: {reason}"
-        )
+    await msg.reply_text(
+        f"✅ Signal gespeichert — wird im naechsten Batch verarbeitet\n"
+        f"Extrahiert: {extracted_text[:150]}\n"
+        f"Quelle: {result.get('source_type', '?')}"
+    )
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
