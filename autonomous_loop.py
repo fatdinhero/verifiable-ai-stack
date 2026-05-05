@@ -23,7 +23,8 @@ REPO_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from governance.models import EngineeringCase, SPALTENPhase, Urgency
-from governance.problem_generator import ProblemGenerator
+from governance.problem_generator import ProblemGenerator, _generate_llm_problem, _DOMAIN_CYCLE
+from governance.signal_sources import RealSignalFetcher
 import spalten_agent as agent
 
 STATE_FILE = REPO_ROOT / ".loop_state.json"
@@ -118,9 +119,77 @@ class AutonomousLoop:
 
     def __init__(self):
         self.generator = ProblemGenerator()
+        self.fetcher   = RealSignalFetcher()
         self.state     = _load_state()
+        self._llm_domain_idx = 0
         LOG_DIR.mkdir(exist_ok=True)
         PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
+
+    def _refresh_regulatory(self) -> None:
+        """Holt neue Regulatory-RSS-Signale und speichert sie in RAG-Memory."""
+        try:
+            signals = self.fetcher.fetch_regulatory_updates()
+            _log(f"  Regulatory-Refresh: {len(signals)} neue Signale")
+            if not signals:
+                return
+            # Optional: in RAG-Memory indexieren
+            try:
+                from governance.rag_memory import RAGMemory
+                rag = RAGMemory()
+                stored = 0
+                for sig in signals:
+                    title = sig.get("title", "")
+                    problem = sig.get("problem", "")
+                    if not title:
+                        continue
+                    adr_id = f"REG-{hashlib.sha256(title.encode()).hexdigest()[:8]}"
+                    content = f"Title: {title}\nProblem: {problem}\nDomain: {sig.get('domain','')}"
+                    metadata = {
+                        "adr_id": adr_id, "title": title,
+                        "domain": sig.get("domain", "regulatory"),
+                        "source": sig.get("source", "rss"),
+                        "score": 0.0, "case_id": adr_id,
+                    }
+                    ok = rag.add_adr(adr_id, content, metadata)
+                    if ok:
+                        stored += 1
+                _log(f"  Regulatory-RAG: {stored}/{len(signals)} in ChromaDB indexiert")
+            except Exception as e:
+                _log(f"  Regulatory-RAG Fehler (nicht kritisch): {e}")
+            # Quell-Statistik
+            self.state["signal_sources"]["regulatory_refresh"] = (
+                self.state["signal_sources"].get("regulatory_refresh", 0) + len(signals)
+            )
+        except Exception as e:
+            _log(f"  Regulatory-Refresh Fehler: {e}")
+
+    def _log_extended_status(self, max_total: int) -> None:
+        """Erweiterter Status-Log alle 10 Batches mit ETA und Quellen-Breakdown."""
+        processed = self.state["processed_count"]
+        elapsed_s = max(self.state["total_runtime_s"], 1)
+        remaining = max(max_total - processed, 0)
+
+        rate_per_h = (processed / elapsed_s) * 3600
+        if processed > 0:
+            eta_s = remaining / (processed / elapsed_s)
+            eta_h = eta_s / 3600
+            eta_str = f"{eta_h:.1f}h"
+        else:
+            eta_str = "n/a"
+
+        sources = self.state.get("signal_sources", {})
+        src_breakdown = " | ".join(
+            f"{k}={v}" for k, v in sorted(sources.items())
+        ) or "keine"
+
+        _log(
+            f"  === EXTENDED STATUS ===\n"
+            f"  Verarbeitet:   {processed}/{max_total}\n"
+            f"  Rate:          {rate_per_h:.1f} Cases/h\n"
+            f"  ETA bis {max_total}: {eta_str}\n"
+            f"  Avg Score:     {self.state['avg_score']:.3f}\n"
+            f"  Quellen:       {src_breakdown}"
+        )
 
     def run_forever(
         self,
@@ -146,6 +215,11 @@ class AutonomousLoop:
                     f"Verarbeitet: {self.state['processed_count']}/{max_total} ==="
                 )
 
+                # ── 0. Alle 5 Batches: Regulatory-Signale neu laden ───────────
+                if batch_num % 5 == 0:
+                    _log("  Regulatory-Refresh (alle 5 Batches)...")
+                    self._refresh_regulatory()
+
                 # ── 1. Frische Probleme via ProblemGenerator ──────────────────
                 try:
                     problems = self.generator.generate(n=batch_size)
@@ -153,6 +227,16 @@ class AutonomousLoop:
                     _log(f"ProblemGenerator Fehler: {e}")
                     time.sleep(sleep_between)
                     continue
+
+                # Direkter LLM-Fallback wenn ProblemGenerator zu wenig liefert
+                if len(problems) < batch_size:
+                    missing = batch_size - len(problems)
+                    _log(f"  Direkt-LLM-Fallback: {missing} fehlende Probleme auffuellen")
+                    for i in range(missing):
+                        domain = _DOMAIN_CYCLE[self._llm_domain_idx % len(_DOMAIN_CYCLE)]
+                        self._llm_domain_idx += 1
+                        p = _generate_llm_problem(len(problems) + i + 1, domain=domain)
+                        problems.append(p)
 
                 batch_processed = 0
                 batch_skipped   = 0
@@ -239,10 +323,11 @@ class AutonomousLoop:
                     self.state["processed_count"] += 1
                     batch_processed += 1
 
-                # ── 6. Alle 10 Batches: Dataset-Export ───────────────────────
+                # ── 6. Alle 10 Batches: Dataset-Export + erweiterter Status ──
                 if batch_num % 10 == 0:
                     _log("  Dataset-Export (alle 10 Batches)...")
                     _run_dataset_export()
+                    self._log_extended_status(max_total)
 
                 # ── 7. Status updaten ─────────────────────────────────────────
                 all_scores = self.state["scores"]

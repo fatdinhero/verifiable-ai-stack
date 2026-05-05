@@ -286,11 +286,49 @@ class RealSignalFetcher:
 
     # ── 4. Regulatory Updates via RSS ─────────────────────────────────────────
 
+    # Keywords die Eintraege disqualifizieren (Militaer, Waffen, Krieg)
+    _BLOCKLIST = {
+        "militär", "militar", "military", "waffen", "weapons", "rüstung",
+        "ruestung", "defense", "defence", "krieg", "war", "bundeswehr",
+        "nato", "rüstungsexport", "ruestungsexport",
+    }
+
+    # Mindestens eines dieser Keywords muss im Eintrag vorkommen (Relevanz-Filter)
+    _ALLOWLIST = {
+        "ki", "ai", "software", "digital", "daten", "data", "compliance",
+        "engineering", "sensor", "app", "tech", "norm", "recht", "regulation",
+        "datenschutz", "privacy", "algorithmus", "algorithm", "it", "cloud",
+        "security", "sicherheit", "api", "system", "plattform", "platform",
+    }
+
+    def _is_relevant(self, title: str, desc: str) -> bool:
+        """Gibt True zurueck wenn Eintrag relevant und nicht verboten ist.
+        Nutzt Wortgrenze-Matching um False-Positives wie 'war' in 'software' zu vermeiden."""
+        combined = (title + " " + desc).lower()
+        # Blocklist — ganzes Wort matchen (Wortgrenzen)
+        for kw in self._BLOCKLIST:
+            if re.search(r'\b' + re.escape(kw) + r'\b', combined):
+                return False
+        # Allowlist — mindestens ein ganzes Wort matchen
+        for kw in self._ALLOWLIST:
+            if re.search(r'\b' + re.escape(kw) + r'\b', combined):
+                return True
+        return False
+
     def fetch_regulatory_updates(self) -> List[dict]:
         """
-        RSS-Feeds fuer EU AI Act und BAFA via urllib + xml.etree.
-        Kein feedparser. Parsed letzten 5 Eintraege je Feed.
+        RSS-Feeds fuer EU AI Act, BAFA und Heise (IT-Engineering-Kontext).
+        Nutzt feedparser wenn verfuegbar, sonst xml.etree + Regex-Fallback.
+        Graceful: nicht erreichbare Feeds werden geloggt und uebersprungen.
+        Filtert nicht-relevante und militaerbezogene Eintraege heraus.
         """
+        try:
+            import feedparser as _fp
+            _HAS_FEEDPARSER = True
+        except ImportError:
+            _fp = None
+            _HAS_FEEDPARSER = False
+
         feeds = [
             (
                 "https://eur-lex.europa.eu/search.html"
@@ -302,28 +340,74 @@ class RealSignalFetcher:
                 "InformationService/Rss/EN/bafa_rss.xml",
                 "bafa_regulatory",
             ),
+            (
+                "https://www.heise.de/rss/heise-atom.xml",
+                "it_news_de",
+            ),
         ]
         results = []
 
         for feed_url, domain in feeds:
+            # feedparser-Pfad (bevorzugt, robuster bei Atom/RSS-Varianten)
+            if _HAS_FEEDPARSER:
+                try:
+                    import socket
+                    old_timeout = socket.getdefaulttimeout()
+                    socket.setdefaulttimeout(15)
+                    try:
+                        parsed = _fp.parse(feed_url)
+                    finally:
+                        socket.setdefaulttimeout(old_timeout)
+
+                    if not parsed.entries:
+                        print(f"  ⚠️  RSS-Feed leer oder nicht erreichbar: {feed_url}")
+                        continue
+
+                    for entry in parsed.entries[:20]:
+                        title = (getattr(entry, "title", "") or "").strip()
+                        desc  = (getattr(entry, "summary", "") or
+                                 getattr(entry, "description", "") or "").strip()
+                        desc  = re.sub(r"<[^>]+>", "", desc)[:300]
+                        date  = (getattr(entry, "published", "") or
+                                 getattr(entry, "updated", "") or "")
+                        link  = getattr(entry, "link", feed_url)
+
+                        if not title:
+                            continue
+                        if not self._is_relevant(title, desc):
+                            continue
+                        results.append({
+                            "title":   title,
+                            "problem": f"Regulatorisches Update: {title}. {desc}",
+                            "domain":  domain,
+                            "source":  feed_url,
+                            "date":    date,
+                            "url":     link or feed_url,
+                        })
+                        if len(results) >= 5 * len(feeds):
+                            break
+                    continue  # feedparser hat Feed erfolgreich verarbeitet
+                except Exception as e:
+                    print(f"  ⚠️  feedparser Fehler fuer {feed_url}: {e} — versuche stdlib")
+
+            # stdlib-Fallback (xml.etree + Regex)
             body = _http_get(
                 feed_url,
                 headers={"User-Agent": "COGNITUM-Agent/1.0"},
-                timeout=12,
+                timeout=15,
             )
             if not body:
+                print(f"  ⚠️  RSS-Feed nicht erreichbar (Timeout/Fehler): {feed_url}")
                 continue
 
             try:
-                # Namespace-Attribute entfernen (vereinfacht ElementTree-Parsing)
                 body_clean = re.sub(
                     r'\s+xmlns(?::[a-z0-9]+)?=["\'][^"\']*["\']', '', body
                 )
                 root = ET.fromstring(body_clean)
-                # RSS <item> oder Atom <entry>
                 items = root.findall(".//item") or root.findall(".//entry")
 
-                for item in items[:5]:
+                for item in items[:20]:
                     title_el = item.find("title")
                     desc_el  = item.find("description") or item.find("summary")
                     date_el  = (item.find("pubDate") or item.find("published")
@@ -340,6 +424,8 @@ class RealSignalFetcher:
 
                     if not title:
                         continue
+                    if not self._is_relevant(title, desc):
+                        continue
 
                     results.append({
                         "title":   title,
@@ -351,13 +437,12 @@ class RealSignalFetcher:
                     })
 
             except ET.ParseError:
-                # Regex-Fallback bei ungueltigem XML
                 titles = re.findall(
                     r"<title[^>]*>(.*?)</title>", body, re.DOTALL | re.IGNORECASE
                 )
-                for raw_t in titles[1:6]:
+                for raw_t in titles[1:21]:
                     clean = re.sub(r"<[^>]+>", "", raw_t).strip()
-                    if clean:
+                    if clean and self._is_relevant(clean, ""):
                         results.append({
                             "title":   clean,
                             "problem": f"Regulatorisches Update ({domain}): {clean}",

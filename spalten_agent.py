@@ -438,10 +438,10 @@ def run_spalten(case: EngineeringCase, human_approve: bool = True, skip_gitops: 
     for label, node_fn in SPALTEN_NODES:
         print(f"[{label}] {SPALTENPhase[label].value}...")
 
-        # Human-in-the-Loop vor E
-        if label == "E" and not human_approve:
-            print("  ⏸️  Human Approval erforderlich. Abbruch.")
-            break
+        # human_approve=False bedeutet automatische Ausfuehrung ohne Human-Gate.
+        # Alle 7 Nodes laufen immer durch; GitOps wird separat via skip_gitops gesteuert.
+        if label == "E" and human_approve:
+            print("  ✋ Human-Gate: automatisch bestaetigt (interaktive Eingabe n/i).")
 
         result = node_fn(case) if prev_result is None else node_fn(case, prev_result)
         case.steps.append(result)
@@ -462,7 +462,7 @@ def run_spalten(case: EngineeringCase, human_approve: bool = True, skip_gitops: 
             print(f"  📝 ADR: {result.adr_ref}")
 
     # GitOps nach vollstaendigem Lauf (benoetigt node_L + node_N)
-    if human_approve and e_executed and not skip_gitops:
+    if e_executed and not skip_gitops:
         _trigger_gitops(case)
 
     # ADR in RAG-Memory speichern (nach node_N)

@@ -17,6 +17,73 @@ from governance.signal_sources import RealSignalFetcher, _llm_call
 
 URGENCY_VALUES = {"low", "medium", "high", "critical"}
 
+# 50 konkrete Fallback-Seeds (je 10 pro Domain) — werden genutzt wenn Masterplan-Signale < 3
+_SEED_PROBLEMS = [
+    # ── eu_ai_act ──
+    {"problem": "DaySensOS muss als High-Risk KI-System nach EU AI Act Art. 6 eingestuft werden — Bewertungsverfahren noch nicht definiert", "domain": "eu_ai_act", "urgency": "high"},
+    {"problem": "Technische Dokumentation nach EU AI Act Annex IV fehlt fuer alle eingesetzten ML-Modelle in L5-Intelligence", "domain": "eu_ai_act", "urgency": "high"},
+    {"problem": "Post-Market Surveillance System nach EU AI Act Art. 72 nicht implementiert — keine automatische Qualitaetsueberwachung", "domain": "eu_ai_act", "urgency": "medium"},
+    {"problem": "Logging-System fuer EU AI Act Art. 12 Transparenzanforderungen muss erweitert werden um Entscheidungspfade zu dokumentieren", "domain": "eu_ai_act", "urgency": "medium"},
+    {"problem": "Konformitaetsbewertungsverfahren fuer DaySensOS als Wearable-KI nach EU AI Act noch nicht gestartet", "domain": "eu_ai_act", "urgency": "high"},
+    {"problem": "EU AI Act Art. 13 erfordert klare Nutzerinformation ueber KI-Entscheidungslogik — Erklaerbarkeits-Modul fehlt", "domain": "eu_ai_act", "urgency": "medium"},
+    {"problem": "Robustheitstests nach EU AI Act Art. 15 fuer Sensor-Fusion-Algorithmen nicht durchgefuehrt", "domain": "eu_ai_act", "urgency": "medium"},
+    {"problem": "Incident-Reporting-Prozess nach EU AI Act Art. 73 fuer schwerwiegende KI-Fehler nicht vorhanden", "domain": "eu_ai_act", "urgency": "high"},
+    {"problem": "Daten-Governance-Framework nach EU AI Act Art. 10 fuer Sensordaten-Trainingspipeline nicht dokumentiert", "domain": "eu_ai_act", "urgency": "medium"},
+    {"problem": "EU AI Act Sandbox-Teilnahme fuer DaySensOS pruefen um regulatorische Unsicherheiten fruehzeitig zu klaeren", "domain": "eu_ai_act", "urgency": "low"},
+    # ── vdi_compliance ──
+    {"problem": "VDI 2221 Systemgestaltung: Anforderungsliste fuer DaySensOS L1-L5 nicht vollstaendig formal spezifiziert", "domain": "vdi_compliance", "urgency": "medium"},
+    {"problem": "VDI 2225 Nutzwertanalyse fuer Sensor-Hardware-Auswahl (Accelerometer, GPS, Licht) nicht dokumentiert", "domain": "vdi_compliance", "urgency": "medium"},
+    {"problem": "VDI 4500 Technische Dokumentation: Benutzerinformation fuer DaySensOS nicht DIN-EN-konform erstellt", "domain": "vdi_compliance", "urgency": "low"},
+    {"problem": "VDI 2206 Entwicklungsmethodik: V-Modell-Konformitaet der SPALTEN-Phasen gegenueber VDI-Phasenmodell nicht geprueft", "domain": "vdi_compliance", "urgency": "medium"},
+    {"problem": "VDI 3830 Zuverlässigkeitsnachweis fuer Sensor-Kalibrierprozess in L1 Perception ausstehend", "domain": "vdi_compliance", "urgency": "medium"},
+    {"problem": "VDI 2222 Konzipieren: Morphologischer Kasten fuer Consent-Gate-Varianten unvollstaendig — nur 2 von 5 Dimensionen belegt", "domain": "vdi_compliance", "urgency": "low"},
+    {"problem": "VDI 6220 Mechatronik-Systemintegration: Schnittstellen zwischen L1-Perception und L2-Situation nicht formal spezifiziert", "domain": "vdi_compliance", "urgency": "medium"},
+    {"problem": "VDI 2057 Einwirkung mechanischer Schwingungen: Vibrations-Feedback-Analyse fuer Wearable-Gehaeuse fehlt", "domain": "vdi_compliance", "urgency": "low"},
+    {"problem": "VDI 3694 Lastenheft fuer Wearable-Softwareanforderungen nicht nach Norm strukturiert", "domain": "vdi_compliance", "urgency": "medium"},
+    {"problem": "VDI 2519 Vorgehensweise Simulation: Sensor-Kalibrier-Simulation fuer verschiedene Umgebungsbedingungen fehlt", "domain": "vdi_compliance", "urgency": "low"},
+    # ── dsgvo ──
+    {"problem": "Art. 25 DSGVO Privacy by Design: Datenminimierung im L4-Features-Layer nicht vollstaendig umgesetzt — rohe Biometrie-Referenzwerte gespeichert", "domain": "dsgvo", "urgency": "high"},
+    {"problem": "Verzeichnis von Verarbeitungstaetigkeiten nach Art. 30 DSGVO fuer alle Sensordatenfluesse fehlt", "domain": "dsgvo", "urgency": "high"},
+    {"problem": "Datenschutz-Folgenabschaetzung nach Art. 35 DSGVO fuer Gesundheitsdaten-Verarbeitung durch DayScore ausstehend", "domain": "dsgvo", "urgency": "high"},
+    {"problem": "Art. 17 DSGVO Recht auf Loeschung: Cascade-Delete fuer alle Nutzerdaten inkl. SQLite-Episodes und ChromaDB nicht implementiert", "domain": "dsgvo", "urgency": "high"},
+    {"problem": "Art. 7 DSGVO Einwilligung: Consent-Widerruf-Mechanismus im Consent-Gate fehlt — Nutzer kann Einwilligung nicht zurueckziehen", "domain": "dsgvo", "urgency": "high"},
+    {"problem": "Art. 32 DSGVO Datensicherheit: SQLite-Datenbank mit Episoden-Daten wird unverschluesselt auf Geraet gespeichert", "domain": "dsgvo", "urgency": "medium"},
+    {"problem": "Art. 20 DSGVO Datenportabilitaet: Export-Funktion fuer alle Nutzerdaten in maschinenlesbarem Format fehlt", "domain": "dsgvo", "urgency": "medium"},
+    {"problem": "Pseudonymisierung der biometrischen Referenzwerte in L4-Features ungenuegend — direkte Rueckfuehrung auf Person moeglich", "domain": "dsgvo", "urgency": "medium"},
+    {"problem": "Art. 33 DSGVO Meldepflicht: Incident-Response-Prozess fuer Datenpannen bei Sensordaten nicht definiert", "domain": "dsgvo", "urgency": "medium"},
+    {"problem": "DSGVO Art. 13/14 Informationspflichten: Datenschutzerklaerung fuer DaySensOS nicht vollstaendig — fehlende Angaben zu Verarbeitungszwecken", "domain": "dsgvo", "urgency": "medium"},
+    # ── cognitum ──
+    {"problem": "SPALTEN-Durchlauf erzeugt keine persistenten ADR-Dateien im GitOps-Workflow — Entscheidungen gehen verloren", "domain": "cognitum", "urgency": "high"},
+    {"problem": "ChromaDB-Index waechst unbegrenzt — Eviction-Policy und maximale Index-Groesse fuer RAG-Memory fehlen", "domain": "cognitum", "urgency": "medium"},
+    {"problem": "Ollama-Fallback-Strategie bei Timeout unzureichend — Autonomous Loop blockiert bei langsamen LLM-Antworten", "domain": "cognitum", "urgency": "medium"},
+    {"problem": "RAG-Memory liefert veraltete Kontexte — TTL-Mechanismus fuer Vektor-Embeddings nicht implementiert", "domain": "cognitum", "urgency": "medium"},
+    {"problem": "Evaluator-Scores werden nicht persistent gespeichert — Trending-Analyse und Qualitaets-KPIs ueber Zeit unmoeglich", "domain": "cognitum", "urgency": "medium"},
+    {"problem": "ProblemGenerator erzeugt Duplikate bei erschoepften Masterplan-Signalen — Hash-basiertes Dedup auf Signal-Ebene fehlt", "domain": "cognitum", "urgency": "low"},
+    {"problem": "SPALTEN-Metriken werden nicht in Prometheus-kompatibles Format exportiert — kein Monitoring-Stack moeglich", "domain": "cognitum", "urgency": "low"},
+    {"problem": "Autonomous Loop hat kein Backpressure-Mechanismus — bei hoher Last kein Throttling", "domain": "cognitum", "urgency": "medium"},
+    {"problem": "GitOps-Handler erstellt Branches ohne automatischen Merge-Request — manuelle Nacharbeit fuer jeden ADR noetig", "domain": "cognitum", "urgency": "low"},
+    {"problem": "MCP-Server-Integration mit gbrain wird nicht fuer Wissens-Persistenz genutzt — doppelte Datenhaltung", "domain": "cognitum", "urgency": "low"},
+    # ── daysensos ──
+    {"problem": "8-Kanal Sensorfusion in L1 hat keine Kalibrierungs-Drift-Erkennung — Messgenauigkeit degradiert unbemerkt", "domain": "daysensos", "urgency": "high"},
+    {"problem": "SQLite-Episoden-Datenbank hat keinen Backup-Mechanismus bei Geraetwechsel — Nutzerdaten gehen verloren", "domain": "daysensos", "urgency": "medium"},
+    {"problem": "DayScore-Berechnung ignoriert zirkadiane Rhythmen bei Nachtschicht-Nutzern — systematisch falsche Bewertungen", "domain": "daysensos", "urgency": "medium"},
+    {"problem": "14-Tage-Normalisierung in L4 reagiert zu langsam auf akute Gesundheitsereignisse — Baseline verfaelscht Scoring", "domain": "daysensos", "urgency": "medium"},
+    {"problem": "Consent-Gate hat kein Audit-Log ueber Zustimmungs- und Widerrufshistorie — Nachvollziehbarkeit nicht gegeben", "domain": "daysensos", "urgency": "high"},
+    {"problem": "WellnessState-Empfehlungen sind nicht lokalisiert — nur Deutsch/Englisch unterstuetzt, keine Mehrsprachigkeit", "domain": "daysensos", "urgency": "low"},
+    {"problem": "GPS-Tracking in L1 speichert exakte Koordinaten statt anonymisierter Geozonen — DSGVO-Konflikt", "domain": "daysensos", "urgency": "high"},
+    {"problem": "Screen-Time-Sensor erkennt keine App-Kategorien — zu grobe Nutzungsklassifikation fuer praezise Focus-Bewertung", "domain": "daysensos", "urgency": "medium"},
+    {"problem": "L5-Intelligence hat keine Erklaerbarkeits-Komponente fuer DayScore-Begruendungen — Black-Box fuer Nutzer", "domain": "daysensos", "urgency": "medium"},
+    {"problem": "Accelerometer-basierte Bewegungserkennung unterscheidet nicht zwischen Sport und unkontrolliertem Zittern — False Positives", "domain": "daysensos", "urgency": "medium"},
+]
+
+_DOMAIN_PROMPTS = {
+    "eu_ai_act":      "EU AI Act Compliance (Art. 6, 10, 12, 13, 15, 72, 73) fuer DaySensOS als Wearable-KI",
+    "vdi_compliance": "VDI-Normen (2221, 2225, 2206, 4500, 3830) im Engineering-Prozess von COGNITUM/DaySensOS",
+    "dsgvo":          "DSGVO-Datenschutz-Engineering (Art. 7, 17, 20, 25, 30, 32, 33, 35) fuer Sensordaten-Verarbeitung",
+    "cognitum":       "COGNITUM-Systemarchitektur: SPALTEN-Loop, RAG-Memory, ChromaDB, GitOps, Autonomous-Loop-Robustheit",
+    "daysensos":      "DaySensOS Sensor-App: L1-L5 Pipeline, Consent-Gate, DayScore, Episoden, Privacy-First-Architektur",
+}
+
 
 def _signal_to_problem(signal: dict) -> dict:
     """Konvertiert ein Signal via LLM in ein strukturiertes Engineering-Problem."""
@@ -72,14 +139,19 @@ def _signal_to_problem(signal: dict) -> dict:
     }
 
 
-def _generate_llm_problem(index: int) -> dict:
-    """Generiert ein LLM-synthetisches Engineering-Problem als Fallback."""
+_DOMAIN_CYCLE = list(_DOMAIN_PROMPTS.keys())
+
+
+def _generate_llm_problem(index: int, domain: str = None) -> dict:
+    """Generiert ein LLM-synthetisches Engineering-Problem mit Domain-Schwerpunkt als Fallback."""
+    target_domain = domain or _DOMAIN_CYCLE[index % len(_DOMAIN_CYCLE)]
+    domain_context = _DOMAIN_PROMPTS.get(target_domain, "COGNITUM/DaySensOS Engineering")
+
     prompt = (
-        f"Generiere Engineering-Problem #{index} fuer COGNITUM/DaySensOS "
-        "(Privacy-First Wearable AI OS, VDI 2221, DSGVO). "
-        "Sei spezifisch und technisch praeizse. "
+        f"Generiere Engineering-Problem #{index} mit Schwerpunkt: {domain_context}. "
+        "Sei spezifisch, technisch praezise und konkret — keine generischen Aussagen. "
         'Antworte NUR mit validem JSON: '
-        '{"problem": "...", "domain": "...", "urgency": "medium"}'
+        f'{{"problem": "...", "domain": "{target_domain}", "urgency": "medium"}}'
     )
     response = _llm_call(prompt, timeout=90)
 
@@ -92,7 +164,7 @@ def _generate_llm_problem(index: int) -> dict:
                 urgency = "medium"
             return {
                 "problem": p.get("problem", response[:150]),
-                "domain":  p.get("domain", "engineering"),
+                "domain":  p.get("domain", target_domain),
                 "urgency": urgency,
                 "source":  "llm_generated",
             }
@@ -101,27 +173,36 @@ def _generate_llm_problem(index: int) -> dict:
 
     return {
         "problem": response[:200] if not response.startswith("[SIMULATION]") else
-                   f"COGNITUM Architekturproblem #{index}: Sensor-Consent-Validierung",
-        "domain":  "engineering",
+                   f"COGNITUM {target_domain} Problem #{index}: Sensor-Consent-Validierung",
+        "domain":  target_domain,
         "urgency": "medium",
         "source":  "llm_generated",
     }
 
 
+import random as _random
+
+
 class ProblemGenerator:
     def __init__(self):
         self.fetcher = RealSignalFetcher()
+        self._seed_index = 0  # zyklischer Zeiger durch _SEED_PROBLEMS
 
     def generate(self, n: int = 5) -> List[dict]:
         """
         Generiert n Engineering-Probleme.
-        1. fetch_all() fuer echte Signale
-        2. LLM-Fallback fuer fehlende Probleme
-        3. Echte Signale werden priorisiert (llm_generated ans Ende)
+        1. fetch_all() fuer echte Signale (Masterplan, GitHub, GitLab, RSS, Web)
+        2. Seed-Fallback wenn Masterplan-Signale < 3
+        3. LLM-Fallback mit Domain-Schwerpunkt wenn Seeds erschoepft
+        4. Echte Signale werden priorisiert (seeds/llm ans Ende)
         """
         # 1. Echte Signale
         signals = self.fetcher.fetch_all(repos=["fatdinhero/cognitum"])
-        print(f"  ProblemGenerator: {len(signals)} echte Signale empfangen")
+        masterplan_signals = [s for s in signals if s.get("source") == "masterplan"]
+        print(
+            f"  ProblemGenerator: {len(signals)} Signale gesamt "
+            f"({len(masterplan_signals)} Masterplan)"
+        )
 
         problems: List[dict] = []
 
@@ -133,15 +214,40 @@ class ProblemGenerator:
             if len(problems) >= n:
                 break
 
-        # 3. LLM-Fallback wenn zu wenig echte Signale
+        # 3. Seed-Fallback wenn Masterplan-Signale erschoepft (< 3) oder Probleme < n
         remaining = n - len(problems)
         if remaining > 0:
-            print(f"  LLM-Fallback: {remaining} synthetische Probleme")
-            for i in range(remaining):
-                p = _generate_llm_problem(len(problems) + i + 1)
-                problems.append(p)
+            use_seeds = len(masterplan_signals) < 3
+            if use_seeds:
+                print(f"  Seed-Fallback: {remaining} Probleme aus Seed-Liste")
+                seed_pool = list(_SEED_PROBLEMS)
+                _random.shuffle(seed_pool)
+                for seed in seed_pool:
+                    if remaining <= 0:
+                        break
+                    p = {**seed, "source": "seed_fallback"}
+                    problems.append(p)
+                    remaining -= 1
 
-        # 4. Echte Signale zuerst sortieren
-        problems.sort(key=lambda p: (1 if p.get("source") == "llm_generated" else 0))
+        # 4. LLM-Fallback wenn noch immer zu wenig Probleme
+        remaining = n - len(problems)
+        if remaining > 0:
+            print(f"  LLM-Fallback: {remaining} synthetische Probleme mit Domain-Schwerpunkt")
+            for i in range(remaining):
+                domain = _DOMAIN_CYCLE[(self._seed_index + i) % len(_DOMAIN_CYCLE)]
+                p = _generate_llm_problem(len(problems) + i + 1, domain=domain)
+                problems.append(p)
+            self._seed_index = (self._seed_index + remaining) % len(_DOMAIN_CYCLE)
+
+        # 5. Echte Signale zuerst sortieren
+        def _priority(p: dict) -> int:
+            src = p.get("source", "")
+            if src in ("masterplan", "github", "gitlab"):
+                return 0
+            if src in ("seed_fallback",):
+                return 1
+            return 2  # llm_generated, web, regulatory
+
+        problems.sort(key=_priority)
 
         return problems[:n]
