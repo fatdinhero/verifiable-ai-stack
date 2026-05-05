@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_9bab9311",
+  "title": "CNA CLI: Deployment-Strategie — Docker vs. pip-Package",
+  "problem": "CNA CLI: Deployment-Strategie — Docker vs. pip-Package",
+  "domain": "cna_cli",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "### 1. Ist-Zustand\nAktuell wird die CNA CLI über ein pip-Package bereitgestellt, was jedoch Probleme bei der Skalierung und der Isolation aufweist.\n\n### 2. Rahmenbedingungen\n- **Technische Anforderungen:** Die CLI muss skalierbar und isoliert sein.\n- **Operative Anforderungen:** Einfache Deployment-Strategie und Wartung sind prioritär.\n- **Sicherheitsanforderungen:** Authentifizierungssystem muss robust sein.\n\n### 3. Betroffene Stakeholder\n- **Entwickler:** Für die Implementierung und Wartung der Lösung verantwortlich.\n- **Ops-Team:** Für das Deployment und die Betreuung der CNA CLI.\n- **Endbenutzer:** Für die Nutzung der CLI und deren Funktionalität.\n\nDie Auswahl zwischen Docker und pip-Package hängt von den genannten Faktoren ab.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-4d5] Problem: CNA CLI: Deployment-Strategie — Docker vs. pip-Package Domain: cna_cli | [ADR-2026-05-05-79b] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli Loesung: { | [ADR-2026-05-05-23e] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli Lo"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum gibt es Probleme bei der Skalierung und Isolation des pip-Packages?\n   - Weil das pip-Package nicht isoliert ist und die Abhängigkeiten unvorhersehbar sind.\n\n2. Warum ist das pip-Package nicht isoliert?\n   - Weil es keine eigenständige Umgebung für die Anwendung bereitstellt.\n\n3. Warum bietet das pip-Package keine eigenständige Umgebung?\n   - Weil es keine Container oder virtuellen Umgebungen nutzt, um Abhängigkeiten zu managen.\n\n4. Warum werden keine Container oder virtuellen Umgebungen genutzt?\n   - Weil die Entwicklung in Docker nicht integriert war und kein Bedarf vorhanden schien.\n\n5. Warum wurde keine Integration in Docker vorgenommen?\n   - Weil bisherige Deployment-Strategien mit pip-Package ausreichend waren und der Vorteil von Docker nicht erkannt wurde.\n\nDas präzise Problem-Statement: Die CNA CLI wird aktuell über ein pip-Package bereitgestellt, was Probleme bei der Skalierung und Isolation verursacht, da keine Container oder virtuellen Umgebungen genutzt werden.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache Implementierung; Hauptrisiko: Skalierungsprobleme und Abhängigkeitskonflikte.\n\n**V2:** Hauptvorteil: Isolation durch Docker; Hauptrisiko: Komplexere Deployment-Strategie erforderlich.\n\n**V3:** Hauptvorteil: Nutzt aktuelles Deployment-Verfahren; Hauptrisiko: Probleme bei Skalierung und Abhängigkeiten.\n\n**V4:** Hauptvorteil: Flexibilität durch Hybridansatz; Hauptrisiko: Komplexität erhöht.\n\n**V5:** Hauptvorteil: REST-API für flexiblere Interaktionen; Hauptrisiko: Verlust der CLI-Interaktivität.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die beste Gesamtleistung aller vorgeschlagenen Varianten aufzeigt. Da alle Varianten dieselbe Datenhaltungs- und Schnittstellenstruktur haben, liegt der hohe Score bei V1 wahrscheinlich an seinem lokalen Deployment, was eine einfache Implementierung und Wartung ermöglicht.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die beste Gesamtleistung aller vorgeschlagenen Varianten aufzeigt. Da alle Varianten dieselbe Datenhaltungs- und Schnittstellenstruktur haben, liegt der hohe Score bei V1 wahrscheinlich an seinem lokalen Deployment, was eine einfache Implementierung und Wartung ermöglicht."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-311",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-311",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-311"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Bei der Wahl zwischen Docker und pip-Package sollte die Architektur in Betracht gezogen werden; da hier eine Monolith-Architektur gewählt wurde, ist pip-Package die angemessene Wahl für die Installation von Abhängigkeiten.\n2. Für lokale Deployment-Strategien eignet sich SQLite gut zur Datenhaltung, da keine komplexen Datenbankanforderungen vorliegen und das Setup einfacher ist.\n3. Eine CLI-Schnittstelle erfordert sorgfältige Befehlsplanung und -implementierung, um eine benutzerfreundliche Interaktion sicherzustellen; dies sollte frühzeitig in den Entwicklungsprozess integriert werden.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:29:45.846392Z",
+  "_problem_slug": "cna_cli_deployment_strategie_docker_vs_pip_package",
+  "_domain": "cna_cli",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

@@ -360,7 +360,7 @@ def _export_json(case: EngineeringCase, evaluation: dict = None) -> str:
     return filename
 
 
-def run_spalten(case: EngineeringCase, human_approve: bool = True) -> EngineeringCase:
+def run_spalten(case: EngineeringCase, human_approve: bool = True, skip_gitops: bool = False) -> EngineeringCase:
     """Fuehrt den kompletten SPALTEN-Durchlauf aus."""
     print(f"\n{'='*60}")
     print(f"SPALTEN-Durchlauf: {case.title}")
@@ -397,7 +397,7 @@ def run_spalten(case: EngineeringCase, human_approve: bool = True) -> Engineerin
             print(f"  📝 ADR: {result.adr_ref}")
 
     # GitOps nach vollstaendigem Lauf (benoetigt node_L + node_N)
-    if human_approve and e_executed:
+    if human_approve and e_executed and not skip_gitops:
         _trigger_gitops(case)
 
     # ADR in RAG-Memory speichern (nach node_N)
