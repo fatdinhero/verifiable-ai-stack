@@ -18,6 +18,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 from governance.ingestion import IngestionLayer
+from governance.analogy_extractor import AnalogyExtractor
 
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -91,6 +92,7 @@ def _load_state() -> dict:
 
 WHITELIST: set[int] = set()
 ingestion = IngestionLayer()
+analogy_extractor = AnalogyExtractor()
 
 
 # ── Guards ────────────────────────────────────────────────────────────────────
@@ -233,11 +235,29 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     _save_bot_queue(queue)
     logger.info(f"Bot-Queue: +1 Eintrag '{result.get('title', '')[:60]}'")
 
-    await msg.reply_text(
-        f"✅ Signal gespeichert — wird im naechsten Batch verarbeitet\n"
-        f"Extrahiert: {extracted_text[:150]}\n"
-        f"Quelle: {result.get('source_type', '?')}"
-    )
+    # Analogien asynchron extrahieren und in Queue speichern
+    analogies = analogy_extractor.extract(extracted_text)
+    if analogies:
+        analogy_extractor.extract_and_queue(
+            extracted_text,
+            source_url=result.get("source_url", ""),
+            title=result.get("title", ""),
+        )
+        analogy_lines = "\n".join(
+            f"{i}. {a.get('prinzip', '')} → {a.get('engineering_problem', '')}"
+            for i, a in enumerate(analogies, 1)
+        )
+        await msg.reply_text(
+            f"Signal gespeichert\n"
+            f"Extrahiert: {extracted_text[:100]}\n\n"
+            f"Analogien erkannt:\n{analogy_lines}\n\n"
+            f"Alle werden im naechsten Batch verarbeitet."
+        )
+    else:
+        await msg.reply_text(
+            f"Signal gespeichert — wird im naechsten Batch verarbeitet\n"
+            f"Extrahiert: {extracted_text[:100]}"
+        )
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
