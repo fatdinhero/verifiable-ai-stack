@@ -833,6 +833,52 @@ class RealSignalFetcher:
 
         return results
 
+    _EU_RESEARCH_KEYWORDS = {
+        "ai", "artificial intelligence", "digital", "regulation",
+        "compliance", "innovation", "funding", "horizon",
+    }
+    _EU_RESEARCH_FEEDS = [
+        "https://digital-strategy.ec.europa.eu/en/rss.xml",
+        "https://ec.europa.eu/commission/presscorner/api/rss?lang=en&type=IP",
+    ]
+
+    def _fetch_eu_research(self) -> List[str]:
+        """EU Digital Strategy & Commission RSS — feedparser, max 10 relevante Signale."""
+        results: List[str] = []
+        try:
+            import feedparser as _fp
+            import socket
+            old_to = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(12)
+            try:
+                for feed_url in self._EU_RESEARCH_FEEDS:
+                    if len(results) >= 10:
+                        break
+                    try:
+                        parsed = _fp.parse(feed_url)
+                        for entry in parsed.entries[:20]:
+                            title   = (getattr(entry, "title",   "") or "").strip()
+                            summary = re.sub(
+                                r"<[^>]+>",
+                                "",
+                                (getattr(entry, "summary", "") or ""),
+                            ).strip()
+                            combined = (title + " " + summary).lower()
+                            if any(kw in combined for kw in self._EU_RESEARCH_KEYWORDS):
+                                text = f"{title}: {summary[:200]}" if summary else title
+                                results.append(text)
+                            if len(results) >= 10:
+                                break
+                    except Exception:
+                        pass
+            finally:
+                socket.setdefaulttimeout(old_to)
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"  ⚠️  EU R&I Fetch Fehler: {e}")
+        return results
+
     # ── fetch_all ─────────────────────────────────────────────────────────────
 
     def fetch_all(self, repos: List[str] = None) -> List[dict]:
@@ -897,7 +943,18 @@ class RealSignalFetcher:
         all_signals.extend(items)
         source_counts["product_hunt"] = len(items)
 
-        # 9. Market Signals
+        # 9. EU Research & Innovation
+        eu_texts = self._fetch_eu_research()
+        for t in eu_texts:
+            all_signals.append({
+                "title":   t[:80],
+                "problem": t,
+                "domain":  "eu_research",
+                "source":  self._EU_RESEARCH_HTML,
+            })
+        source_counts["eu_research"] = len(eu_texts)
+
+        # 10. Market Signals
         items = self.fetch_market_signals()
         all_signals.extend(items)
         source_counts["web"] = len(items)
