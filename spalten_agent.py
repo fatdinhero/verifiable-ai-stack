@@ -116,26 +116,86 @@ def node_P(case: EngineeringCase, prev: StepResult) -> StepResult:
     return StepResult(phase=SPALTENPhase.P, summary=response, confidence=0.88)
 
 
+def _build_market_matrix(case: EngineeringCase) -> Optional[Dict[str, List[Any]]]:
+    """Ruft MarketScanner auf (max 8s Timeout). None bei Fehler oder falscher Domain."""
+    revenue_domains = {"cognitum", "general", "revenue"}
+    is_revenue = (
+        case.domain in revenue_domains
+        or "revenue" in case.problem.lower()
+        or "kanal" in case.problem.lower()
+        or "monetiz" in case.problem.lower()
+        or "verkauf" in case.problem.lower()
+    )
+    if not is_revenue:
+        return None
+
+    import concurrent.futures
+    try:
+        from governance.market_intelligence import MarketScanner
+        scanner = MarketScanner()
+
+        def _fast_matrix() -> Optional[Dict[str, List[Any]]]:
+            channels = scanner.get_all_channels_fast()
+            if not channels:
+                return None
+            seen: set = set()
+            kanaele = []
+            for c in sorted(channels, key=lambda x: float(x.get("confidence_score", 0)), reverse=True):
+                n = c.get("name", "").strip()
+                if n and n.lower() not in seen:
+                    seen.add(n.lower())
+                    kanaele.append(n)
+            if not kanaele:
+                return None
+            # Kanal LAST → itertools.product aendert Kanal am schnellsten,
+            # damit alle Top-10 Kanaele in den ersten 20 Varianten erscheinen.
+            # Mit Produkt-Typ(2) × Kanal(10) = 20 Varianten decken V1-V10 alle
+            # Kanaele als Gig und V11-V20 alle Kanaele als Plugin/CLI ab.
+            return {
+                "Zeithorizont": ["sofort (<4W)", "kurzfristig (1-3M)"],
+                "Produkt-Typ":  ["Dienstleistung/Gig", "Plugin/CLI", "Datensatz"],
+                "Kanal":        kanaele[:10],
+            }
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(_fast_matrix)
+            matrix = future.result(timeout=8)
+        if matrix and matrix.get("Kanal"):
+            print(f"  🛒 MarketScanner: {len(matrix['Kanal'])} Kanaele geladen")
+            return matrix
+    except concurrent.futures.TimeoutError:
+        print("  ⏱️  MarketScanner Timeout (>8s) — statische Matrix wird genutzt")
+    except Exception as e:
+        print(f"  ⚠️  MarketScanner fehlgeschlagen: {e} — statische Matrix wird genutzt")
+    return None
+
+
 def node_A(case: EngineeringCase, prev: StepResult) -> StepResult:
     """Alternativen: Code erzeugt Morphologie-Matrix, LLM bewertet jede Variante qualitativ."""
-    # Code-Tool — deterministisch (kein LLM fuer Struktur)
-    matrix = {
-        "Architektur": ["Monolith", "Microservice", "Plugin-System", "Serverless"],
-        "Datenhaltung": ["SQLite", "PostgreSQL", "YAML-Files", "JSON-Store"],
-        "Schnittstelle": ["CLI", "REST-API", "MCP-Server", "Web-UI"],
-        "Deployment":    ["Local-Only", "Docker", "pip-Package", "Hybrid"],
-    }
-    varianten = morphologischer_kasten(matrix, max_varianten=5)
+    # Dynamische Market-Matrix fuer Revenue/Business-Probleme, sonst statisch
+    dynamic = _build_market_matrix(case)
+    if dynamic:
+        matrix = dynamic
+    else:
+        # Code-Tool — deterministisch (kein LLM fuer Struktur)
+        matrix = {
+            "Architektur": ["Monolith", "Microservice", "Plugin-System", "Serverless"],
+            "Datenhaltung": ["SQLite", "PostgreSQL", "YAML-Files", "JSON-Store"],
+            "Schnittstelle": ["CLI", "REST-API", "MCP-Server", "Web-UI"],
+            "Deployment":    ["Local-Only", "Docker", "pip-Package", "Hybrid"],
+        }
+    varianten = morphologischer_kasten(matrix, max_varianten=20)
 
     varianten_text = "\n".join(
         f"V{i+1}: {', '.join(f'{k}={v}' for k, v in var.items())}"
         for i, var in enumerate(varianten)
     )
     # LLM bewertet jede Variante mit 1 Satz
+    n_var = len(varianten)
     prompt = (
         f"Problem-Statement: {prev.summary}\n\n"
         f"Loesungsvarianten aus dem Morphologischen Kasten:\n{varianten_text}\n\n"
-        "Bewerte JEDE Variante (V1 bis V5) mit genau 1 Satz: "
+        f"Bewerte JEDE Variante (V1 bis V{n_var}) mit genau 1 Satz: "
         "nenne den Hauptvorteil und das Hauptrisiko."
     )
     llm_bewertung = call_llm(prompt)
@@ -175,10 +235,15 @@ def node_L(case: EngineeringCase, prev: StepResult) -> StepResult:
         {"umsetzbarkeit": 3, "revenue_speed": 3, "strategie": 2, "wartbarkeit": 3},
         {"umsetzbarkeit": 2, "revenue_speed": 2, "strategie": 3, "wartbarkeit": 2},
         {"umsetzbarkeit": 3, "revenue_speed": 3, "strategie": 3, "wartbarkeit": 3},
+        {"umsetzbarkeit": 4, "revenue_speed": 4, "strategie": 3, "wartbarkeit": 2},
+        {"umsetzbarkeit": 2, "revenue_speed": 3, "strategie": 4, "wartbarkeit": 3},
+        {"umsetzbarkeit": 3, "revenue_speed": 2, "strategie": 3, "wartbarkeit": 4},
+        {"umsetzbarkeit": 4, "revenue_speed": 3, "strategie": 2, "wartbarkeit": 3},
+        {"umsetzbarkeit": 2, "revenue_speed": 4, "strategie": 3, "wartbarkeit": 3},
     ]
     optionen = {
         f"V{i+1}": fallback_scores[i] if i < len(fallback_scores) else fallback_scores[-1]
-        for i in range(min(len(varianten), 5))
+        for i in range(min(len(varianten), 10))
     }
 
     # VDI 2225 Bewertung — Code-Tool, deterministisch
@@ -194,7 +259,7 @@ def node_L(case: EngineeringCase, prev: StepResult) -> StepResult:
     # LLM begruendet den Sieger in genau 2 Saetzen
     varianten_text = "\n".join(
         f"V{i+1}: {', '.join(f'{k}={v}' for k, v in var.items())}"
-        for i, var in enumerate(varianten[:5])
+        for i, var in enumerate(varianten[:10])
     )
     prompt = (
         f"VDI 2225-Auswertung: Sieger ist {best} mit Score {best_score:.2f}.\n"
