@@ -70,6 +70,7 @@ class GitOpsHandler:
 
 **Datum:** {date_str}
 **Status:** Vorschlag (Human Review ausstehend)
+**Methode:** SPALTEN + VDI 2225
 **VDI 2225 Score:** {score:.2f}
 
 ## Kontext
@@ -85,7 +86,7 @@ class GitOpsHandler:
 {chr(10).join(f"- {l}" for l in lessons) if lessons else "- Keine"}
 
 ---
-*Generiert durch COGNITUM Engineering Agent v0.2*
+*Generiert durch COGNITUM Engineering Agent v0.2 — Methode: SPALTEN + VDI 2225*
 """
         filepath.write_text(content, encoding="utf-8")
         return filepath
@@ -200,6 +201,7 @@ class GitOpsHandler:
         lessons_md = "\n".join(f"- {l}" for l in lessons) if lessons else "- Keine"
         return (
             f"## ADR: {feature_name}\n\n"
+            f"**Methode:** SPALTEN + VDI 2225\n"
             f"**VDI 2225 Score:** `{score:.2f}`\n\n"
             f"### Entscheidung\n{solution}\n\n"
             f"### Begruendung (VDI 2225)\n{rationale}\n\n"
