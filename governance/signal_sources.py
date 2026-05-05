@@ -833,6 +833,59 @@ class RealSignalFetcher:
 
         return results
 
+    _GENESIS_PATH = Path.home() / "Documents" / "OMNI_GENESIS" / "10-Projects" / \
+                    "OMNI_REACTOR" / "Genesis-Graph" / "Genesis-Graph-Index.md"
+    _GENESIS_SAFE_CATEGORIES = {"Theorem", "Constraint", "IPFragment",
+                                 "MarketSignal", "MarktSignal"}
+    _GENESIS_IGNORE_CATEGORIES = {"CodeModule", "Schema", "Product",
+                                   "Produkt", "Prozess"}
+    _GENESIS_AGENT_KW = {"halal", "islamic", "compliance", "ethic",
+                          "shari", "zakat", "veri", "zkp"}
+
+    def _fetch_genesis_graph(self) -> List[str]:
+        """Liest Genesis-Graph-Index.md und extrahiert relevante [[Name]]-Eintraege.
+        Alle 10 Batches refreshen (via COGNITUM_BATCH_NUM env)."""
+        if not self._GENESIS_PATH.exists():
+            return []
+        import random as _random
+        results: List[str] = []
+        seen: set = set()
+        try:
+            text    = self._GENESIS_PATH.read_text(encoding="utf-8")
+            current = ""
+            for line in text.splitlines():
+                header = re.match(r"^##\s+(\w+)", line)
+                if header:
+                    current = header.group(1)
+                    continue
+                if current in self._GENESIS_IGNORE_CATEGORIES:
+                    continue
+                m = re.search(r"\[\[([^\]]+)\]\]", line)
+                if not m:
+                    continue
+                raw_name = m.group(1).strip()
+                if raw_name in seen:
+                    continue
+                seen.add(raw_name)
+
+                name = re.sub(rf"^{re.escape(current)}_", "", raw_name)
+
+                if current in self._GENESIS_SAFE_CATEGORIES:
+                    results.append(
+                        f"Genesis-Graph: {current} — {name}: "
+                        f"Architekturentscheidung fuer {name} in COGNITUM"
+                    )
+                elif current == "AgentPersona":
+                    if any(kw in name.lower() for kw in self._GENESIS_AGENT_KW):
+                        results.append(
+                            f"Genesis-Graph: AgentPersona — {name}: "
+                            f"Architekturentscheidung fuer {name} in COGNITUM"
+                        )
+        except Exception as e:
+            print(f"  ⚠️  Genesis-Graph Fehler: {e}")
+        _random.shuffle(results)
+        return results[:20]
+
     _EU_RESEARCH_KEYWORDS = {
         "ai", "artificial intelligence", "digital", "regulation",
         "compliance", "innovation", "funding", "horizon",
@@ -954,7 +1007,21 @@ class RealSignalFetcher:
             })
         source_counts["eu_research"] = len(eu_texts)
 
-        # 10. Market Signals
+        # 10. Genesis-Graph (alle 10 Batches — 764 Objekte)
+        import os as _os
+        _batch_hint = int(_os.environ.get("COGNITUM_BATCH_NUM", "0"))
+        if _batch_hint % 10 == 0:
+            texts = self._fetch_genesis_graph()
+            for t in texts:
+                all_signals.append({
+                    "title":   t[:80],
+                    "problem": t,
+                    "domain":  "cognitum",
+                    "source":  "genesis_graph",
+                })
+            source_counts["genesis_graph"] = len(texts)
+
+        # 11. Market Signals
         items = self.fetch_market_signals()
         all_signals.extend(items)
         source_counts["web"] = len(items)
