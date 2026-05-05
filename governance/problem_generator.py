@@ -3,12 +3,13 @@ governance/problem_generator.py
 ProblemGenerator — konvertiert echte Signale in SPALTEN-Engineering-Probleme
 Echte Signale priorisiert, LLM-generierte nur als Fallback.
 """
+import hashlib as _hashlib
 import json
 import re
 import sys
 import urllib.request
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Set, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
@@ -126,6 +127,7 @@ def _signal_to_problem(signal: dict) -> dict:
             "urgency": urgency,
             "source":  source,
             "raw_signal": signal,
+            "sig_key":  (title or str(body))[:120],
         }
 
     # Fallback: kein gueltiges JSON
@@ -136,6 +138,7 @@ def _signal_to_problem(signal: dict) -> dict:
         "urgency": "medium",
         "source":  source,
         "raw_signal": signal,
+        "sig_key":  (title or str(body))[:120],
     }
 
 
@@ -183,20 +186,26 @@ def _generate_llm_problem(index: int, domain: str = None) -> dict:
 import random as _random
 
 
+def _prob_hash(text: str) -> str:
+    return _hashlib.sha256(text[:120].encode("utf-8")).hexdigest()[:20]
+
+
 class ProblemGenerator:
     def __init__(self):
         self.fetcher = RealSignalFetcher()
-        self._seed_index = 0  # zyklischer Zeiger durch _SEED_PROBLEMS
+        self._seed_index = 0
 
-    def generate(self, n: int = 5) -> List[dict]:
+    def generate(self, n: int = 5, skip_hashes: Optional[Set[str]] = None) -> List[dict]:
         """
         Generiert n Engineering-Probleme.
-        1. fetch_all() fuer echte Signale (Masterplan, GitHub, GitLab, RSS, Web)
-        2. Seed-Fallback wenn Masterplan-Signale < 3
-        3. LLM-Fallback mit Domain-Schwerpunkt wenn Seeds erschoepft
-        4. Echte Signale werden priorisiert (seeds/llm ans Ende)
+        1. fetch_all() — scannt ALLE Signale nach noch nicht gesehenen (skip_hashes-Prefilter)
+        2. Seed-Fallback wenn frische Real-Signale erschoepft
+        3. LLM-Fallback mit Domain-Rotation wenn Seed-Pool erschoepft
+        4. Echte Signale werden priorisiert
         """
-        # 1. Echte Signale
+        skip_hashes = skip_hashes or set()
+
+        # 1. Echte Signale holen
         signals = self.fetcher.fetch_all(repos=["fatdinhero/cognitum"])
         masterplan_signals = [s for s in signals if s.get("source") == "masterplan"]
         print(
@@ -206,48 +215,60 @@ class ProblemGenerator:
 
         problems: List[dict] = []
 
-        # 2. Signale in Probleme konvertieren
-        for sig in signals[:n]:
-            p = _signal_to_problem(sig)
-            if p.get("problem"):
-                problems.append(p)
+        # 2. Signale konvertieren — Prefilter via sig_key-Hash (LLM-Call sparen)
+        for sig in signals:
             if len(problems) >= n:
                 break
+            # Schnell-Check via Signal-Key (kanonisch, deterministisch)
+            sig_key = (sig.get("title") or sig.get("problem", ""))[:120]
+            sig_h   = _prob_hash(sig_key)
+            if sig_h in skip_hashes:
+                continue
+            p = _signal_to_problem(sig)
+            if not p.get("problem"):
+                continue
+            # Auch LLM-konvertierten Hash pruefen (Rueckwaertskompatibilitaet)
+            final_h = _prob_hash(p["problem"])
+            if final_h in skip_hashes:
+                continue
+            problems.append(p)
 
-        # 3. Seed-Fallback wenn Masterplan-Signale erschoepft (< 3) oder Probleme < n
+        fresh_real = len(problems)
+
+        # 3. Seed-Fallback — wenn frische Real-Signale nicht ausreichen
         remaining = n - len(problems)
         if remaining > 0:
-            use_seeds = len(masterplan_signals) < 3
-            if use_seeds:
-                print(f"  Seed-Fallback: {remaining} Probleme aus Seed-Liste")
-                seed_pool = list(_SEED_PROBLEMS)
-                _random.shuffle(seed_pool)
-                for seed in seed_pool:
-                    if remaining <= 0:
-                        break
-                    p = {**seed, "source": "seed_fallback"}
-                    problems.append(p)
-                    remaining -= 1
+            print(f"  Seed-Fallback: {remaining} Probleme (fresh_real={fresh_real})")
+            seed_pool = list(_SEED_PROBLEMS)
+            _random.shuffle(seed_pool)
+            for seed in seed_pool:
+                if remaining <= 0:
+                    break
+                seed_text = seed.get("problem", "")
+                if _prob_hash(seed_text) in skip_hashes:
+                    continue
+                p = {**seed, "source": "seed_fallback"}
+                problems.append(p)
+                remaining -= 1
 
-        # 4. LLM-Fallback wenn noch immer zu wenig Probleme
+        # 4. LLM-Fallback — wenn Seeds auch erschoepft
         remaining = n - len(problems)
         if remaining > 0:
-            print(f"  LLM-Fallback: {remaining} synthetische Probleme mit Domain-Schwerpunkt")
+            print(f"  LLM-Fallback: {remaining} synthetische Probleme")
             for i in range(remaining):
                 domain = _DOMAIN_CYCLE[(self._seed_index + i) % len(_DOMAIN_CYCLE)]
                 p = _generate_llm_problem(len(problems) + i + 1, domain=domain)
                 problems.append(p)
             self._seed_index = (self._seed_index + remaining) % len(_DOMAIN_CYCLE)
 
-        # 5. Echte Signale zuerst sortieren
+        # 5. Priorisierung: echte Signale zuerst
         def _priority(p: dict) -> int:
             src = p.get("source", "")
             if src in ("masterplan", "github", "gitlab"):
                 return 0
-            if src in ("seed_fallback",):
+            if src == "seed_fallback":
                 return 1
-            return 2  # llm_generated, web, regulatory
+            return 2
 
         problems.sort(key=_priority)
-
         return problems[:n]

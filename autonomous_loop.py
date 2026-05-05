@@ -259,9 +259,12 @@ class AutonomousLoop:
                     if not problem_text:
                         continue
 
-                    # ── 2. Idempotenz-Check ───────────────────────────────────
-                    h = _problem_hash(problem_text)
-                    if h in self.state["processed_hashes"]:
+                    # ── 2. Idempotenz-Check (problem-hash + signal-key-hash) ──
+                    h       = _problem_hash(problem_text)
+                    sig_key = prob.get("sig_key", "")
+                    h_sig   = _problem_hash(sig_key) if sig_key else h
+                    seen    = set(self.state["processed_hashes"])
+                    if h in seen or h_sig in seen:
                         _log(f"  SKIP (bereits verarbeitet): {problem_text[:60]}")
                         batch_skipped += 1
                         self.state["skipped_count"] += 1
@@ -289,8 +292,9 @@ class AutonomousLoop:
                         )
                     except Exception as e:
                         _log(f"  SPALTEN Fehler: {e}")
-                        # Hash trotzdem speichern, um Dauerschleifen zu vermeiden
-                        self.state["processed_hashes"].append(h)
+                        for _h in {h, h_sig}:
+                            if _h not in self.state["processed_hashes"]:
+                                self.state["processed_hashes"].append(_h)
                         continue
 
                     # ── 4. Evaluierung ────────────────────────────────────────
@@ -319,12 +323,14 @@ class AutonomousLoop:
                     else:
                         _log(f"  FAIL score={score:.3f} < {min_score}")
 
-                    # Hash speichern (verhindert Neuverarbeitung unabhaengig vom Score)
-                    self.state["processed_hashes"].append(h)
-                    # Letzten 2000 Hashes behalten
-                    if len(self.state["processed_hashes"]) > 2000:
+                    # Beide Hashes speichern: Problem-Text + Signal-Key
+                    for _h in {h, h_sig}:
+                        if _h not in self.state["processed_hashes"]:
+                            self.state["processed_hashes"].append(_h)
+                    # Letzten 4000 Hashes behalten (2× wegen doppelter Eintraege)
+                    if len(self.state["processed_hashes"]) > 4000:
                         self.state["processed_hashes"] = (
-                            self.state["processed_hashes"][-2000:]
+                            self.state["processed_hashes"][-4000:]
                         )
 
                     self.state["scores"].append(score)
