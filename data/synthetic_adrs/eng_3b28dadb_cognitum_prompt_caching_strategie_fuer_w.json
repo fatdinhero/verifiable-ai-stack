@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_3b28dadb",
+  "title": "COGNITUM: Prompt-Caching-Strategie fuer wiederholte SPALTEN-Runs",
+  "problem": "COGNITUM: Prompt-Caching-Strategie fuer wiederholte SPALTEN-Runs",
+  "domain": "cognitum",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "1. Ist-Zustand:\n   COGNITUM hat bisher keine spezifische Prompt-Caching-Strategie für wiederholte SPALTEN-Runs implementiert.\n\n2. Rahmenbedingungen:\n   - Es gibt bereits ADRs zur Datenformatierung und Sensor-Sampling-Rate.\n   - Protobuf vs. JSON und Echtzeit vs. Batch sind relevante Technologien.\n   - COGNITUM Engineering Agent nutzt MCP-Server für Claude Desktop und Cursor D.\n\n3. Betroffene Stakeholder:\n   - Entwickler von COGNITUM\n   - Ingenieure für Datenformatierung\n   - Systemarchitekten\n   - Nutzer des COGNITUM Engineering Agents",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-c59] Problem: DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON Domain: day | [ADR-2026-05-05-18a] Problem: COGNITUM Engineering Agent: MCP-Server fuer Claude Desktop und Cursor D | [ADR-2026-05-05-523] Problem: DaySensOS: Sensor-Sampling-Rate — Echtzeit vs. Batch Domain: d"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum hat COGNITUM keine spezifische Prompt-Caching-Strategie implementiert?\n   - Weil die Notwendigkeit und Nutzen für diese Strategie bisher nicht klargemacht wurde.\n\n2. Warum ist die Notwendigkeit und Nutzen der Caching-Strategie bisher nicht klar?\n   - Weil keine spezifischen Anforderungen oder Vorteile identifiziert wurden, die eine solche Implementierung rechtfertigen würden.\n\n3. Warum sind keine spezifischen Anforderungen oder Vorteile identifiziert worden?\n   - Weil bisher keine detaillierte Analyse der Nutzenpotenziale und des Einsatzes durchgeführt wurde.\n\n4. Warum wurde keine detaillierte Analyse durchgeführt?\n   - Weil die Prioritäten und Fokusthemen in den ADRs (Anforderungs-Defizit-Registern) bisher anders lagen.\n\n5. Warum waren die Prioritäten und Fokusthemen in den ADRs anders?\n   - Weil andere technologische Aspekte wie Protobuf vs. JSON und Echtzeit vs. Batch derzeit größeren Interesse und Aufwand beanspruchen.\n\nDas präzise Problem-Statement: COGNITUM hat keine spezifische Prompt-Caching-Strategie für wiederholte SPALTEN-Runs implementiert, da die Notwendigkeit und Nutzen dieser Implementierung bisher nicht genügend analysiert wurden.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache lokale Implementierung; Hauptrisiko: Einschränkungen in der Skalierbarkeit und Flexibilität.\n\n**V2:** Hauptvorteil: Docker-basierte Deployment-Erweiterung; Hauptrisiko: Komplexere Konfiguration und Verwaltung.\n\n**V3:** Hauptvorteil: pip-Package für einfache Installation; Hauptrisiko: Begrenzte Flexibilität in der Deployment-Optionen.\n\n**V4:** Hauptvorteil: Hybrid-Deployment für flexiblen Einsatz; Hauptrisiko: Komplexere Implementierung und Verwaltung.\n\n**V5:** Hauptvorteil: REST-API für besseren Zugriff; Hauptrisiko: Mehr Aufwand in der Entwicklung und Sicherheitsmaßnahmen.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 wird als optimale Lösung gewählt, da es einen hoheren Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die Anforderungen am besten erfüllt und somit die beste Balance zwischen Architektur, Datenhaltung, Schnittstelle und Deployment bietet.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 wird als optimale Lösung gewählt, da es einen hoheren Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die Anforderungen am besten erfüllt und somit die beste Balance zwischen Architektur, Datenhaltung, Schnittstelle und Deployment bietet."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-adb",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-adb",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-adb"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Monolithische Architektur: Obwohl einfacher zu implementieren und deployen, kann sie bei wachsendem Anwachsen komplex werden und beeinträchtigen Skalierbarkeit.\n2. CLI-Schnittstelle: Obwohl praktisch für manuelle Tests, bietet sie wenig Flexibilität und Automatisierungsmöglichkeiten im Vergleich zu GUI-Basierten Lösungen.\n3. SQLite-Datenhaltung: Obwohl leicht einzusetzen, kann es in leistungsintensiven Anwendungen zu Einschränkungen kommen, insbesondere bei großen Datenmengen oder komplexen Abfragen.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:36:00.500566Z",
+  "_problem_slug": "cognitum_prompt_caching_strategie_fuer_wiederholte_spalten_r",
+  "_domain": "cognitum",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

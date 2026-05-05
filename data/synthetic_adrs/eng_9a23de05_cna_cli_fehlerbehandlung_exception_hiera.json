@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_9a23de05",
+  "title": "CNA CLI: Fehlerbehandlung — Exception-Hierarchie definieren",
+  "problem": "CNA CLI: Fehlerbehandlung — Exception-Hierarchie definieren",
+  "domain": "cna_cli",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "1. **Ist-Zustand**: Der aktuelle Zustand umfasst die Implementierung der CNA CLI, bei der eine Fehlerbehandlung durch Exception-Hierarchie fehlt. Es gibt bereits ADRs zur Datenbank- und Authentifizierungsoptionen, aber keine spezifische Definition für Exceptions.\n\n2. **Rahmenbedingungen**: \n   - Die Wahl zwischen SQLite und YA für die Norm-Registry.\n   - Der Einsatz des COGNITUM Engineering Agents mit MCP-Server.\n   - Die Authentifizierungsmethoden JWT vs. API-Key.\n\n3. **Betroffene Stakeholder**:\n   - Entwicklungsteam: Für die Implementierung der Exception-Hierarchie verantwortlich.\n   - Systemadministratoren: Für die Konfiguration und Wartung des Systems.\n   - Nutzer: Für die Benutzerfreundlichkeit und Fehlerbehandlung im Endprodukt.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-6b8] Problem: CNA CLI: Welches Datenbankformat fuer die Norm-Registry — SQLite vs. YA | [ADR-2026-05-05-18a] Problem: COGNITUM Engineering Agent: MCP-Server fuer Claude Desktop und Cursor D | [ADR-2026-05-05-79b] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli L"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum gibt es keine Exception-Hierarchie? Weil sie noch nicht implementiert wurde.\n2. Warum wurde sie nicht implementiert? Weil sie nicht in den ADRs definiert ist.\n3. Warum sind Exceptions nicht in den ADRs definiert? Weil die Entwicklungsteam-Führung diese Priorität nicht hatte.\n4. Warum hatte die Führung keine Priorität darauf? Weil bisher andere Aspekte des Systems höher priorisiert waren.\n5. Warum wurden andere Aspekte höher priorisiert? Um zeitlich und ressourcenmäßig kritische Funktionen zu erfüllen.\n\n**Problem-Statement:** Es fehlt eine spezifisch definierte Exception-Hierarchie in der CNA CLI, was potentielle Fehlerbehandlungsprobleme im System verursachen kann.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache Entwicklung und Testung. Hauptrisiko: Komplexe Fehlerbehandlung schwierig.\n\n**V2:** Hauptvorteil: Flexibilität durch Docker. Hauptrisiko: Komplexere Deployment-Verwaltung notwendig.\n\n**V3:** Hauptvorteil: Einfache Veröffentlichung über pip-Package. Hauptrisiko: Einschränkende Lokalisierung der Deployment-Möglichkeiten.\n\n**V4:** Hauptvorteil: Anpassungsfähigkeit durch Hybrid-Deployment. Hauptrisiko: Komplexere Systemverwaltung.\n\n**V5:** Hauptvorteil: REST-API für interne und externe Interaktionen. Hauptrisiko: Mehr Aufwand bei der Implementierung und Fehlerbehandlung.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die Anforderungen am besten erfüllt. Zudem bietet das lokale Deployment ohne zusätzliche Komplexitäten wie Docker oder REST-API eine einfachste Implementierung und Wartung.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Dies deutet darauf hin, dass V1 die Anforderungen am besten erfüllt. Zudem bietet das lokale Deployment ohne zusätzliche Komplexitäten wie Docker oder REST-API eine einfachste Implementierung und Wartung."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-e05",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-e05",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-e05"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. In einer monolithischen Architektur ist es ratsam, eine klare Exception-Hierarchie zu definieren, um Fehlerbehandlung effektiver zu gestalten.\n2. Die Wahl von SQLite als Datenhaltungssystem erfordert spezielle Beachtung bei der Implementierung von Transaktionsmanagement und Sperrenumgehung.\n3. Für CLI-Schnittstellen ist es wichtig, eine benutzerfreundliche Fehlermeldung bereitzustellen, um den Nutzer effektiv in die Problembehandlung zu involvieren.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:32:23.091868Z",
+  "_problem_slug": "cna_cli_fehlerbehandlung_exception_hierarchie_definieren",
+  "_domain": "cna_cli",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

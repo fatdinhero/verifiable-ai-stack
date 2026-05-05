@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_021ea88b",
+  "title": "Dokumentation: Automatisch generiert vs. manuell gepflegt",
+  "problem": "Dokumentation: Automatisch generiert vs. manuell gepflegt",
+  "domain": "general",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "1. **Ist-Zustand**: Der Dokumentationsprozess ist derzeit in zwei Modi parallel laufend: automatisch generiert und manuell gepflegt. Automatische Dokumentation wird durch Software zur Verfügung gestellt, während manuelle Pflege von Dokumenten durch Fachkräfte durchgeführt wird.\n\n2. **Rahmenbedingungen**: Die Auswahl zwischen automatischer und manueller Dokumentation wird durch die Verfügbarkeit von CI/CD-Tools (GitLab Runner vs. GitHub Actions) und Datenpipeline-Strategien (Batch vs. Stream-Processing) beeinflusst. Darüber hinaus gibt es Normen für den Registrierungsprozess, insbesondere in Bezug auf Lärmbelästigung.\n\n3. **Betroffene Stakeholder**: \n   - Entwickler und CI/CD-Managerteam: Sie sind betroffen durch die Wahl der Pipeline-Strategie.\n   - Dokumentationsverantwortliche: Sie entscheiden über den Modus der Dokumentation (automatisch vs. manuell).\n   - Normenkommissionäre: Sie haben Einfluss auf die Verwendung von Hardcode vs. YAML-Config für normative Werte.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-ec6] Problem: CI/CD: GitLab Runner vs. GitHub Actions als primaere Pipeline Domain: g | [ADR-2026-05-05-bd1] Problem: Datenpipeline: Batch vs. Stream-Processing fuer ADR-Indexierung Domain: | [ADR-2026-05-05-2c8] Problem: Norm-Registry: TA-Laerm-Grenzwerte — Hardcode vs. YAML-Config "
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. **Warum** gibt es zwei Modi der Dokumentation?  \n   **Weil** die automatische Dokumentation und die manuelle Pflege unterschiedliche Vorteile bieten.\n\n2. **Warum** sind Entwickler und CI/CD-Managerteam betroffen durch die Wahl der Pipeline-Strategie?  \n   **Weil** sie die Effizienz und Zuverlässigkeit der Pipeline beeinflussen.\n\n3. **Warum** entscheiden Dokumentationsverantwortliche über den Modus der Dokumentation (automatisch vs. manuell)?  \n   **Weil** die Qualität, Genauigkeit und Relevanz der Dokumente davon abhängen.\n\n4. **Warum** haben Normenkommissionäre Einfluss auf die Verwendung von Hardcode vs. YAML-Config?  \n   **Weil** dies die Konsistenz und Wartbarkeit der normativen Werte sichert.\n\n5. **Warum** sind alle diese Faktoren relevant für den Dokumentationsprozess?  \n   **Weil** sie die Qualität, Effizienz und Compliance des Prozesses beeinflussen.\n\n**Problem-Statement:** Es gibt eine Mischung von automatischer und manueller Dokumentation im aktuellen Prozess, der durch CI/CD-Tools und Datenpipeline-Strategien sowie Normen für den Registrierungsprozess beeinflusst wird.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache Implementierung und Debugging, Hauptrisiko: Begrenzte Skalierbarkeit und Flexibilität.\n\n**V2:** Hauptvorteil: Containerisierung für bessere Portabilität, Hauptrisiko: Komplexerer Deployment-Prozess.\n\n**V3:** Hauptvorteil: Paketbasierte Distribution für einfache Verbreitung, Hauptrisiko: Begrenzte Flexibilität in der Umgebungskonfiguration.\n\n**V4:** Hauptvorteil: Hybrid-Deployment ermöglicht Anpassung an verschiedene Umgebungen, Hauptrisiko: Komplexerer Deployment-Workflow.\n\n**V5:** Hauptvorteil: REST-API für bessere Integrierbarkeit, Hauptrisiko: Mehr Aufwand bei der API-Entwicklung und -Wartung.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es einen hohen Score von 0.88 erreicht und alle notwendigen Komponenten (Monolitharchitektur, Datenhaltung mit SQLite, CLI-Schnittstelle) umfasst. Die lokale Bereitstellung ohne zusätzliche Komplexitäten wie Docker oder Paketinstallation macht die Implementierung einfacher und wartungsintensiver.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erreicht und alle notwendigen Komponenten (Monolitharchitektur, Datenhaltung mit SQLite, CLI-Schnittstelle) umfasst. Die lokale Bereitstellung ohne zusätzliche Komplexitäten wie Docker oder Paketinstallation macht die Implementierung einfacher und wartungsintensiver."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-88b",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-88b",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-88b"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Automatisierung der Dokumentation sollte优先考虑，以确保一致性并减少错误。\n2. Monolith-Architektur passt gut für kleinere Anwendungen, aber möglicherweise begrenzt zukünftige Skalierbarkeit.\n3. CLI-Schnittstelle ist benutzerfreundlich und effizient, sollte jedoch mit grafischen Tools ergänzt werden, um die Benutzererfahrung zu verbessern。",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:44:43.437840Z",
+  "_problem_slug": "dokumentation_automatisch_generiert_vs_manuell_gepflegt",
+  "_domain": "general",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_bec2e523",
+  "title": "DaySensOS: Sensor-Sampling-Rate — Echtzeit vs. Batch",
+  "problem": "DaySensOS: Sensor-Sampling-Rate — Echtzeit vs. Batch",
+  "domain": "daysensos",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "1. **Ist-Zustand**: \n   - Der Sensor-Sampling-Rate-Problem in DaySensOS ist aktuell nicht klar definiert, was zu potenziellen Verzögerungen oder Überlastungen im System führen kann.\n   \n2. **Rahmenbedingungen**:\n   - Echtzeit-Anforderungen erfordern eine schnelle Datenbearbeitung und -übertragung.\n   - Batch-Verarbeitung ermöglicht effizientere Ressourcennutzung, insbesondere bei hoher Datendichte.\n\n3. **Betroffene Stakeholder**:\n   - Entwickler: Für die Implementierung der Sampling-Rate-Spezifikationen verantwortlich.\n   - Nutzer: Erwartungen an die Systemleistung und Reaktionszeit haben.\n   - Datenschützer: Sicherstellung des Datenschutzes bei der Datenverarbeitung.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-79b] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli Loesung: { | [ADR-2026-05-05-23e] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli Loesung: { | [ADR-2026-05-05-125] Problem: DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Proce"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum ist die Sensor-Sampling-Rate im DaySensOS nicht klar definiert?\n   - Weil es keine spezifischen Anforderungen an die Sampling-Frequenz gibt.\n2. Warum gibt es keine spezifischen Anforderungen?\n   - Weil bisher nur allgemeine Echtzeit-Anforderungen existieren, ohne genaue Definition der Sampling-Rate.\n3. Warum sind Echtzeit-Anforderungen nicht präzise definiert?\n   - Weil die Nutzer- und Entwickleranforderungen in Bezug auf die Reaktionszeit noch nicht klargestellt wurden.\n4. Warum sind Nutzer- und Entwickleranforderungen unklar?\n   - Weil es keine detaillierte Analyse der Systemleistung und der Datenübertragung gegeben hat.\n5. Warum wurde keine solche Analyse durchgeführt?\n   - Weil die Rahmenbedingungen und spezifischen Anforderungen noch nicht vollständig definiert waren.\n\n**Problem-Statement:** Das fehlende klare Definition der Sensor-Sampling-Rate im DaySensOS führt zu potenziellen Verzögerungen oder Überlastungen, da keine präzisen Echtzeit-Anforderungen und Nutzererwartungen existieren.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache Entwicklung undDeployment; Hauptrisiko: Schweres Skalieren.\n\n**V2:** Hauptvorteil: Flexibilität durch Docker-Container; Hauptrisiko: Komplexere Deployment-Strategie.\n\n**V3:** Hauptvorteil: Paketbasierte Distribution für einfache Installation; Hauptrisiko: Begrenzte Skalierbarkeit.\n\n**V4:** Hauptvorteil: Hybrid-Ansatz für unterschiedliche Umgebungen; Hauptrisiko: Komplexere Architektur.\n\n**V5:** Hauptvorteil: REST-API für flexiblen Zugriff; Hauptrisiko: Schwierigere Datenhaltung und -verwaltung.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es den höchsten Score von 0.88 erreicht hat. Die Wahl der lokalen Deployment-Option (Local-Only) bietet eine einfache und effiziente Implementierung ohne Komplexitätssteigerungen durch Container oder Paketverwaltung, was zu besseren Ergebnissen beigetragen haben muss.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es den höchsten Score von 0.88 erreicht hat. Die Wahl der lokalen Deployment-Option (Local-Only) bietet eine einfache und effiziente Implementierung ohne Komplexitätssteigerungen durch Container oder Paketverwaltung, was zu besseren Ergebnissen beigetragen haben muss."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-523",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-523",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-523"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Bei der Wahl der Architektur ist es wichtig, die Anforderungen an die Systemleistung und -skalierbarkeit zu berücksichtigen. Ein Monolith ist in diesem Fall nicht ideal für eine höhere Sampling-Rate.\n2. Die Datenhaltung mit SQLite eignet sich gut für prototypische Projekte, aber bei erhöhter Datendichte oder -menge sollte man stattdessen einen skalierbaren Datenbankserver wie PostgreSQL in Betracht ziehen.\n3. Eine einfache CLI-Schnittstelle ist für den Entwicklungs- und Testzweck geeignet, jedoch muss eine benutzerfreundlichere und stabilere Schnittstelle für die Produktion entwickelt werden, um Fehler zu minimieren.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:33:48.177004Z",
+  "_problem_slug": "daysensos_sensor_sampling_rate_echtzeit_vs_batch",
+  "_domain": "daysensos",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

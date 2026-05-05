@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_8f9e4c40",
+  "title": "COGNITUM: Versionierung von masterplan.yaml — semver vs. datumbasiert",
+  "problem": "COGNITUM: Versionierung von masterplan.yaml — semver vs. datumbasiert",
+  "domain": "cognitum",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "### 1. Ist-Zustand\nDas aktuelle System verfügt über eine Versionierung des `masterplan.yaml`-Dateien, wobei beide Ansätze (semver und datumbasiert) parallel verwendet werden.\n\n### 2. Rahmenbedingungen\n- **Technische Anforderungen**: Die Wahl der Versionierungsmethode beeinflusst die Automatisierbarkeit und Lesbarkeit der Versionshistorie.\n- **Projektmanagement**: Semver bietet eine präzise Verwaltung von Änderungen, während datumbasierte Versionen den zeitlichen Kontext klar machen.\n- **Konsistenzbedürfnisse**: Einheitliche Versionierungsmethoden verbessern die Kollaboration und Dokumentation.\n\n### 3. Betroffene Stakeholder\n- **Entwickler**: Beide Ansätze beeinflussen die Implementierungsprozesse.\n- **Projektmanager**: Die Wahl der Versionierungsmethode hat Auswirkungen auf die Planung und Kontrolle.\n- **QA-Team**: Konsistenzprüfung und -management werden durch eine einheitliche Methode erleichtert.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-523] Problem: DaySensOS: Sensor-Sampling-Rate — Echtzeit vs. Batch Domain: daysensos | [ADR-2026-05-05-df8] Problem: DaySensOS: Energieoptimierung — Duty-Cycle-Strategie Domain: daysensos | [ADR-2026-05-05-125] Problem: DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Process"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "### 5-Why-Analyse:\n\n1. **Warum gibt es zwei parallele Versionierungsmethoden?**\n   - Weil semver und datumbasiert unterschiedliche Vorteile bieten.\n\n2. **Warum wurden beide Methoden gewählt?**\n   - Weil semver eine präzise Verwaltung von Änderungen ermöglicht, während datumbasierte Versionen den zeitlichen Kontext klar machen.\n\n3. **Warum sind die Ansätze nicht vereinheitlicht?**\n   - Weil technische Anforderungen und Konsistenzbedürfnisse unterschiedlich sind.\n\n4. **Warum hat keine Methode优先级较低的问题未解决？**\n   - Weil der Einheitsvorteil für alle Stakeholder nicht klar genug geworden ist.\n\n5. **Warum wird die Einheitlichkeit nicht erreicht?**\n   - Weil die Vorteile beider Ansätze zu stark sind, um eine einheitliche Methode zu wählen.\n\n### Problem-Statement:\nDas System verwendet parallele Versionierungsmethoden (semver und datumbasiert), was zu inkonsistenten Implementierungsprozessen und Herausforderungen bei der Kollaboration führt.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache lokale Entwicklung; Risiko: Komplexität bei Skalierung.\n\n**V2:** Hauptvorteil: Docker für Isolation; Risiko: Deployment-Complexity erhöht.\n\n**V3:** Hauptvorteil: pip-Package für Flexibilität; Risiko: Komplexe Installation.\n\n**V4:** Hauptvorteil: Hybrid-Deployment für Anpassungsfähigkeit; Risiko: Verwaltungskomplexität.\n\n**V5:** Hauptvorteil: REST-API für skalierbare Kollaboration; Risiko: Mehr Aufwand bei Schnittstelle und Sicherheit.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es den höchsten Score von 0.88 erzielt hat. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätssteigerungen durch Docker oder pip-Packages, was zu besseren Ergebnissen beiträgt.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es den höchsten Score von 0.88 erzielt hat. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätssteigerungen durch Docker oder pip-Packages, was zu besseren Ergebnissen beiträgt."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-c40",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-c40",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-c40"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Bei der Versionierung von Konfigurationsdateien wie `masterplan.yaml` sollte man zwischen semantischer Versionskontrolle (`semver`) und datumbasiertem Versioning sorgfältig wählen, basierend auf den spezifischen Anforderungen des Projekts.\n2. Für eine Monolitharchitektur ist es ratsam, die Datenhaltung in SQLite zu integrieren, da dies für einfache Anwendungen effizient und leicht zu verwalten ist.\n3. Die Verwendung einer CLI-Schnittstelle für das Deployment auf lokalen Systemen vereinfacht den Betrieb, reduziert Komplexität und erlaubt flexiblen Testumgebungen.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:36:47.242260Z",
+  "_problem_slug": "cognitum_versionierung_von_masterplan_yaml_semver_vs_datumba",
+  "_domain": "cognitum",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

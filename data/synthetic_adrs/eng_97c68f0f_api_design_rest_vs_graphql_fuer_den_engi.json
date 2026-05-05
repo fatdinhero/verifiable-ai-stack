@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_97c68f0f",
+  "title": "API-Design: REST vs. GraphQL fuer den Engineering-Agent",
+  "problem": "API-Design: REST vs. GraphQL fuer den Engineering-Agent",
+  "domain": "general",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "### 1. Ist-Zustand\nDer Engineering-Agent verwendet derzeit REST für seine API-Designs, was jedoch in einigen Fällen zu Komplexität und Overhead führt. Protobuf wird zur Datenrepräsentation bevorzugt, während YAML-Config für flexible Konfigurationen eingesetzt wird.\n\n### 2. Rahmenbedingungen\n- **Technische Anforderungen**: Die API sollte skalierbar, performant und flexibel sein.\n- **Datenmanagement**: Effiziente Datenübertragung und -repräsentation sind wichtig.\n- **Konfigurationsflexibilität**: Dynamische Konfigurationen ohne Programmänderungen.\n\n### 3. Betroffene Stakeholder\n- **Entwickler**: API-Design, Datenformatierung, Konfigurationsmanagement.\n- **Ops**: Skalierbarkeit und Performance der APIs.\n- **Benutzer**: Anwendungsintegration und Datenzugriff.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-c59] Problem: DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON Domain: day | [ADR-2026-05-05-2c8] Problem: Norm-Registry: TA-Laerm-Grenzwerte — Hardcode vs. YAML-Config Domain: g | [ADR-2026-05-05-523] Problem: DaySensOS: Sensor-Sampling-Rate — Echtzeit vs. Batch Domain: d"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum gibt es Komplexität und Overhead mit REST?\n   - Weil die Routing-Regeln komplex sind.\n2. Warum sind die Routing-Regeln komplex?\n   - Weil sie nicht optimal für alle Endpunkte gestaltet wurden.\n3. Warum sind sie nicht optimal gestaltet?\n   - Weil keine einheitliche API-Strategie implementiert wurde.\n4. Warum gibt es keine einheitliche Strategie?\n   - Weil bisher jeder Entwickler seine eigenen Lösungen entwickelt hat.\n5. Warum haben die Entwickler ihre eigenen Lösungen entwickelt?\n   - Weil keine gemeinsame Richtlinienbasis existierte.\n\n**Problem-Statement:** Es fehlt eine einheitliche API-Strategie, was zu Komplexität und Overhead bei der Nutzung von REST führt.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache Entwicklung und Testung; Hauptrisiko: Komplexität bei Skalierung.\n\n**V2:** Hauptvorteil: Flexibilität durch Docker; Hauptrisiko: Verwaltung von Container.\n\n**V3:** Hauptvorteil: Paketbasierte Distribution; Hauptrisiko: Einschränkungen im Deployment.\n\n**V4:** Hauptvorteil: Anpassungsfähigkeit bei Hybrid-Umgebungen; Hauptrisiko: Komplexität des Deployment-Prozesses.\n\n**V5:** Hauptvorteil: Standardisiertes REST-Deployment; Hauptrisiko: Potenzieller Overhead durch API.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es einen hohen Score von 0.88 erreicht und alle Anforderungen lokal ohne zusätzliche Komplexität erfüllt. Die Lokal-Only-Deployment-Variante minimiert Risiken und Kosten, was zu einer stabileren Implementierung führt.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erreicht und alle Anforderungen lokal ohne zusätzliche Komplexität erfüllt. Die Lokal-Only-Deployment-Variante minimiert Risiken und Kosten, was zu einer stabileren Implementierung führt."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-f0f",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-f0f",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-f0f"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. In einem monolithischen Design ist es schwierig, zwischen REST und GraphQL zu entscheiden, da beide Methoden in einem solchen Setup komplex integriert werden müssen.\n2. Für eine einfache lokale Anwendung eignet sich SQLite gut, da es die Notwendigkeit von externem Datenbank-Management vermeidet.\n3. Eine CLI-Schnittstelle ist für lokale Development und Deployment geeignet, aber für ein Engineering-Agent-System könnte sie im Produktionsumfeld zu Einschränkungen führen.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:41:11.531728Z",
+  "_problem_slug": "api_design_rest_vs_graphql_fuer_den_engineering_agent",
+  "_domain": "general",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

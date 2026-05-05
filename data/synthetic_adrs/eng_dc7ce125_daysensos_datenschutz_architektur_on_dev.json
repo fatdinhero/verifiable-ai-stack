@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_dc7ce125",
+  "title": "DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Processing",
+  "problem": "DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Processing",
+  "domain": "daysensos",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "### 1. Ist-Zustand\nDer DaySensOS-System ist derzeit in einer Phase, bei der die Entscheidung zwischen On-Device und Cloud-Processing für den Datenschutz getroffen werden muss. Beide Ansätze haben ihre Vor- und Nachteile im Kontext des Datenschutzes.\n\n### 2. Rahmenbedingungen\n- **On-Device Processing:** Daten werden lokal verarbeitet, was eine höhere Datenschutzsicherheit bietet, da sie nicht an Dritte übertragen werden.\n- **Cloud-Processing:** Erhöhter Datensicherheitsgrad durch fortgeschrittene Cloud-Sicherheitsmaßnahmen, aber Risiken bei Netzwerkschutz und Datenübertragung.\n\n### 3. Betroffene Stakeholder\n- **Entwickler:** Für die Implementierung der gewählten Architektur verantwortlich.\n- **Datenschützer:** Sorgen für die Einhaltung der Datenschutzbestimmungen.\n- **Benutzer:** Interessenten, deren Daten geschützt werden müssen.\n- **Management:** Führt die Entscheidungsprozesse und setzt Strategien um.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-79b] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli Loesung: { | [ADR-2026-05-05-23e] Problem: CNA CLI: Authentifizierung — JWT vs. API-Key Domain: cna_cli Loesung: { | [ADR-2026-05-05-6b8] Problem: CNA CLI: Welches Datenbankformat fuer die Norm-Registry — SQLi"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum muss zwischen On-Device und Cloud-Processing entschieden werden?\n   - Weil Datenschutzbedingungen strenger geworden sind.\n\n2. Warum sind Datenschutzbedingungen wichtiger geworden?\n   - Weil neue Gesetze und Richtlinien die Sicherheit personenbezogener Daten verlangen.\n\n3. Warum gibt es neue Gesetze und Richtlinien?\n   - Um den Schutz von Personendaten im digitalen Zeitalter zu stärken.\n\n4. Warum ist der Schutz von Personendaten im digitalen Zeitalter wichtiger geworden?\n   - Weil die Anzahl und Sensitivität personenbezogener Daten zunimmt.\n\n5. Warum nimmt die Anzahl und Sensitivität personenbezogener Daten zu?\n   - Weil digitale Technologien immer weiter in alle Bereiche des Lebens integriert werden.\n\nEinziger präziser Problem-Statement: Die Entscheidung zwischen On-Device und Cloud-Processing im DaySensOS-System ist notwendig, um den strenger werdenden Datenschutzbedingungen gerecht zu werden.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\nV1: Hauptvorteil: Einfache lokale Datenverwaltung; Risiko: Begrenzte Skalierbarkeit und Datenschutz in komplexen Umgebungen.\n\nV2: Hauptvorteil: Flexibilität durch Docker; Risiko: Komplexere Konfiguration für Anfänger.\n\nV3: Hauptvorteil: Einfache Installation über pip; Risiko: Begrenzte Skalierbarkeit und -Funktionalität.\n\nV4: Hauptvorteil: Hybrid-Deployment ermöglicht Flexibilität; Risiko: Komplexere Architektur und Verwaltung.\n\nV5: Hauptvorteil: REST-API für integrierte Schnittstelle; Risiko: Potenzieller Datensicherheitsrisiko im Cloud-Umfeld.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätsaufwand für ein zentrales Deployment-Management.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es einen hohen Score von 0.88 erzielt hat. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätsaufwand für ein zentrales Deployment-Management."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-125",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-125",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-125"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Die Wahl der monolithischen Architektur hat zu komplexen Datenverarbeitungsprozessen geführt und behindert zukünftige Skalierung.\n2. Das On-Device-Verarbeiten von sensiblen Daten ist risikoreich, da es schwieriger ist, vollständiges Datenschutzkonformitätsmanagement sicherzustellen.\n3. Der Einsatz von SQLite für die Datenhaltung eignet sich nicht optimal für große Datensätze und erfordert eine sorgfältigere Strukturierung der Datenbank.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:33:03.082771Z",
+  "_problem_slug": "daysensos_datenschutz_architektur_on_device_vs_cloud_process",
+  "_domain": "daysensos",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

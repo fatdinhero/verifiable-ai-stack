@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_84f6ebd1",
+  "title": "Datenpipeline: Batch vs. Stream-Processing fuer ADR-Indexierung",
+  "problem": "Datenpipeline: Batch vs. Stream-Processing fuer ADR-Indexierung",
+  "domain": "general",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "1. **Ist-Zustand**: Die Datenpipeline für ADR-Indexierung verwendet aktuell Batch-Processing, was langsame, aber zuverlässige Ergebnisse bietet. Es gibt jedoch Anzeichen, dass Stream-Processing eine bessere Leistung und Aktualität ermöglicht.\n\n2. **Rahmenbedingungen**:\n   - **Technologie**: Protobuf vs. JSON für Datenformatierung.\n   - **API-Design**: REST vs. GraphQL zur Interaktion mit dem Engineering-Agent.\n   - **Normen**: TA-Laerm-Grenzwerte in Hardcode vs. YAML-Config für Flexibilität.\n\n3. **Betroffene Stakeholder**:\n   - Entwickler: Für die Implementierung und Optimierung der Datenpipeline.\n   - Datenwissenschaftler: Für die Analyse und Indexierung von ADR-Daten.\n   - Ingenieure: Für die Interaktion mit dem Engineering-Agent über API.\n   - Regulierungsbehörden: Für die Einhaltung normativer Anforderungen.",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-c59] Problem: DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON Domain: day | [ADR-2026-05-05-f0f] Problem: API-Design: REST vs. GraphQL fuer den Engineering-Agent Domain: general | [ADR-2026-05-05-2c8] Problem: Norm-Registry: TA-Laerm-Grenzwerte — Hardcode vs. YAML-Config "
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum wird der Batch-Processing-Modus verwendet? Weil er zuverlässig und sicher ist.\n2. Warum ist Stream-Processing nicht implementiert? Weil die Notwendigkeit noch nicht klar war.\n3. Warum wurde die Notwendigkeit von Stream-Processing nicht früher erkennbar? Weil die Anforderungen an die Aktualität der Daten bisher nicht so dringend waren.\n4. Warum wurden diese Anforderungen an die Aktualität erst jetzt erkannt? Weil neue Geschäftsanforderungen und technologische Möglichkeiten auftraten.\n5. Warum sind neue Geschäftsanforderungen und technologische Möglichkeiten erst jetzt beachtet worden? Weil bisher andere Prioritäten dominierten.\n\n**Problem-Statement:** Es besteht die Notwendigkeit, von Batch-Processing zu Stream-Processing umzusteigen, um die Aktualität der ADR-Datenpipeline zu verbessern, während gleichzeitig technologische Innovationen und Geschäftsanforderungen in Betracht gezogen werden.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\n**V1:** Hauptvorteil: Einfache Entwicklung und Betrieb im lokalen Umfeld; Risiko: Schwierigkeiten bei Skalierung und Komplexität.\n\n**V2:** Hauptvorteil: Flexibilität durch Docker-Container; Risiko: Steigerung der Komplexität des Deployment-Prozesses.\n\n**V3:** Hauptvorteil: Einfache Veröffentlichung als pip-Paket; Risiko: Begrenzte Skalierbarkeit und Komplexität im Monolithen-Modell.\n\n**V4:** Hauptvorteil: Flexibilität durch Hybrid-Deployment; Risiko: Mehr Komplexität im Deployment-Prozess.\n\n**V5:** Hauptvorteil: API-basierte Schnittstelle für bessere Integration; Risiko: Erhöhung der Komplexität des Monolithen.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es den höchsten Score von 0.88 erreicht hat. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätsanforderungen an das Deployment-Umgebungsszenario.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es den höchsten Score von 0.88 erreicht hat. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätsanforderungen an das Deployment-Umgebungsszenario."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-bd1",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-bd1",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-bd1"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Monolithische Architekturen sind für skalierbare Systeme oft nicht ideal und können zu wachsenden Komplexitätsproblemen führen.\n2. Die Wahl von SQLite als Datenbank ist begrenzt bei erheblichem Datenvolumen und könnte in Zukunft zu Leistungsbeschränkungen führen.\n3. Eine CLI-Basis für die Schnittstelle eignet sich gut für Entwickler, aber automatisierte Pipeline-Operationen erfordern eine grafische Benutzeroberfläche oder ein Webinterface.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:41:49.747313Z",
+  "_problem_slug": "datenpipeline_batch_vs_stream_processing_fuer_adr_indexierun",
+  "_domain": "general",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}

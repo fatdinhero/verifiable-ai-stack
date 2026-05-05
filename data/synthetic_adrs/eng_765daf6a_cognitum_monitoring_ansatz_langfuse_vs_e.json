@@ -1,0 +1,200 @@
+{
+  "case_id": "eng_765daf6a",
+  "title": "COGNITUM: Monitoring-Ansatz — Langfuse vs. eigenes Logging",
+  "problem": "COGNITUM: Monitoring-Ansatz — Langfuse vs. eigenes Logging",
+  "domain": "cognitum",
+  "urgency": "medium",
+  "status": "active",
+  "steps": [
+    {
+      "phase": "situationsanalyse",
+      "summary": "1. Ist-Zustand:\n   COGNITUM verwendet derzeit langfristige Füße für Monitoring, was zu komplexen Datenströmen führt.\n\n2. Rahmenbedingungen:\n   - Datenschutz und Datensicherheit sind kritisch.\n   - Effizienz und Leistung des Systems sind wichtig.\n   - Mögliche Cloud-Integration muss berücksichtigt werden.\n\n3. Betroffene Stakeholder:\n   - Entwickler\n   - Datenschützer\n   - Systemadministratoren\n   - Nutzer\n   - Compliance-Berater",
+      "detail": "",
+      "confidence": 0.85,
+      "unverified": [],
+      "artifacts": {
+        "rag_context": "[ADR-2026-05-05-125] Problem: DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Processing Dom | [ADR-2026-05-05-c59] Problem: DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON Domain: day | [ADR-2026-05-05-523] Problem: DaySensOS: Sensor-Sampling-Rate — Echtzeit vs. Batch Domain: d"
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "problemeingrenzung",
+      "summary": "1. Warum führt COGNITUM derzeit zu komplexen Datenströmen?\n   - Weil langfristige Füße verwendet werden.\n\n2. Warum werden langfristige Füße verwendet?\n   - Weil sie detaillierte historische Daten speichern.\n\n3. Warum müssen detaillierte historische Daten gespeichert werden?\n   - Um nachvollziehbare Entscheidungen zu ermöglichen und Nachverfolgbarkeit sicherzustellen.\n\n4. Warum ist nachvollziehbare Entscheidungsfähigkeit und Nachverfolgbarkeit wichtig?\n   - Weil sie den Datenschutz und die Compliance erfordern.\n\n5. Warum sind Datenschutz und Compliance so wichtig?\n   - Weil sie gesetzlich verpflichtend sind und die Vertraulichkeit der Daten gewährleisten müssen.\n\nPräzises Problem-Statement: COGNITUM muss eine Lösung finden, um den Datenschutz und die Compliance zu gewährleisten, ohne dass die Systemeffizienz und -leistung negativ beeinträchtigt werden.",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    },
+    {
+      "phase": "alternativen",
+      "summary": "Morphologischer Kasten: 5 Varianten generiert.\nV1: Hauptvorteil: Einfache Implementierung; Hauptrisiko: Begrenzte Skalierbarkeit.\n\nV2: Hauptvorteil: Flexibilität durch Docker; Hauptrisiko: Komplexere Deployment-Verwaltung.\n\nV3: Hauptvorteil: Paketbasierte Verbreitung; Hauptrisiko: Einschränkungen bei der Konfiguration.\n\nV4: Hauptvorteil: Hybrid-Ansatz für Flexibilität und Skalierbarkeit; Hauptrisiko: Komplexere Architektur.\n\nV5: Hauptvorteil: REST-API für besseren Datenzugriff; Hauptrisiko: Mehr Sicherheitsanforderungen.",
+      "detail": "",
+      "confidence": 0.8,
+      "unverified": [],
+      "artifacts": {
+        "morphologie_matrix": {
+          "Architektur": [
+            "Monolith",
+            "Microservice",
+            "Plugin-System",
+            "Serverless"
+          ],
+          "Datenhaltung": [
+            "SQLite",
+            "PostgreSQL",
+            "YAML-Files",
+            "JSON-Store"
+          ],
+          "Schnittstelle": [
+            "CLI",
+            "REST-API",
+            "MCP-Server",
+            "Web-UI"
+          ],
+          "Deployment": [
+            "Local-Only",
+            "Docker",
+            "pip-Package",
+            "Hybrid"
+          ]
+        },
+        "varianten": [
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Local-Only"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Docker"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "pip-Package"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "CLI",
+            "Deployment": "Hybrid"
+          },
+          {
+            "Architektur": "Monolith",
+            "Datenhaltung": "SQLite",
+            "Schnittstelle": "REST-API",
+            "Deployment": "Local-Only"
+          }
+        ]
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "loesungsauswahl",
+      "summary": "VDI 2225: Beste=V1 Score=0.88 Gate=PASS\nV1 ist die optimale Lösung, da es einen hoheren Score von 0.88 aufweist. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätsanforderungen an den Deployment-Umfeld, was zu einem besseren Gesamtergebnis beiträgt.",
+      "detail": "",
+      "confidence": 0.92,
+      "unverified": [],
+      "artifacts": {
+        "vdi2225": {
+          "scores": {
+            "V1": 0.875,
+            "V2": 0.875,
+            "V3": 0.6875,
+            "V4": 0.5625,
+            "V5": 0.75
+          },
+          "best": "V1",
+          "best_score": 0.875,
+          "gate_passed": true
+        },
+        "llm_rationale": "V1 ist die optimale Lösung, da es einen hoheren Score von 0.88 aufweist. Die Wahl der lokalen Bereitstellung (Local-Only) ermöglicht eine einfache Implementierung und Wartung ohne Komplexitätsanforderungen an den Deployment-Umfeld, was zu einem besseren Gesamtergebnis beiträgt."
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "tragweitenanalyse",
+      "summary": "FMEA: 3 Risiken, davon 2 kritisch (AP=H)",
+      "detail": "",
+      "confidence": 0.88,
+      "unverified": [],
+      "artifacts": {
+        "fmea": [
+          {
+            "mode": "Technische Komplexitaet",
+            "s": 6,
+            "o": 4,
+            "d": 3,
+            "rpn": 72,
+            "ap": "M"
+          },
+          {
+            "mode": "Marktakzeptanz unklar",
+            "s": 7,
+            "o": 5,
+            "d": 6,
+            "rpn": 210,
+            "ap": "H"
+          },
+          {
+            "mode": "Solo-Dev-Risiko",
+            "s": 8,
+            "o": 7,
+            "d": 4,
+            "rpn": 224,
+            "ap": "H"
+          }
+        ],
+        "high_risk_count": 2
+      },
+      "adr_ref": null
+    },
+    {
+      "phase": "entscheiden",
+      "summary": "Entscheidung dokumentiert als ADR-2026-05-05-f6a",
+      "detail": "",
+      "confidence": 0.95,
+      "unverified": [],
+      "artifacts": {
+        "adr_id": "ADR-2026-05-05-f6a",
+        "implementation_steps": 5
+      },
+      "adr_ref": "ADR-2026-05-05-f6a"
+    },
+    {
+      "phase": "nachbereiten",
+      "summary": "1. Bei der Wahl des Ansatzes ist zu beachten, dass eine klare Architektur entscheidend für die Wartbarkeit und Skalierbarkeit ist. Ein Monolith-Modell eignet sich nur für kleinere Anwendungen oder spezifische Use-Cases.\n2. Die Datenhaltung sollte stets nach den Anforderungen der Anwendung ausgewählt werden; in diesem Fall wäre eine relationale Datenbank wie SQLite geeignet, da sie einfach zu implementieren und ausreichend für die benötigten Funktionen ist.\n3. Die Schnittstelle (CLI) muss benutzerfreundlich gestaltet sein, um den Nutzern einen effizienteren Zugriff auf die Anwendung zu ermöglichen; eine intuitive CLI kann das Arbeitsumfeld erheblich verbessern und Fehlervermeidung unterstützen.",
+      "detail": "",
+      "confidence": 0.9,
+      "unverified": [],
+      "artifacts": {},
+      "adr_ref": null
+    }
+  ],
+  "idea_pool": [
+    "V1: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+    "V2: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Docker'}",
+    "V3: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'pip-Package'}",
+    "V4: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Hybrid'}",
+    "V5: {'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'REST-API', 'Deployment': 'Local-Only'}"
+  ],
+  "selected_solution": "{'Architektur': 'Monolith', 'Datenhaltung': 'SQLite', 'Schnittstelle': 'CLI', 'Deployment': 'Local-Only'}",
+  "created_at": "2026-05-05T02:38:16.419200Z",
+  "_problem_slug": "cognitum_monitoring_ansatz_langfuse_vs_eigenes_logging",
+  "_domain": "cognitum",
+  "evaluation": {
+    "spalten_completeness": 1.0,
+    "vdi2225_gate_passed": true,
+    "fmea_present": true,
+    "adr_generated": true,
+    "lessons_count": 3,
+    "avg_confidence": 0.883,
+    "rag_context_used": true,
+    "overall_score": 0.977
+  }
+}
