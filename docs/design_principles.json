@@ -1,0 +1,100 @@
+{
+  "principles": [
+    {
+      "name": "Automatische Dokumentation",
+      "description": "Die Dokumentation sollte automatisch generiert werden, um die Wartbarkeit und Aktualität zu gewährleisten.",
+      "evidence": [
+        "[general] Dokumentation: Automatisch generiert vs. manuell gepflegt"
+      ],
+      "priority": "critical",
+      "implementation_hint": "Implementieren eines CI/CD-Steps zur automatischen Erstellung der Dokumentation."
+    },
+    {
+      "name": "Protobuf für Sensordaten",
+      "description": "Protobuf sollte verwendet werden, um eine effiziente und kompakte Datenrepräsentation für Sensordaten zu gewährleisten.",
+      "evidence": [
+        "[daysensos] DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON"
+      ],
+      "priority": "high",
+      "implementation_hint": "Überprüfen der Protobuf-Schema-Definitionen und Integration in den Datenaustauschprozess."
+    },
+    {
+      "name": "Automatisches Backup",
+      "description": "Ein automatischer Backup-Prozess für die ChromaDB-Vektordatenbank sollte implementiert werden, um Datenverlust zu vermeiden.",
+      "evidence": [
+        "[cognitum] COGNITUM: Backup-Strategie fuer ChromaDB-Vektordatenbank"
+      ],
+      "priority": "critical",
+      "implementation_hint": "Entwicklung und Implementierung eines automatischen Backup-Skripts für die Datenbank."
+    },
+    {
+      "name": "Prompt-Caching",
+      "description": "Ein Caching-System für wiederholte Prompt-Rufe sollte implementiert werden, um den Systemleistungsverbrauch zu reduzieren.",
+      "evidence": [
+        "[cognitum] COGNITUM: Prompt-Caching-Strategie fuer wiederholte SPALTEN-Runs"
+      ],
+      "priority": "high",
+      "implementation_hint": "Implementierung eines Caching-Mechanismus für häufig verwendete Prompts."
+    },
+    {
+      "name": "Langfristiges Logging",
+      "description": "Ein langfristiges Logging-System sollte implementiert werden, um die Analyse und Überwachung des Systems zu ermöglichen.",
+      "evidence": [
+        "[cognitum] COGNITUM: Monitoring-Ansatz — Langfuse vs. eigenes Logging"
+      ],
+      "priority": "high",
+      "implementation_hint": "Implementierung eines logging-Systems, das Daten über einen längeren Zeitraum speichert."
+    },
+    {
+      "name": "Semver für Versionierung",
+      "description": "Die semantische Versionskontrolle sollte verwendet werden, um die Verwaltung von Änderungen und Abhängigkeiten zu erleichtern.",
+      "evidence": [
+        "[cognitum] COGNITUM: Versionierung von masterplan.yaml — semver vs. datumbasiert"
+      ],
+      "priority": "high",
+      "implementation_hint": "Implementierung eines semantischen Versionskontrollsystems für die masterplan.yaml Datei."
+    },
+    {
+      "name": "REST API Design",
+      "description": "REST sollte bevorzugt verwendet werden, um eine einfache und skalierbare API-Struktur zu gewährleisten.",
+      "evidence": [
+        "[general] API-Design: REST vs. GraphQL fuer den Engineering-Agent"
+      ],
+      "priority": "medium",
+      "implementation_hint": "Überprüfung der REST-API-Spezifikationen und Anpassung des Engineering-Agents."
+    },
+    {
+      "name": "Automatisierte Tests",
+      "description": "Ein umfassendes Testsystem, bestehend aus Unit-Tests und Integrationstests, sollte implementiert werden.",
+      "evidence": [
+        "[general] Testing-Strategie: Unit vs. Integration Tests fuer Governance-Layer"
+      ],
+      "priority": "critical",
+      "implementation_hint": "Entwicklung eines Testframeworks mit umfassenden Testfällen für die Governance-Layer."
+    },
+    {
+      "name": "On-Device Datenschutz",
+      "description": "Der Datenschutz sollte auf dem Gerät durchgeführt werden, um den Datenverlust zu minimieren.",
+      "evidence": [
+        "[daysensos] DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Processing"
+      ],
+      "priority": "high",
+      "implementation_hint": "Implementierung von Datenschutzmechanismen, die auf dem Gerät ausgeführt werden."
+    },
+    {
+      "name": "Strukturiertes Logging",
+      "description": "Strukturierte Logdaten sollten verwendet werden, um eine effiziente Analyse und Überwachung des Systems zu ermöglichen.",
+      "evidence": [
+        "[cna_cli] CNA CLI: Logging-Strategie — strukturiert vs. plain text"
+      ],
+      "priority": "medium",
+      "implementation_hint": "Überprüfung der Logdatenstruktur und Implementierung eines strukturierten Logging-Systems."
+    }
+  ],
+  "synthesis_date": "2026-05-05T07:13:38.802610+00:00",
+  "total_cases_analyzed": 201,
+  "top_domains": [
+    "eu_ai_act",
+    "daysensos"
+  ]
+}

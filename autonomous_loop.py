@@ -258,6 +258,21 @@ class AutonomousLoop:
                     _log("  Regulatory-Refresh (alle 5 Batches)...")
                     self._refresh_regulatory()
 
+                # ── 0c. Alle 100 Cases: Design Principles destillieren ────────
+                pc = self.state["processed_count"]
+                if pc > 0 and pc % 100 == 0:
+                    _log("  Synthesis-Agent: Destilliere Design Principles...")
+                    try:
+                        from governance.synthesis_agent import SynthesisAgent
+                        sa = SynthesisAgent()
+                        result = sa.run()
+                        _log(
+                            f"  Synthesis: {len(result['principles'])} Prinzipien "
+                            f"aus {result['total_cases_analyzed']} Cases"
+                        )
+                    except Exception as e:
+                        _log(f"  Synthesis Fehler: {e}")
+
                 # ── 0b. Bot-Queue: max 1 Prioritaets-Eintrag pro Batch ───────
                 bot_problems: List[dict] = []
                 bot_entry = _pop_bot_queue_entry()

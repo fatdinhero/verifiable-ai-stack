@@ -226,9 +226,9 @@ class GitOpsHandler:
                 resp.read()
                 return True
         except urllib.error.HTTPError as e:
-            if e.code == 409:
-                return self._wiki_put(title, content, token)
             body = e.read().decode("utf-8") if e.fp else ""
+            if e.code in (409, 400) and ("uplicate" in body or "already exists" in body or e.code == 409):
+                return self._wiki_put(title, content, token)
             print(f"  Wiki HTTP {e.code}: {body[:200]}")
             return False
         except Exception as e:
