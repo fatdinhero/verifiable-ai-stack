@@ -263,8 +263,7 @@ class AutonomousLoop:
                     self._last_refresh_batch = batch_num
 
                 # ── 0c. Alle 100 Cases: Design Principles destillieren ────────
-                pc = self.state["processed_count"]
-                if pc > 0 and pc % 100 == 0:
+                if session_count > 0 and session_count % 100 == 0:
                     _log("  Synthesis-Agent: Destilliere Design Principles...")
                     try:
                         from governance.synthesis_agent import SynthesisAgent

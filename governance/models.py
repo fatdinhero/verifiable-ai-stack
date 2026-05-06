@@ -130,7 +130,6 @@ class SPALTENPhase(str, Enum):
 
 
 class StepResult(BaseModel):
-    model_config = ConfigDict(use_enum_values=True)
     phase: SPALTENPhase
     summary: str = ""
     detail: str = ""
@@ -141,7 +140,6 @@ class StepResult(BaseModel):
 
 
 class EngineeringCase(BaseModel):
-    model_config = ConfigDict(use_enum_values=True)
     case_id: str = Field(
         default_factory=lambda: f"eng_{uuid.uuid4().hex[:8]}"
     )
