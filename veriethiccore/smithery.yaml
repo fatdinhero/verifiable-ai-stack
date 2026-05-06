@@ -1,0 +1,54 @@
+name: veriethiccore
+display_name: "VeriEthicCore — EU AI Act Compliance MCP"
+version: "0.1.0"
+description: |
+  EU AI Act (2024/1689) and HLEG Trustworthy AI compliance tools delivered
+  as a Model Context Protocol (MCP) server.
+
+  5 tools:
+    • check_prohibited_practices — Art. 5 prohibited practice detection
+    • classify_risk_level        — Art. 6 / Annex III risk classification
+    • check_transparency_obligations — Art. 50 transparency requirements
+    • check_hleg_trustworthy_ai  — 28-point HLEG checklist with scoring
+    • generate_full_compliance_report — full audit report + SHA-256 fingerprint
+
+  Runs locally (no cloud), zero data retention, no telemetry.
+
+author: "Fatih Dinc"
+email: "fatdinhero@gmail.com"
+license: "Proprietary"
+homepage: "https://gitlab.com/fatdinhero/cognitum"
+
+categories:
+  - compliance
+  - ai-governance
+  - legal
+  - eu-ai-act
+
+tags:
+  - eu-ai-act
+  - gdpr
+  - compliance
+  - hleg
+  - trustworthy-ai
+  - risk-classification
+  - mcp-server
+  - local-first
+
+runtime: python
+min_python: "3.9"
+entry_point: "veriethiccore/server.py"
+transport: stdio
+
+install:
+  pip: ["fastmcp>=3.0.0", "pydantic>=2.0.0"]
+
+usage: |
+  python -m veriethiccore.server
+
+claude_desktop:
+  command: python
+  args: ["-m", "veriethiccore.server"]
+
+pricing: free
+support_url: "https://gitlab.com/fatdinhero/cognitum/-/issues"

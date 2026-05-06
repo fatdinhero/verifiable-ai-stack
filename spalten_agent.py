@@ -6,9 +6,12 @@ Laeuft lokal auf Mac Mini M4 mit Ollama qwen2.5:7b
 """
 import hashlib as _hashlib
 import json
+import os
 import re
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+
+_OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_adrs")
 
 # Governance-Imports
 from governance.registry import (
@@ -409,9 +412,10 @@ def _store_in_rag(case: EngineeringCase) -> None:
 
 
 def _export_json(case: EngineeringCase, evaluation: dict = None) -> str:
-    """Exportiert Ergebnis als spalten_result_<timestamp>.json."""
+    """Exportiert Ergebnis nach data/synthetic_adrs/spalten_result_<timestamp>.json."""
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    filename = f"spalten_result_{ts}.json"
+    os.makedirs(_OUTPUT_DIR, exist_ok=True)
+    filename = os.path.join(_OUTPUT_DIR, f"spalten_result_{ts}.json")
     data = json.loads(case.model_dump_json())
     if evaluation:
         data["evaluation"] = evaluation

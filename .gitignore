@@ -8,3 +8,7 @@ dist/
 .venv/
 daysensos-app/node_modules/
 daysensos-app/.expo/
+spalten_result_*.json
+data/synthetic_adrs/
+data/corpus_assets/
+logs/

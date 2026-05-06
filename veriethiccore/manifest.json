@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "name": "veriethiccore",
+  "display_name": "VeriEthicCore — EU AI Act Compliance",
+  "description": "EU AI Act (2024/1689) + HLEG Trustworthy AI compliance tools as an MCP server. Classify risk levels, check prohibited practices, validate transparency obligations, and generate SHA-256 audited conformity reports.",
+  "version": "0.1.0",
+  "author": "Fatih Dinc / COGNITUM",
+  "license": "Proprietary",
+  "homepage": "https://gitlab.com/fatdinhero/cognitum",
+  "entry_point": "veriethiccore/server.py",
+  "transport": "stdio",
+  "runtime": "python",
+  "min_python": "3.9",
+  "dependencies": ["fastmcp>=3.0.0", "pydantic>=2.0.0"],
+  "tools": [
+    {
+      "name": "check_prohibited_practices",
+      "description": "Art. 5 — detect prohibited AI practices in a system description"
+    },
+    {
+      "name": "classify_risk_level",
+      "description": "Art. 6 / Annex III — classify risk as prohibited | high | limited | minimal"
+    },
+    {
+      "name": "check_transparency_obligations",
+      "description": "Art. 50 — validate transparency obligations for limited-risk systems"
+    },
+    {
+      "name": "check_hleg_trustworthy_ai",
+      "description": "HLEG 28-point Trustworthy AI checklist with scoring"
+    },
+    {
+      "name": "generate_full_compliance_report",
+      "description": "Complete EU AI Act + HLEG report with SHA-256 audit fingerprint"
+    }
+  ],
+  "claude_desktop_config": {
+    "command": "python",
+    "args": ["-m", "veriethiccore.server"],
+    "env": {}
+  }
+}
