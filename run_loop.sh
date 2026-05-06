@@ -6,7 +6,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="$SCRIPT_DIR/logs/autonomous_loop.pid"
 LOG_FILE="$SCRIPT_DIR/logs/autonomous_loop.log"
-PYTHON="$SCRIPT_DIR/.venv/bin/python3"
+PYTHON="${SCRIPT_DIR}/.venv/bin/python3"
+if [[ ! -x "$PYTHON" ]]; then
+    PYTHON="$(command -v python3)"
+fi
 
 mkdir -p "$SCRIPT_DIR/logs"
 
@@ -35,7 +38,7 @@ nohup "$PYTHON" "$SCRIPT_DIR/autonomous_loop.py" \
     --sleep      "$SLEEP_S" \
     --min-score  "$MIN_SCORE" \
     --max-total  "$MAX_TOTAL" \
-    >> "$LOG_FILE" 2>&1 &
+    > /dev/null 2>&1 &
 
 # Kurz warten damit PID-Datei geschrieben wird
 sleep 1

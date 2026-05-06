@@ -10,6 +10,7 @@ Nutzung:
 import argparse
 import hashlib
 import json
+import logging
 import os
 import signal as _signal
 import subprocess
@@ -18,6 +19,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Suppress noisy ChromaDB compaction warnings
+logging.getLogger("chromadb").setLevel(logging.ERROR)
 
 REPO_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(REPO_ROOT))
