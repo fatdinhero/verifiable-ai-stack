@@ -1,51 +1,62 @@
-# CLAUDE.md — DaySensOS
+# COGNITUM — Master Kontext für Claude Code
 
-## Projekt
-DaySensOS ist das Privacy-First Wearable AI OS. Kernprodukt des COGNITUM-Oekosystems.
-Governance-SSoT: https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
-Produkt-Kontext: https://gitlab.com/fatdinhero/cognitum/-/raw/main/docs/daysensos-product-context.md
+## Eigentümer
+Fatih Dinc / fatdinhero / datalabel.tech@gmail.com
+Repos: github.com/fatdinhero/cognitum (privat) | gitlab.com/fatdinhero/cognitum (privat)
 
-## Architektur
-- L1 Perception: 8-Kanal Sensorfusion mit Consent-Gate
-- L2 Situation: YAML-Regelwerk Kontextklassifikation
-- L3 Episodes: SQLite temporale Segmentierung, 3-Kontext-Buffer
-- L4 Features: 14-Tage relative Normalisierung (focus, energy, social, movement)
-- L5 Intelligence: DayScore (0-10), WellnessState, Recommendations
+## Sub-Kontexte (separate Dateien)
+- CLAUDE_DAYSENSOS.md — DaySensOS Wearable AI OS (Port 8111)
+- CLAUDE_POISV.md — PoISV Validator (HuggingFace Space)
+- CLAUDE_AGENTSPROTOCOL.md — AgentsProtocol (poisv.com)
 
-## Server
-- Port: 8111
-- POST /capture — Sensordaten empfangen, L1-L5 verarbeiten
-- GET /status — Health-Check + Tagesstand
-- GET /episodes/today — Heutige Episoden
-- GET /score — Aktueller DayScore
+## Meilensteinstand (Stand: 06.05.2026)
+M1  ✅ MiMo Orbit genehmigt — 350M Tokens, läuft bis 28. Mai 2026
+M2  ✅ gateway/sanitizer.py — Alias-Dictionary + Presidio
+M3  ✅ veriethiccore/ — EU AI Act MCP Server (5 Tools, FastMCP)
+M4  ⏳ Launch auf 8 MCP-Marketplaces — launch/ Texte in Arbeit
+M5  ✅ spalten_agent.py läuft 24/7 — 1036+ Cases produziert
+M6  ⏳ corpus/builder.py — DQM-Scoring in Arbeit
+M7-M14 🔜 Graph, Fine-Tuning, Autonomes Listing
 
-## Inviolable Rules
-1. Kamera + Mikrofon sind DEFAULT OFF (PRIV-02/03)
-2. Zero-Retention: Kein Kamerabild auf Disk (PixelGuard)
-3. Kein Rohaudio: Nur Frequenzspektrum (Erkenntnis 2)
-4. Keine Gamification: Kein Streak, Leaderboard, Ranking (RISK-04)
-5. Kein LLM fuer medizinische Aussagen (RISK-05)
-6. Keine biometrischen Rohdaten in DayFeatures (PRIV-06)
-7. Local-First: Keine Cloud-Abhaengigkeit
-8. Morphologisches Gate vor jeder Entscheidung (Art. 14)
+## Kritische Deadlines
+28. Mai 2026 — MiMo Orbit Token-Budget läuft ab → Cases maximieren
+02. Aug 2026 — EU AI Act Enforcement → VeriEthicCore Launch-Fenster
 
-## Commands
-```bash
-# Server starten
-python -m daysensos.main
+## Repo-Struktur
+cognitum/
+├── CLAUDE.md              ← Diese Datei (Master-Kontext)
+├── CLAUDE_DAYSENSOS.md    ← DaySensOS Sub-Kontext
+├── gateway/               ← M2: LiteLLM + Sanitizer
+├── veriethiccore/         ← M3: EU AI Act MCP (5 Tools)
+├── corpus/                ← M6: Builder + DQM
+├── launch/                ← M4: Launch-Texte
+├── data/
+│   ├── synthetic_adrs/    ← 1036+ SPALTEN Cases (gitignored)
+│   └── corpus_assets/     ← Exportierte Datasets (gitignored)
+├── spalten_agent.py       ← M5: Läuft via run_loop.sh
+├── governance/            ← VDI 2221, Compliance-Regeln
+├── daysensos/             ← DaySensOS Server (Port 8111)
+└── docs/adr/              ← Architecture Decision Records
 
-# Tests
-python -m pytest tests/ -v
+## Sofort-Befehle
+ls data/synthetic_adrs/ | wc -l          # Cases zählen
+cat loop_result_*.json | python3 -m json.tool | tail -20  # Loop-Status
+python3 veriethiccore/server.py stdio    # VeriEthicCore testen
+python3 corpus/builder.py               # Corpus Builder ausführen
+bash run_loop.sh                         # SPALTEN Loop starten
+bash stop_loop.sh                        # SPALTEN Loop stoppen
 
-# Test-Request
-curl -X POST http://localhost:8111/capture \
-  -H "Content-Type: application/json" \
-  -d '{"gps_lat":48.89,"gps_lon":8.69,"light_lux":500,"screen_time_min":30,"accel_x":0.1,"accel_y":0.2,"accel_z":9.8}'
-```
+## Proprietäre Aliases (NIEMALS an externe LLMs senden)
+SPALTEN      → method_X7
+MetaBell     → operator_psi
+DQM          → metric_Q
+WiseScore    → score_W
+Tsirelson    → bound_T
+COGNITUM     → project_C
+SASKIA       → orchestrator_S
+VeriEthicCore → compliance_EC
+zkHalal      → compliance_ZK
 
-## Autonomous Mode
-Claude Code darf ALLE Aenderungen ohne Bestaetigung ausfuehren solange:
-- Consent-Gate nicht umgangen wird
-- Zero-Retention nicht verletzt wird
-- Keine neuen Cloud-Dependencies eingefuehrt werden
-- Tests gruen bleiben
+## Neue Session starten
+cd ~/COS/cognitum && claude --dangerously-skip-permissions
+# Claude Code liest CLAUDE.md automatisch — sofort voller Kontext
