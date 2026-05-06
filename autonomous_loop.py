@@ -153,7 +153,8 @@ class AutonomousLoop:
         self.state      = _load_state()
         self.wiki_fmt   = WikiFormatter()
         self.gitops     = GitOpsHandler()
-        self._llm_domain_idx = 0
+        self._llm_domain_idx     = 0
+        self._last_refresh_batch = 0  # lokal pro Prozess — nie aus State laden
         LOG_DIR.mkdir(exist_ok=True)
         PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
 
@@ -242,21 +243,24 @@ class AutonomousLoop:
             f"min_score={min_score} max={max_total}"
         )
 
+        session_count = 0  # counts only cases processed in this run
         try:
-            while _running and self.state["processed_count"] < max_total:
+            while _running and session_count < max_total:
                 batch_start = time.time()
                 self.state["batch_count"] += 1
                 batch_num = self.state["batch_count"]
 
                 _log(
                     f"=== Batch #{batch_num} | "
-                    f"Verarbeitet: {self.state['processed_count']}/{max_total} ==="
+                    f"Session: {session_count}/{max_total} | "
+                    f"Total: {self.state['processed_count']} ==="
                 )
 
                 # ── 0. Alle 5 Batches: Regulatory-Signale neu laden ───────────
-                if batch_num % 5 == 0:
+                if batch_num - self._last_refresh_batch >= 5:
                     _log("  Regulatory-Refresh (alle 5 Batches)...")
                     self._refresh_regulatory()
+                    self._last_refresh_batch = batch_num
 
                 # ── 0c. Alle 100 Cases: Design Principles destillieren ────────
                 pc = self.state["processed_count"]
@@ -424,6 +428,7 @@ class AutonomousLoop:
                     self.state["scores"].append(score)
                     batch_scores.append(score)
                     self.state["processed_count"] += 1
+                    session_count += 1
                     batch_processed += 1
 
                 # ── 6. Alle 10 Batches: Dataset-Export + erweiterter Status ──
@@ -450,7 +455,7 @@ class AutonomousLoop:
                 )
 
                 # ── 8. Sleep ──────────────────────────────────────────────────
-                if _running and self.state["processed_count"] < max_total:
+                if _running and session_count < max_total:
                     _log(f"  Sleep {sleep_between}s ...")
                     for _ in range(sleep_between):
                         if not _running:
