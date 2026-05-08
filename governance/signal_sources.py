@@ -28,6 +28,12 @@ GITHUB_TOKEN_FILE = Path.home() / ".github-token"
 OLLAMA_URL = "http://localhost:11434/api/chat"
 OLLAMA_MODEL = "qwen2.5:7b"
 
+try:
+    from governance.data_routing import get_router as _get_router, MIMO_BASE_URL as _MIMO_BASE_URL, MIMO_MODEL as _MIMO_MODEL
+    _HAS_ROUTER = True
+except ImportError:
+    _HAS_ROUTER = False
+
 
 # ─── Interne Hilfsfunktionen ──────────────────────────────────────────────────
 
@@ -52,11 +58,43 @@ def _http_get(url: str, headers: dict = None, timeout: int = 15) -> Optional[str
 
 
 def _llm_call(prompt: str, system: str = None, timeout: int = 60) -> str:
-    """Lokaler Ollama LLM-Aufruf via urllib — kein externes SDK."""
+    """LLM-Aufruf: MiMo (extern) oder Ollama (lokal) je nach IP-Sensitivitaet."""
+    import os as _os
     sys_msg = system or (
         "Du bist ein Engineering-Analyst nach VDI 2221. "
         "Antworte praezise auf Deutsch. Max. 80 Woerter."
     )
+
+    backend = _get_router(prompt) if _HAS_ROUTER else "ollama"
+
+    if backend == "mimo":
+        api_key = _os.environ.get("MIMO_API_KEY", "")
+        payload = json.dumps({
+            "model": _MIMO_MODEL,
+            "messages": [
+                {"role": "system", "content": sys_msg},
+                {"role": "user",   "content": prompt},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 500,
+        }).encode("utf-8")
+        try:
+            req = urllib.request.Request(
+                f"{_MIMO_BASE_URL}/chat/completions",
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            return f"[SIMULATION] MiMo nicht erreichbar: {e}"
+
+    # Ollama-Pfad (lokal, IP-sensitiv)
     payload = json.dumps({
         "model": OLLAMA_MODEL,
         "messages": [

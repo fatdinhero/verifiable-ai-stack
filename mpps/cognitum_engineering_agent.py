@@ -14,6 +14,11 @@ from pydantic import BaseModel, ConfigDict
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from governance.data_routing import get_router, OLLAMA_BASE_URL, OLLAMA_MODEL
+
 # ─── STATE ───────────────────────────────────────────────
 class EngineeringState(TypedDict):
     thread_id: str
@@ -35,19 +40,25 @@ class EngineeringState(TypedDict):
     requires_human: bool
 
 # ─── LLM-BACKEND ─────────────────────────────────────────
-_raw_client = OpenAI(
+_mimo_raw = OpenAI(
     base_url="https://api.xiaomimimo.com/v1",
     api_key=os.environ.get("MIMO_API_KEY"),
 )
-client = instructor.from_openai(_raw_client, mode=instructor.Mode.JSON)
+client = instructor.from_openai(_mimo_raw, mode=instructor.Mode.JSON)
+
+_ollama_raw = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")
+_ollama_client = instructor.from_openai(_ollama_raw, mode=instructor.Mode.JSON)
 
 class LLMOut(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 def call_llm(prompt: str) -> Dict[str, Any]:
+    backend = get_router(prompt)
+    active_client = client if backend == "mimo" else _ollama_client
+    active_model = "mimo-v2.5-pro" if backend == "mimo" else OLLAMA_MODEL
     try:
-        resp = client.chat.completions.create(
-            model="mimo-v2.5-pro",
+        resp = active_client.chat.completions.create(
+            model=active_model,
             response_model=LLMOut,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
