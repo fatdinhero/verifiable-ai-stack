@@ -143,6 +143,29 @@ def _pop_bot_queue_entry() -> Optional[dict]:
     return entry
 
 
+# ─── CRSOC Trigger ───────────────────────────────────────────────────────────
+
+def trigger_crsoc_cycle(state: dict) -> None:
+    """Startet CRSOC Vollzyklus als Hintergrund-Prozess."""
+    n       = state.get("processed_count", 0)
+    trigger = f"batch_{n}"
+    _log(f"[CRSOC] Zyklus getriggert bei {n} Cases → {trigger}")
+    try:
+        subprocess.Popen(
+            [
+                str(REPO_ROOT / ".venv" / "bin" / "python3"),
+                str(REPO_ROOT / "crsoc" / "crsoc_orchestrator.py"),
+                "--trigger", trigger,
+            ],
+            cwd=str(REPO_ROOT),
+            stdout=open(REPO_ROOT / "logs" / "crsoc.log", "a"),
+            stderr=subprocess.STDOUT,
+        )
+        _log(f"[CRSOC] Prozess gestartet (Hintergrund), Log: logs/crsoc.log")
+    except Exception as e:
+        _log(f"[CRSOC] Start fehlgeschlagen: {e}")
+
+
 # ─── AutonomousLoop ───────────────────────────────────────────────────────────
 
 class AutonomousLoop:
@@ -433,6 +456,10 @@ class AutonomousLoop:
                     self.state["processed_count"] += 1
                     session_count += 1
                     batch_processed += 1
+
+                    # ── CRSOC Trigger alle 100 Cases ──────────────────────────
+                    if self.state["processed_count"] % 100 == 0:
+                        trigger_crsoc_cycle(self.state)
 
                 # ── 6. Alle 10 Batches: Dataset-Export + erweiterter Status ──
                 if batch_num % 10 == 0:

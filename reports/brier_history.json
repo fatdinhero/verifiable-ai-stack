@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2026-05-08T11:10:21.702135+00:00",
+    "predicted": 0.7325,
+    "actual": 0.762,
+    "cycle_ideas": 8
+  },
+  {
+    "timestamp": "2026-05-08T11:11:24.484219+00:00",
+    "predicted": 0.762,
+    "actual": null,
+    "cycle_ideas": 8
+  }
+]

@@ -13,6 +13,12 @@ fi
 
 mkdir -p "$SCRIPT_DIR/logs"
 
+# Optionale .env laden (MIMO_API_KEY etc.)
+if [[ -f "$SCRIPT_DIR/.env" ]]; then
+    # shellcheck disable=SC1090
+    set -a; source "$SCRIPT_DIR/.env"; set +a
+fi
+
 if [[ -f "$PID_FILE" ]]; then
     PID=$(cat "$PID_FILE")
     if kill -0 "$PID" 2>/dev/null; then

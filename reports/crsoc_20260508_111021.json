@@ -1,0 +1,325 @@
+{
+  "trigger": "test_100",
+  "timestamp": "2026-05-08T11:09:44.952478+00:00",
+  "phases": {
+    "0_intake": {
+      "processed_count": 896,
+      "avg_score": 0.8805,
+      "recent_avg": 0.8875,
+      "skipped_count": 570,
+      "masterplan_excerpt": "version: 1.4.1\ngenerated: '2026-05-03T21:00:00Z'\nauthor: Fatih Dinc\norganization: datalabel.tech\nrepository: https://gitlab.com/fatdinhero/cognitum\nconstitution: constitution.md\nglossary: glossary.md\nconstitution_articles:\n- id: 1\n  title: Privacy-First\n  text: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.\n- id: 2\n  title: Per-Sensor-Consent\n  text: Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF.\n- id: 3\n  title: Local-First\n  text: Keine Clou",
+      "last_run": "2026-05-08T10:46:07.714658+00:00"
+    },
+    "1_situation": {
+      "summary": "[LLM-FEHLER: HTTP Error 401: Unauthorized]",
+      "improvements": [],
+      "intake_ref": {
+        "processed_count": 896,
+        "avg_score": 0.8805,
+        "recent_avg": 0.8875,
+        "skipped_count": 570,
+        "masterplan_excerpt": "version: 1.4.1\ngenerated: '2026-05-03T21:00:00Z'\nauthor: Fatih Dinc\norganization: datalabel.tech\nrepository: https://gitlab.com/fatdinhero/cognitum\nconstitution: constitution.md\nglossary: glossary.md\nconstitution_articles:\n- id: 1\n  title: Privacy-First\n  text: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.\n- id: 2\n  title: Per-Sensor-Consent\n  text: Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF.\n- id: 3\n  title: Local-First\n  text: Keine Clou",
+        "last_run": "2026-05-08T10:46:07.714658+00:00"
+      }
+    },
+    "2_morphological": {
+      "matrix": {
+        "Funktionalitaet": [
+          "Funktionalitaet-Option-A",
+          "Funktionalitaet-Option-B",
+          "Funktionalitaet-Option-C"
+        ],
+        "Technologie": [
+          "Technologie-Option-A",
+          "Technologie-Option-B",
+          "Technologie-Option-C"
+        ],
+        "Markt": [
+          "Markt-Option-A",
+          "Markt-Option-B",
+          "Markt-Option-C"
+        ],
+        "Compliance": [
+          "Compliance-Option-A",
+          "Compliance-Option-B",
+          "Compliance-Option-C"
+        ],
+        "Sicherheit": [
+          "Sicherheit-Option-A",
+          "Sicherheit-Option-B",
+          "Sicherheit-Option-C"
+        ],
+        "Wirtschaftlichkeit": [
+          "Wirtschaftlichkeit-Option-A",
+          "Wirtschaftlichkeit-Option-B",
+          "Wirtschaftlichkeit-Option-C"
+        ],
+        "Zukunftsfaehigkeit": [
+          "Zukunftsfaehigkeit-Option-A",
+          "Zukunftsfaehigkeit-Option-B",
+          "Zukunftsfaehigkeit-Option-C"
+        ]
+      },
+      "dimensions": [
+        "Funktionalitaet",
+        "Technologie",
+        "Markt",
+        "Compliance",
+        "Sicherheit",
+        "Wirtschaftlichkeit",
+        "Zukunftsfaehigkeit"
+      ],
+      "situation_ref": "[LLM-FEHLER: HTTP Error 401: Unauthorized]"
+    },
+    "3_ideas": {
+      "ideas": [
+        {
+          "name": "Idee-1",
+          "description": "Optimierung via Markt: Markt-Option-B, Compliance: Compliance-Option-A, Zukunftsfaehigkeit: Zukunftsfaehigkeit-Option-A",
+          "impact_score": 0.65,
+          "novelty_score": 0.43,
+          "complexity": 1.11
+        },
+        {
+          "name": "Idee-2",
+          "description": "Optimierung via Funktionalitaet: Funktionalitaet-Option-A, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B, Compliance: Compliance-Option-C",
+          "impact_score": 0.89,
+          "novelty_score": 0.58,
+          "complexity": 0.65
+        },
+        {
+          "name": "Idee-3",
+          "description": "Optimierung via Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B, Funktionalitaet: Funktionalitaet-Option-C, Markt: Markt-Option-A",
+          "impact_score": 0.83,
+          "novelty_score": 0.51,
+          "complexity": 1.22
+        },
+        {
+          "name": "Idee-4",
+          "description": "Optimierung via Markt: Markt-Option-A, Sicherheit: Sicherheit-Option-C, Technologie: Technologie-Option-B",
+          "impact_score": 0.4,
+          "novelty_score": 0.54,
+          "complexity": 0.42
+        },
+        {
+          "name": "Idee-5",
+          "description": "Optimierung via Funktionalitaet: Funktionalitaet-Option-B, Compliance: Compliance-Option-B, Technologie: Technologie-Option-A",
+          "impact_score": 0.51,
+          "novelty_score": 0.49,
+          "complexity": 1.35
+        },
+        {
+          "name": "Idee-6",
+          "description": "Optimierung via Markt: Markt-Option-B, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-A, Technologie: Technologie-Option-A",
+          "impact_score": 0.51,
+          "novelty_score": 0.41,
+          "complexity": 1.36
+        },
+        {
+          "name": "Idee-7",
+          "description": "Optimierung via Technologie: Technologie-Option-B, Sicherheit: Sicherheit-Option-C, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B",
+          "impact_score": 0.76,
+          "novelty_score": 0.65,
+          "complexity": 1.34
+        },
+        {
+          "name": "Idee-8",
+          "description": "Optimierung via Technologie: Technologie-Option-B, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B, Funktionalitaet: Funktionalitaet-Option-C",
+          "impact_score": 0.74,
+          "novelty_score": 0.42,
+          "complexity": 1.43
+        }
+      ],
+      "method": "triz_ifr",
+      "combos_used": [
+        {
+          "Markt": "Markt-Option-B",
+          "Compliance": "Compliance-Option-A",
+          "Zukunftsfaehigkeit": "Zukunftsfaehigkeit-Option-A"
+        },
+        {
+          "Funktionalitaet": "Funktionalitaet-Option-A",
+          "Wirtschaftlichkeit": "Wirtschaftlichkeit-Option-B",
+          "Compliance": "Compliance-Option-C"
+        },
+        {
+          "Wirtschaftlichkeit": "Wirtschaftlichkeit-Option-B",
+          "Funktionalitaet": "Funktionalitaet-Option-C",
+          "Markt": "Markt-Option-A"
+        },
+        {
+          "Markt": "Markt-Option-A",
+          "Sicherheit": "Sicherheit-Option-C",
+          "Technologie": "Technologie-Option-B"
+        },
+        {
+          "Funktionalitaet": "Funktionalitaet-Option-B",
+          "Compliance": "Compliance-Option-B",
+          "Technologie": "Technologie-Option-A"
+        },
+        {
+          "Markt": "Markt-Option-B",
+          "Wirtschaftlichkeit": "Wirtschaftlichkeit-Option-A",
+          "Technologie": "Technologie-Option-A"
+        },
+        {
+          "Technologie": "Technologie-Option-B",
+          "Sicherheit": "Sicherheit-Option-C",
+          "Wirtschaftlichkeit": "Wirtschaftlichkeit-Option-B"
+        },
+        {
+          "Technologie": "Technologie-Option-B",
+          "Wirtschaftlichkeit": "Wirtschaftlichkeit-Option-B",
+          "Funktionalitaet": "Funktionalitaet-Option-C"
+        }
+      ]
+    },
+    "4_evaluation": {
+      "scored_ideas": [
+        {
+          "name": "Idee-2",
+          "description": "Optimierung via Funktionalitaet: Funktionalitaet-Option-A, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B, Compliance: Compliance-Option-C",
+          "impact_score": 0.89,
+          "novelty_score": 0.58,
+          "complexity": 0.65,
+          "feasibility": 0.675,
+          "vdi2225_score": 0.7325
+        },
+        {
+          "name": "Idee-3",
+          "description": "Optimierung via Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B, Funktionalitaet: Funktionalitaet-Option-C, Markt: Markt-Option-A",
+          "impact_score": 0.83,
+          "novelty_score": 0.51,
+          "complexity": 1.22,
+          "feasibility": 0.39,
+          "vdi2225_score": 0.602
+        },
+        {
+          "name": "Idee-7",
+          "description": "Optimierung via Technologie: Technologie-Option-B, Sicherheit: Sicherheit-Option-C, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B",
+          "impact_score": 0.76,
+          "novelty_score": 0.65,
+          "complexity": 1.34,
+          "feasibility": 0.33,
+          "vdi2225_score": 0.598
+        },
+        {
+          "name": "Idee-4",
+          "description": "Optimierung via Markt: Markt-Option-A, Sicherheit: Sicherheit-Option-C, Technologie: Technologie-Option-B",
+          "impact_score": 0.4,
+          "novelty_score": 0.54,
+          "complexity": 0.42,
+          "feasibility": 0.79,
+          "vdi2225_score": 0.559
+        },
+        {
+          "name": "Idee-1",
+          "description": "Optimierung via Markt: Markt-Option-B, Compliance: Compliance-Option-A, Zukunftsfaehigkeit: Zukunftsfaehigkeit-Option-A",
+          "impact_score": 0.65,
+          "novelty_score": 0.43,
+          "complexity": 1.11,
+          "feasibility": 0.445,
+          "vdi2225_score": 0.5225
+        },
+        {
+          "name": "Idee-8",
+          "description": "Optimierung via Technologie: Technologie-Option-B, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-B, Funktionalitaet: Funktionalitaet-Option-C",
+          "impact_score": 0.74,
+          "novelty_score": 0.42,
+          "complexity": 1.43,
+          "feasibility": 0.285,
+          "vdi2225_score": 0.5075
+        },
+        {
+          "name": "Idee-5",
+          "description": "Optimierung via Funktionalitaet: Funktionalitaet-Option-B, Compliance: Compliance-Option-B, Technologie: Technologie-Option-A",
+          "impact_score": 0.51,
+          "novelty_score": 0.49,
+          "complexity": 1.35,
+          "feasibility": 0.325,
+          "vdi2225_score": 0.4485
+        },
+        {
+          "name": "Idee-6",
+          "description": "Optimierung via Markt: Markt-Option-B, Wirtschaftlichkeit: Wirtschaftlichkeit-Option-A, Technologie: Technologie-Option-A",
+          "impact_score": 0.51,
+          "novelty_score": 0.41,
+          "complexity": 1.36,
+          "feasibility": 0.32,
+          "vdi2225_score": 0.423
+        }
+      ],
+      "top_score": 0.7325,
+      "top_idea": "Idee-2",
+      "count": 8
+    },
+    "5_metabell": {
+      "passed": 0,
+      "validated_ideas": [
+        {
+          "name": "Idee-2",
+          "operator_psi": 0.313,
+          "passed": false,
+          "psi_score": 0.313
+        },
+        {
+          "name": "Idee-3",
+          "operator_psi": 0.191,
+          "passed": false
+        },
+        {
+          "name": "Idee-7",
+          "operator_psi": 0.211,
+          "passed": false
+        },
+        {
+          "name": "Idee-4",
+          "operator_psi": 0.152,
+          "passed": false
+        },
+        {
+          "name": "Idee-1",
+          "operator_psi": 0.132,
+          "passed": false
+        },
+        {
+          "name": "Idee-8",
+          "operator_psi": 0.128,
+          "passed": false
+        },
+        {
+          "name": "Idee-5",
+          "operator_psi": 0.106,
+          "passed": false
+        },
+        {
+          "name": "Idee-6",
+          "operator_psi": 0.089,
+          "passed": false
+        }
+      ],
+      "best_idea": {
+        "name": "Idee-2",
+        "operator_psi": 0.313,
+        "passed": false,
+        "psi_score": 0.313
+      },
+      "threshold": 1.4
+    },
+    "6_masterplan": {
+      "adr_path": "docs/adr/2026-05-08-crsoc-test-100.json",
+      "adr_id": "CRSOC-20260508-1110",
+      "masterplan_updated": true,
+      "ideas_saved": 8
+    },
+    "7_temporal": {
+      "brier_score": null,
+      "brier_quality": "insufficient_data",
+      "history_entries": 1,
+      "current_prediction": 0.7325
+    }
+  },
+  "best_idea": "Idee-2",
+  "best_score": 0.313,
+  "adr_path": "docs/adr/2026-05-08-crsoc-test-100.json"
+}
