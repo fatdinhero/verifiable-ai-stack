@@ -85,19 +85,99 @@ def _msg(platform: str, role: str, content: str,
         "source_file": source,
     }
 
-def parse_claude(path: str) -> List[Message]:
-    """Claude.ai JSON Export: Array von Conversations mit chat_messages."""
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    convs = raw if isinstance(raw, list) else [raw]
+def _extract_text(content: Any) -> str:
+    """Normalisiert content aus allen Claude-Formaten zu einem String."""
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        # conversations.json: [{type: "text", text: "..."}]
+        parts = []
+        for item in content:
+            if isinstance(item, dict):
+                if item.get("type") == "text":
+                    parts.append(item.get("text", ""))
+                elif "text" in item:
+                    parts.append(item["text"])
+            elif isinstance(item, str):
+                parts.append(item)
+        return " ".join(parts).strip()
+    if isinstance(content, dict):
+        # design_chats: {content: "...", contentBlocks: [...]}
+        text = content.get("content", "")
+        if isinstance(text, str) and text.strip():
+            return text.strip()
+        # Fallback: contentBlocks
+        for block in content.get("contentBlocks", []):
+            if isinstance(block, dict) and block.get("type") == "text":
+                return block.get("text", "").strip()
+    return ""
+
+def _parse_chat_messages(entries: List[dict], source: str) -> List[Message]:
+    """Parst chat_messages[] — Format aus conversations.json und projects/*.json."""
     msgs = []
-    for conv in convs:
-        for m in conv.get("chat_messages", []):
-            text = m.get("text", "")
-            if not text:
-                continue
-            role = "user" if m.get("sender") == "human" else "assistant"
-            ts   = m.get("created_at", datetime.now(timezone.utc).isoformat())
-            msgs.append(_msg("claude", role, text, ts, Path(path).name))
+    for m in entries:
+        raw_role = m.get("sender", m.get("role", "human"))
+        role = "user" if raw_role == "human" else "assistant"
+        text = _extract_text(m.get("content", m.get("text", "")))
+        if not text:
+            text = _extract_text(m.get("text", ""))
+        if not text:
+            continue
+        ts = m.get("created_at", datetime.now(timezone.utc).isoformat())
+        msgs.append(_msg("claude", role, text, ts, source))
+    return msgs
+
+def _parse_design_messages(entries: List[dict], source: str) -> List[Message]:
+    """Parst messages[] — Format aus design_chats/*.json."""
+    msgs = []
+    for m in entries:
+        role = m.get("role", "user")
+        if role not in ("user", "assistant"):
+            continue
+        text = _extract_text(m.get("content", ""))
+        if not text:
+            continue
+        ts = m.get("created_at", m.get("timestamp", datetime.now(timezone.utc).isoformat()))
+        if isinstance(ts, dict):
+            ts = ts.get("$date", datetime.now(timezone.utc).isoformat())
+        msgs.append(_msg("claude", role, text, str(ts), source))
+    return msgs
+
+def parse_claude(path: str) -> List[Message]:
+    """Claude.ai ZIP Export: conversations.json (446 Chats) + design_chats/*.json."""
+    msgs = []
+
+    if path.endswith(".zip"):
+        with zipfile.ZipFile(path) as z:
+            for fname in z.namelist():
+                if not fname.endswith(".json"):
+                    continue
+                try:
+                    raw = json.loads(z.read(fname).decode("utf-8"))
+                except Exception:
+                    continue
+                source = Path(fname).name
+
+                if fname == "conversations.json" and isinstance(raw, list):
+                    # Haupt-Export: Liste aller Conversations
+                    for conv in raw:
+                        if isinstance(conv, dict):
+                            msgs.extend(_parse_chat_messages(conv.get("chat_messages", []), source))
+
+                elif fname.startswith("design_chats/") and isinstance(raw, dict):
+                    msgs.extend(_parse_design_messages(raw.get("messages", []), source))
+
+                elif fname.startswith("projects/") and isinstance(raw, dict):
+                    msgs.extend(_parse_chat_messages(raw.get("chat_messages", []), source))
+
+    else:
+        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        source = Path(path).name
+        convs = raw if isinstance(raw, list) else [raw]
+        for conv in convs:
+            if isinstance(conv, dict):
+                msgs.extend(_parse_chat_messages(conv.get("chat_messages", []), source))
+
     return msgs
 
 def parse_chatgpt(path: str) -> List[Message]:
@@ -182,7 +262,14 @@ def parse_generic(path: str) -> List[Message]:
 def detect_platform(path: str) -> str:
     p = Path(path)
     if p.suffix == ".zip":
-        return "chatgpt"
+        # Claude-ZIP enthält projects/ oder design_chats/; ChatGPT enthält conversations.json
+        with zipfile.ZipFile(path) as z:
+            names = z.namelist()
+        if any("conversations" in n for n in names):
+            return "chatgpt"
+        if any(n.startswith(("projects/", "design_chats/")) for n in names):
+            return "claude"
+        return "claude"  # Claude-Default für unbekannte ZIPs
     if p.suffix in (".py", ".txt", ".md", ".yaml"):
         return "generic"
     try:
