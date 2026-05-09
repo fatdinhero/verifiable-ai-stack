@@ -61,18 +61,27 @@ def sha_id(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 def _is_base64_blob(text: str) -> bool:
-    """True wenn >50% des Texts aus langen zusammenhängenden Base64-Blöcken besteht.
-    Echter Base64 hat keine Leerzeichen und Läufe von ≥60 Zeichen."""
+    """True wenn der Chunk kein lesbarer Fließtext ist:
+    - Lange Base64-Blöcke (≥60 Zeichen ohne Leerzeichen)
+    - JWT-Tokens (base64url.base64url.base64url Pattern)
+    - Zusammengesetzte API-Identifier ohne Leerzeichen (camelCase-Schlangen ≥80 Zeichen)
+    """
     import re
     stripped = text.strip()
     if len(stripped) < 80:
         return False
+    # JWT-Token: drei base64url-Segmente mit Punkten getrennt
+    if re.match(r'^[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}', stripped):
+        return True
     # Lange Base64-Blöcke ohne Leerzeichen (mind. 60 Zeichen am Stück)
     b64_runs = re.findall(r'[A-Za-z0-9+/]{60,}={0,2}', stripped)
-    if not b64_runs:
-        return False
-    b64_total = sum(len(r) for r in b64_runs)
-    return b64_total / len(stripped) > 0.50
+    if b64_runs and sum(len(r) for r in b64_runs) / len(stripped) > 0.50:
+        return True
+    # API-Identifier-Reihen: camelCase-Wörter ohne Leerzeichen > 80 Zeichen
+    words = stripped.split()
+    if words and max(len(w) for w in words) > 80:
+        return True
+    return False
 
 def embed(text: str) -> List[float]:
     try:

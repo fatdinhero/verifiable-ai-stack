@@ -31,7 +31,9 @@ def query_chat_history(problem: str, n: int = 3) -> str:
 
         snippets = []
         for r in results:
-            if r["distance"] > 0.5:
+            if r["distance"] > 0.5:        # zu weit weg
+                continue
+            if r["distance"] < 0.01:       # Embedding-Kollaps-Artefakt
                 continue
             meta    = r["metadata"]
             snippet = r["content"][:300].strip()
