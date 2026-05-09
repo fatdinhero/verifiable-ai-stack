@@ -13,6 +13,8 @@ import os
 import sys
 import threading
 import uuid
+
+import numpy as np
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -227,6 +229,62 @@ def parse_grok(path: str) -> List[Message]:
         msgs.append(_msg("grok", role, str(text), ts, Path(path).name))
     return msgs
 
+def _parse_deepseek_conv(conv: dict, source: str) -> List[Message]:
+    """Traversiert einen DeepSeek Conversation-Baum (mapping) und extrahiert Messages."""
+    msgs: List[Message] = []
+    mapping = conv.get("mapping", {})
+
+    def _traverse(node_id: str, visited: set) -> None:
+        if node_id in visited or node_id not in mapping:
+            return
+        visited.add(node_id)
+        node = mapping[node_id]
+        message = node.get("message")
+        if message:
+            ts        = str(message.get("inserted_at", ""))
+            fragments = message.get("fragments", [])
+            for frag in fragments:
+                ftype   = frag.get("type", "")
+                content = str(frag.get("content", "")).strip()
+                if not content:
+                    continue
+                if ftype == "REQUEST":
+                    role = "user"
+                elif ftype in ("THINK", "RESPONSE"):
+                    role = "assistant"
+                else:
+                    role = "user"
+                msgs.append(_msg("deepseek", role, content, ts, source))
+        for child_id in node.get("children", []):
+            _traverse(child_id, visited)
+
+    _traverse("root", set())
+    return msgs
+
+
+def parse_deepseek(path: str) -> List[Message]:
+    """DeepSeek Export: ZIP mit conversations.json (mapping-Baum, fragments: REQUEST/THINK/RESPONSE)."""
+    msgs: List[Message] = []
+    src = Path(path).name
+
+    def _process(raw: Any) -> None:
+        convs = raw if isinstance(raw, list) else [raw]
+        for conv in convs:
+            if isinstance(conv, dict) and "mapping" in conv:
+                msgs.extend(_parse_deepseek_conv(conv, src))
+
+    if path.endswith(".zip"):
+        with zipfile.ZipFile(path) as z:
+            if "conversations.json" in z.namelist():
+                raw = json.loads(z.read("conversations.json").decode("utf-8", errors="replace"))
+                _process(raw)
+    else:
+        raw = json.loads(Path(path).read_text(encoding="utf-8", errors="replace"))
+        _process(raw)
+
+    return msgs
+
+
 def parse_generic(path: str) -> List[Message]:
     """Fallback: .py/.txt/.md als Dokument, JSON nach gängigen Strukturen."""
     p   = Path(path)
@@ -262,11 +320,22 @@ def parse_generic(path: str) -> List[Message]:
 def detect_platform(path: str) -> str:
     p = Path(path)
     if p.suffix == ".zip":
-        # Claude-ZIP enthält projects/ oder design_chats/; ChatGPT enthält conversations.json
         with zipfile.ZipFile(path) as z:
             names = z.namelist()
-        if any("conversations" in n for n in names):
-            return "chatgpt"
+            if "conversations.json" in names:
+                # Unterscheide DeepSeek (fragments) von ChatGPT (parts)
+                try:
+                    raw   = json.loads(z.read("conversations.json").decode("utf-8", errors="replace"))
+                    convs = raw if isinstance(raw, list) else [raw]
+                    if convs and isinstance(convs[0], dict):
+                        mapping = convs[0].get("mapping", {})
+                        for node in mapping.values():
+                            msg = node.get("message")
+                            if msg and "fragments" in msg:
+                                return "deepseek"
+                except Exception:
+                    pass
+                return "chatgpt"
         if any(n.startswith(("projects/", "design_chats/")) for n in names):
             return "claude"
         return "claude"  # Claude-Default für unbekannte ZIPs
@@ -285,10 +354,11 @@ def detect_platform(path: str) -> str:
     return "generic"
 
 PARSERS = {
-    "claude":   parse_claude,
-    "chatgpt":  parse_chatgpt,
-    "grok":     parse_grok,
-    "generic":  parse_generic,
+    "claude":    parse_claude,
+    "chatgpt":   parse_chatgpt,
+    "grok":      parse_grok,
+    "deepseek":  parse_deepseek,
+    "generic":   parse_generic,
 }
 
 # ─── INDEXER ─────────────────────────────────────────────────────────────────
@@ -379,24 +449,52 @@ def status_report(new: int, dup: int, label: str = "") -> str:
 
 # ─── SEARCH ──────────────────────────────────────────────────────────────────
 def search_chats(query: str, n: int = 3) -> List[dict]:
+    """Cosine-Suche via numpy — Workaround für ChromaDB 1.5.x RustBindingsAPI Distance-Bug."""
     col = get_collection()
     count = col.count()
     if count == 0:
         return []
-    res = col.query(
-        query_embeddings=[embed(query)],
-        n_results=min(n, count),
-        include=["documents", "metadatas", "distances"],
-    )
+
+    q_vec = np.array(embed(query), dtype=np.float32)
+    q_norm = np.linalg.norm(q_vec)
+    if q_norm == 0:
+        return []
+
+    # Lade alle Embeddings in Batches (ChromaDB 1.5.x get() ist stabil)
+    BATCH = 2000
+    all_ids, all_docs, all_metas, all_vecs = [], [], [], []
+    offset = 0
+    while offset < count:
+        batch = col.get(
+            limit=BATCH,
+            offset=offset,
+            include=["embeddings", "documents", "metadatas"],
+        )
+        all_ids   += batch["ids"]
+        all_docs  += batch["documents"]
+        all_metas += batch["metadatas"]
+        all_vecs  += list(batch["embeddings"])
+        offset += len(batch["ids"])
+        if len(batch["ids"]) < BATCH:
+            break
+
+    mat = np.array(all_vecs, dtype=np.float32)          # (N, 768)
+    norms = np.linalg.norm(mat, axis=1, keepdims=True)   # (N, 1)
+    norms[norms == 0] = 1e-9
+    mat_norm = mat / norms
+
+    scores = mat_norm @ (q_vec / q_norm)                 # cosine similarity
+    top_idx = np.argsort(scores)[::-1][:n]
+
     return [
         {
-            "rank":     i + 1,
-            "id":       res["ids"][0][i],
-            "content":  res["documents"][0][i],
-            "metadata": res["metadatas"][0][i],
-            "distance": res["distances"][0][i],
+            "rank":     rank + 1,
+            "id":       all_ids[i],
+            "content":  all_docs[i],
+            "metadata": all_metas[i],
+            "distance": float(1.0 - scores[i]),
         }
-        for i in range(len(res["ids"][0]))
+        for rank, i in enumerate(top_idx)
     ]
 
 # ─── FASTAPI WEBHOOK ─────────────────────────────────────────────────────────
@@ -446,7 +544,7 @@ def main() -> None:
     )
     ap.add_argument("--input",    help="Datei oder Verzeichnis zum Indexieren")
     ap.add_argument("--platform", default="auto",
-                    choices=["auto", "claude", "chatgpt", "grok", "generic"])
+                    choices=["auto", "claude", "chatgpt", "grok", "deepseek", "generic"])
     ap.add_argument("--query",    help="Suche in cognitum_chat_history")
     ap.add_argument("--n",        type=int, default=3, help="Anzahl Suchergebnisse")
     ap.add_argument("--stats",    action="store_true", help="Collection-Statistiken")
