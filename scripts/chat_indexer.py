@@ -60,6 +60,20 @@ def chunk_text(text: str) -> List[str]:
 def sha_id(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
+def _is_base64_blob(text: str) -> bool:
+    """True wenn >50% des Texts aus langen zusammenhängenden Base64-Blöcken besteht.
+    Echter Base64 hat keine Leerzeichen und Läufe von ≥60 Zeichen."""
+    import re
+    stripped = text.strip()
+    if len(stripped) < 80:
+        return False
+    # Lange Base64-Blöcke ohne Leerzeichen (mind. 60 Zeichen am Stück)
+    b64_runs = re.findall(r'[A-Za-z0-9+/]{60,}={0,2}', stripped)
+    if not b64_runs:
+        return False
+    b64_total = sum(len(r) for r in b64_runs)
+    return b64_total / len(stripped) > 0.50
+
 def embed(text: str) -> List[float]:
     try:
         return ollama.embeddings(model=EMBED_MODEL, prompt=text[:4096]).embedding
@@ -376,6 +390,10 @@ def index_file(path: str, platform: str = "auto") -> Tuple[int, int]:
 
     for msg in messages:
         for i, chunk in enumerate(chunk_text(msg["content"])):
+            if _token_len(chunk) < 8:           # Sehr kurze Chunks → kollabierte Embeddings
+                continue
+            if _is_base64_blob(chunk):           # Base64-kodierter Code → kein Semantik-Wert
+                continue
             chunk_id = sha_id(chunk)
             if col.get(ids=[chunk_id])["ids"]:
                 dup += 1
@@ -484,7 +502,14 @@ def search_chats(query: str, n: int = 3) -> List[dict]:
     mat_norm = mat / norms
 
     scores = mat_norm @ (q_vec / q_norm)                 # cosine similarity
-    top_idx = np.argsort(scores)[::-1][:n]
+
+    # Kollabierte Embeddings filtern: kurze Chunks (<80 Zeichen) haben oft identische Vektoren
+    valid = np.ones(len(scores), dtype=bool)
+    for idx in range(len(scores)):
+        if len(all_docs[idx]) < 80:
+            valid[idx] = False
+    valid_indices = np.where(valid)[0]
+    top_idx = valid_indices[np.argsort(scores[valid_indices])[::-1][:n]]
 
     return [
         {
