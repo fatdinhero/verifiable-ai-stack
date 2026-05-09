@@ -28,6 +28,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from governance.models import EngineeringCase, SPALTENPhase, Urgency
 from governance.problem_generator import ProblemGenerator, _generate_llm_problem, _DOMAIN_CYCLE
+from scripts.rag_chat_history import query_chat_history
 from governance.signal_sources import RealSignalFetcher
 from governance.wiki_formatter import WikiFormatter
 from governance.gitops_handler import GitOpsHandler
@@ -381,9 +382,17 @@ class AutonomousLoop:
                         except ValueError:
                             urgency = Urgency.medium
 
+                        # ── RAG Chat-History Kontext ──────────────────────────
+                        rag_context = query_chat_history(problem_text, n=3)
+                        if rag_context:
+                            enriched_problem = f"{problem_text}\n\n{rag_context}"
+                            _log(f"  RAG-Kontext: {len(rag_context)} Zeichen angehängt")
+                        else:
+                            enriched_problem = problem_text
+
                         case = EngineeringCase(
                             title=problem_text[:80],
-                            problem=problem_text,
+                            problem=enriched_problem,
                             domain=prob.get("domain", "engineering"),
                             urgency=urgency,
                         )
