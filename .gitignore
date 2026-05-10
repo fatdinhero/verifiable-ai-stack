@@ -1,15 +1,64 @@
-__pycache__/
-*.pyc
-.pytest_cache/
-dist/
-.DS_Store
+# ─── API Keys & Secrets ───────────────────────────────────────────
 .env
-*.egg-info/
-.venv/
-daysensos-app/node_modules/
-daysensos-app/.expo/
+.env.*
+*.key
+*.secret
+
+# ─── OGJ-CF IP-Layer (DPMA gesperrt bis 02.08.2026) ──────────────
+cognitum_theory/
+**/ogj_cf*
+**/ogj-cf*
+*OGJ_CF*
+docs/adr/*crsoc*
+docs/adr/*ogj*
+
+# ─── Training Data (SFT + DPO) ───────────────────────────────────
+data/
+sft_dataset.jsonl
+dpo_dataset.jsonl
+dataset_metadata.json
+**/training/
+**/crsoc-batch*
+
+# ─── Datenbanken & lokale Laufzeit-Daten ─────────────────────────
+history.db
+*.db
+*.sqlite
+*.sqlite3
+.chroma_db/
+chroma_db/
+logs/
+
+# ─── Spalten-Ergebnisse & synthetische Daten ─────────────────────
 spalten_result_*.json
 data/synthetic_adrs/
 data/corpus_assets/
-logs/
-.env
+
+# ─── OTS-Anker (privat halten) ───────────────────────────────────
+*.ots
+
+# ─── Python Runtime ──────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# ─── Node / Expo ─────────────────────────────────────────────────
+daysensos-app/node_modules/
+daysensos-app/.expo/
+
+# ─── MacOS ───────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+crsoc/
+reports/
+governance/ots/
+data/training/
