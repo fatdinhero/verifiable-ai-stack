@@ -1,4 +1,5 @@
-"""Tests fuer governance/registry.py — deterministische Compliance-Lookups."""
+from governance.registry import (get_ta_laerm, calculate_rpn, get_action_priority,
+                                  normalize_weights, validate_compliance_claim)"""Tests fuer governance/registry.py — deterministische Compliance-Lookups."""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from decimal import Decimal
