@@ -22,6 +22,8 @@ def load_env():
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip()
+    # Gumroad store URL — optional, activates buy-link injection
+    env.setdefault("GUMROAD_STORE_URL", os.environ.get("GUMROAD_STORE_URL", ""))
     return env
 
 ENV = load_env()
@@ -70,10 +72,20 @@ class ContentAdapter:
         "reddit":      {"max": 10000, "style": "community-orientiert, kein Marketing"},
         "huggingface": {"max": 5000,  "style": "technisch, für ML-Entwickler"},
     }
+    # Suffix injected per platform when GUMROAD_STORE_URL is set
+    GUMROAD_SUFFIX = {
+        "farcaster":   "\n\n🛒 saskiaspohrmann.gumroad.com",
+        "paragraph":   "\n\n---\n**🛒 Produkte kaufen:** https://saskiaspohrmann.gumroad.com",
+        "reddit":      "\n\n🛒 **Kaufen:** https://saskiaspohrmann.gumroad.com",
+        "huggingface": "\n\n**🛒 Buy:** https://saskiaspohrmann.gumroad.com",
+    }
+
     def __init__(self, llm):
         self.llm = llm
+
     def adapt(self, job, platform):
-        spec = self.SPECS.get(platform, {"max": 500, "style": "neutral"})
+        spec   = self.SPECS.get(platform, {"max": 500, "style": "neutral"})
+        suffix = self.GUMROAD_SUFFIX.get(platform, "") if ENV.get("GUMROAD_STORE_URL") else ""
         prompt = f"""Plattform: {platform}
 Stil: {spec['style']}
 Max Zeichen: {spec['max']}
@@ -81,9 +93,11 @@ Titel: {job.title}
 Inhalt: {job.raw_content[:1000]}
 Gib NUR den fertigen Text aus, auf Deutsch:"""
         text = self.llm.generate(prompt, 600)
-        if len(text) > spec["max"]:
-            text = text[:spec["max"]-3] + "..."
-        return text
+        # Truncate LLM output to leave room for the suffix
+        body_max = spec["max"] - len(suffix)
+        if len(text) > body_max:
+            text = text[:body_max - 3] + "..."
+        return text + suffix
 
 class FarcasterPublisher:
     def publish(self, content, job):
@@ -137,12 +151,20 @@ class HuggingFacePublisher:
             return False, "HF_TOKEN fehlt"
         return True, "HF: manuelles Update empfohlen"
 
+class GumroadNotifier:
+    """No API call — only confirms the buy-link was embedded in all posts."""
+    def publish(self, content, job):
+        if not ENV.get("GUMROAD_STORE_URL"):
+            return False, "GUMROAD_STORE_URL nicht gesetzt — Link nicht eingebettet"
+        return True, "Link eingebettet in alle Posts"
+
 class AutonomousPublishingAgent:
     PUBLISHERS = {
         "farcaster":   FarcasterPublisher(),
         "paragraph":   ParagraphPublisher(),
         "reddit":      RedditPublisher(),
         "huggingface": HuggingFacePublisher(),
+        "gumroad":     GumroadNotifier(),
     }
     def __init__(self):
         self.llm     = LocalLLM()
