@@ -11,9 +11,11 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 
-BASE_DIR = Path.home() / "COS" / "cognitum"
-DB_PATH  = BASE_DIR / "publishing_agent.db"
-ENV_PATH = BASE_DIR / ".env"
+BASE_DIR  = Path.home() / "COS" / "cognitum"
+DB_PATH   = BASE_DIR / "publishing_agent.db"
+ENV_PATH  = BASE_DIR / ".env"
+LOGS_DIR  = BASE_DIR / "logs"
+DRAFTS_LOG = LOGS_DIR / "paragraph_drafts.log"
 
 def load_env():
     env = {}
@@ -99,6 +101,15 @@ Gib NUR den fertigen Text aus, auf Deutsch:"""
             text = text[:body_max - 3] + "..."
         return text + suffix
 
+def publish_via_mcp_hint(job: "PublishJob") -> None:
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    line = f"{ts} | {job.title} | {job.commit_hash} | PENDING_MCP_PUBLISH\n"
+    with DRAFTS_LOG.open("a", encoding="utf-8") as fh:
+        fh.write(line)
+    print(f"  📋 Draft-Queue: {DRAFTS_LOG}")
+
+
 class FarcasterPublisher:
     def publish(self, content, job):
         k, s = ENV.get("NEYNAR_API_KEY"), ENV.get("FARCASTER_SIGNER_UUID")
@@ -113,17 +124,30 @@ class FarcasterPublisher:
             return False, str(e)
 
 class ParagraphPublisher:
+    BASE = "https://public.api.paragraph.com/api"
+
     def publish(self, content, job):
-        k = ENV.get("PARAGRAPH_API_KEY")
+        k      = ENV.get("PARAGRAPH_API_KEY")
+        pub_id = ENV.get("PARAGRAPH_PUBLICATION_ID")
         if not k:
             return False, "PARAGRAPH_API_KEY fehlt"
-        try:
-            r = requests.post("https://paragraph.com/api/posts",
-                headers={"Authorization": f"Bearer {k}", "Content-Type": "application/json"},
-                json={"title": job.title, "body": content, "status": "draft"}, timeout=30)
-            return True, f"Draft: {r.json().get('id','?')} → manuell reviewen"
-        except Exception as e:
-            return False, str(e)
+        if not pub_id:
+            return False, "PARAGRAPH_PUBLICATION_ID fehlt"
+        r = requests.post(
+            f"{self.BASE}/v1/publications/{pub_id}/posts",
+            headers={"Authorization": f"Bearer {k}", "Content-Type": "application/json"},
+            json={"title": job.title, "body": content, "status": "draft"},
+            timeout=30,
+        )
+        if r.ok:
+            post_id = r.json().get("id", "?")
+            return True, f"Paragraph Draft: {post_id} → paragraph.com/editor/{post_id}"
+        if r.status_code == 500:
+            print("  ⚠️  REST 500 — Fallback via MCP empfohlen")
+            publish_via_mcp_hint(job)
+            return False, "Paragraph REST API 500 — MCP-Fallback: paragraph.com/editor manuell"
+        publish_via_mcp_hint(job)
+        return False, f"Paragraph {r.status_code}: {r.text[:120]}"
 
 class RedditPublisher:
     def publish(self, content, job):
