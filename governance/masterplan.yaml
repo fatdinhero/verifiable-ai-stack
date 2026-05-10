@@ -639,3 +639,11 @@ audit_trail:
   reason: v1.4.1 — Art. 14 Morphologisches Entscheidungsprotokoll, ADR-008 CNA-CLI-Priorisierung
   adr_ref: ADR-2026-05-03-008
   actor: Fatih Dinc
+
+# CRSOC test_100 (2026-05-08)
+# Beste Idee:  (Ψ=0.00)
+# ADR: 2026-05-08-crsoc-test-100.json
+
+# CRSOC batch_900 (2026-05-08)
+# Beste Idee:  (Ψ=0.00)
+# ADR: 2026-05-08-crsoc-batch-900.json

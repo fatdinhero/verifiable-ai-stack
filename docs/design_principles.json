@@ -10,49 +10,31 @@
       "implementation_hint": "Implementieren eines CI/CD-Steps zur automatischen Erstellung der Dokumentation."
     },
     {
-      "name": "Protobuf für Sensordaten",
-      "description": "Protobuf sollte verwendet werden, um eine effiziente und kompakte Datenrepräsentation für Sensordaten zu gewährleisten.",
+      "name": "Protobuf für Datenformatierung",
+      "description": "Protobuf sollte bevorzugt verwendet werden, um effiziente und kompakte Datenformate zu erstellen.",
       "evidence": [
         "[daysensos] DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON"
       ],
       "priority": "high",
-      "implementation_hint": "Überprüfen der Protobuf-Schema-Definitionen und Integration in den Datenaustauschprozess."
+      "implementation_hint": "Konvertieren aller relevanten Datendefinitionen in Protobuf-Protokolle."
     },
     {
-      "name": "Automatisches Backup",
-      "description": "Ein automatischer Backup-Prozess für die ChromaDB-Vektordatenbank sollte implementiert werden, um Datenverlust zu vermeiden.",
-      "evidence": [
-        "[cognitum] COGNITUM: Backup-Strategie fuer ChromaDB-Vektordatenbank"
-      ],
-      "priority": "critical",
-      "implementation_hint": "Entwicklung und Implementierung eines automatischen Backup-Skripts für die Datenbank."
-    },
-    {
-      "name": "Prompt-Caching",
-      "description": "Ein Caching-System für wiederholte Prompt-Rufe sollte implementiert werden, um den Systemleistungsverbrauch zu reduzieren.",
-      "evidence": [
-        "[cognitum] COGNITUM: Prompt-Caching-Strategie fuer wiederholte SPALTEN-Runs"
-      ],
-      "priority": "high",
-      "implementation_hint": "Implementierung eines Caching-Mechanismus für häufig verwendete Prompts."
-    },
-    {
-      "name": "Langfristiges Logging",
-      "description": "Ein langfristiges Logging-System sollte implementiert werden, um die Analyse und Überwachung des Systems zu ermöglichen.",
+      "name": "Automatisches Logging",
+      "description": "Der Monitoring-Ansatz sollte auf automatische, strukturierte Logprotokollierung basieren, um die Analyse zu erleichtern.",
       "evidence": [
         "[cognitum] COGNITUM: Monitoring-Ansatz — Langfuse vs. eigenes Logging"
       ],
       "priority": "high",
-      "implementation_hint": "Implementierung eines logging-Systems, das Daten über einen längeren Zeitraum speichert."
+      "implementation_hint": "Einrichten eines Log-Systems mit automatischen Protokollierungsfunktionen."
     },
     {
       "name": "Semver für Versionierung",
-      "description": "Die semantische Versionskontrolle sollte verwendet werden, um die Verwaltung von Änderungen und Abhängigkeiten zu erleichtern.",
+      "description": "Die Versionierung von Konfigurationsdateien sollte semantische Versionskontrolle (semver) verwenden, um die Verwaltung zu erleichtern.",
       "evidence": [
         "[cognitum] COGNITUM: Versionierung von masterplan.yaml — semver vs. datumbasiert"
       ],
       "priority": "high",
-      "implementation_hint": "Implementierung eines semantischen Versionskontrollsystems für die masterplan.yaml Datei."
+      "implementation_hint": "Implementieren einer semantischen Versionskontrolle für alle relevanten Konfigurationsdateien."
     },
     {
       "name": "REST API Design",
@@ -61,38 +43,56 @@
         "[general] API-Design: REST vs. GraphQL fuer den Engineering-Agent"
       ],
       "priority": "medium",
-      "implementation_hint": "Überprüfung der REST-API-Spezifikationen und Anpassung des Engineering-Agents."
+      "implementation_hint": "Überprüfen und anpassen der API-Endpunkte, um sie auf REST-Konventionen abzustimmen."
+    },
+    {
+      "name": "Sicherheit durch Segregation",
+      "description": "Die Secrets-Management sollte die Sicherheit erhöhen, indem geheimer Daten in einem separaten System verwaltet werden.",
+      "evidence": [
+        "[general] Security: Secrets-Management — env-Variablen vs. Vault"
+      ],
+      "priority": "critical",
+      "implementation_hint": "Einrichten eines Secret-Managers wie HashiCorp Vault für die Speicherung und Verwaltung von geheimen Daten."
+    },
+    {
+      "name": "Batch Processing für Datenpipeline",
+      "description": "Die Datenpipeline sollte batch-basiert arbeiten, um effizienter und skalierbarer zu sein.",
+      "evidence": [
+        "[general] Datenpipeline: Batch vs. Stream-Processing fuer ADR-Indexierung"
+      ],
+      "priority": "medium",
+      "implementation_hint": "Implementieren eines batch-basierten Datenverarbeitungspipelines für die Indexierung."
     },
     {
       "name": "Automatisierte Tests",
-      "description": "Ein umfassendes Testsystem, bestehend aus Unit-Tests und Integrationstests, sollte implementiert werden.",
+      "description": "Ein umfassendes Testframework sollte implementiert werden, um die Qualität und Stabilität des Systems zu gewährleisten.",
       "evidence": [
         "[general] Testing-Strategie: Unit vs. Integration Tests fuer Governance-Layer"
       ],
-      "priority": "critical",
-      "implementation_hint": "Entwicklung eines Testframeworks mit umfassenden Testfällen für die Governance-Layer."
+      "priority": "high",
+      "implementation_hint": "Entwickeln und integrieren eines Testframeworks mit unitären und integrationären Tests."
     },
     {
       "name": "On-Device Datenschutz",
-      "description": "Der Datenschutz sollte auf dem Gerät durchgeführt werden, um den Datenverlust zu minimieren.",
+      "description": "Der Datenschutz sollte so weit wie möglich auf dem Gerät durchgeführt werden, um die Sicherheit der Daten zu erhöhen.",
       "evidence": [
         "[daysensos] DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Processing"
       ],
       "priority": "high",
-      "implementation_hint": "Implementierung von Datenschutzmechanismen, die auf dem Gerät ausgeführt werden."
+      "implementation_hint": "Implementieren eines Datenschutzkonzepts, das die Datenverarbeitung auf dem Gerät optimiert."
     },
     {
-      "name": "Strukturiertes Logging",
-      "description": "Strukturierte Logdaten sollten verwendet werden, um eine effiziente Analyse und Überwachung des Systems zu ermöglichen.",
+      "name": "API Authentifizierung mit JWT",
+      "description": "JWT sollte bevorzugt zur Authentifizierung von APIs verwendet werden, um eine sichere und effiziente Authentifizierungsmechanik zu gewährleisten.",
       "evidence": [
-        "[cna_cli] CNA CLI: Logging-Strategie — strukturiert vs. plain text"
+        "[cna_cli] CNA CLI: Authentifizierung — JWT vs. API-Key"
       ],
       "priority": "medium",
-      "implementation_hint": "Überprüfung der Logdatenstruktur und Implementierung eines strukturierten Logging-Systems."
+      "implementation_hint": "Implementieren einer JWT-Basierten Authentifizierung für alle relevanten APIs."
     }
   ],
-  "synthesis_date": "2026-05-05T07:13:38.802610+00:00",
-  "total_cases_analyzed": 201,
+  "synthesis_date": "2026-05-06T20:14:45.499823+00:00",
+  "total_cases_analyzed": 1357,
   "top_domains": [
     "eu_ai_act",
     "daysensos"

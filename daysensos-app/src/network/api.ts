@@ -39,7 +39,7 @@ export async function sendCapture(
 export async function checkServerHealth(): Promise<boolean> {
   try {
     const baseUrl = await getServerUrl();
-    const response = await fetch(`${baseUrl}/health`, {
+    const response = await fetch(`${baseUrl}/status`, {
       method: 'GET',
       signal: AbortSignal.timeout(5_000),
     });

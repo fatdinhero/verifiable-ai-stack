@@ -1,6 +1,6 @@
 # COGNITUM Design Principles
-*Automatisch destilliert aus 201 ADR-Cases und 17 Analogien*
-*Stand: 2026-05-05*
+*Automatisch destilliert aus 1357 ADR-Cases und 0 Analogien*
+*Stand: 2026-05-06*
 
 ## Uebersicht
 10 Prinzipien | Domaenen: eu_ai_act, daysensos
@@ -17,71 +17,71 @@ Die Dokumentation sollte automatisch generiert werden, um die Wartbarkeit und Ak
 
 ---
 
-### 2. Protobuf für Sensordaten [HIGH]
+### 2. Protobuf für Datenformatierung [HIGH]
 
-Protobuf sollte verwendet werden, um eine effiziente und kompakte Datenrepräsentation für Sensordaten zu gewährleisten.
+Protobuf sollte bevorzugt verwendet werden, um effiziente und kompakte Datenformate zu erstellen.
 
-**Implementierungshinweis:** Überprüfen der Protobuf-Schema-Definitionen und Integration in den Datenaustauschprozess.
+**Implementierungshinweis:** Konvertieren aller relevanten Datendefinitionen in Protobuf-Protokolle.
 
 **Belege:** [daysensos] DaySensOS: Datenformat fuer Sensordaten — Protobuf vs. JSON
 
 ---
 
-### 3. Automatisches Backup [CRITICAL]
+### 3. Automatisches Logging [HIGH]
 
-Ein automatischer Backup-Prozess für die ChromaDB-Vektordatenbank sollte implementiert werden, um Datenverlust zu vermeiden.
+Der Monitoring-Ansatz sollte auf automatische, strukturierte Logprotokollierung basieren, um die Analyse zu erleichtern.
 
-**Implementierungshinweis:** Entwicklung und Implementierung eines automatischen Backup-Skripts für die Datenbank.
-
-**Belege:** [cognitum] COGNITUM: Backup-Strategie fuer ChromaDB-Vektordatenbank
-
----
-
-### 4. Prompt-Caching [HIGH]
-
-Ein Caching-System für wiederholte Prompt-Rufe sollte implementiert werden, um den Systemleistungsverbrauch zu reduzieren.
-
-**Implementierungshinweis:** Implementierung eines Caching-Mechanismus für häufig verwendete Prompts.
-
-**Belege:** [cognitum] COGNITUM: Prompt-Caching-Strategie fuer wiederholte SPALTEN-Runs
-
----
-
-### 5. Langfristiges Logging [HIGH]
-
-Ein langfristiges Logging-System sollte implementiert werden, um die Analyse und Überwachung des Systems zu ermöglichen.
-
-**Implementierungshinweis:** Implementierung eines logging-Systems, das Daten über einen längeren Zeitraum speichert.
+**Implementierungshinweis:** Einrichten eines Log-Systems mit automatischen Protokollierungsfunktionen.
 
 **Belege:** [cognitum] COGNITUM: Monitoring-Ansatz — Langfuse vs. eigenes Logging
 
 ---
 
-### 6. Semver für Versionierung [HIGH]
+### 4. Semver für Versionierung [HIGH]
 
-Die semantische Versionskontrolle sollte verwendet werden, um die Verwaltung von Änderungen und Abhängigkeiten zu erleichtern.
+Die Versionierung von Konfigurationsdateien sollte semantische Versionskontrolle (semver) verwenden, um die Verwaltung zu erleichtern.
 
-**Implementierungshinweis:** Implementierung eines semantischen Versionskontrollsystems für die masterplan.yaml Datei.
+**Implementierungshinweis:** Implementieren einer semantischen Versionskontrolle für alle relevanten Konfigurationsdateien.
 
 **Belege:** [cognitum] COGNITUM: Versionierung von masterplan.yaml — semver vs. datumbasiert
 
 ---
 
-### 7. REST API Design [MEDIUM]
+### 5. REST API Design [MEDIUM]
 
 REST sollte bevorzugt verwendet werden, um eine einfache und skalierbare API-Struktur zu gewährleisten.
 
-**Implementierungshinweis:** Überprüfung der REST-API-Spezifikationen und Anpassung des Engineering-Agents.
+**Implementierungshinweis:** Überprüfen und anpassen der API-Endpunkte, um sie auf REST-Konventionen abzustimmen.
 
 **Belege:** [general] API-Design: REST vs. GraphQL fuer den Engineering-Agent
 
 ---
 
-### 8. Automatisierte Tests [CRITICAL]
+### 6. Sicherheit durch Segregation [CRITICAL]
 
-Ein umfassendes Testsystem, bestehend aus Unit-Tests und Integrationstests, sollte implementiert werden.
+Die Secrets-Management sollte die Sicherheit erhöhen, indem geheimer Daten in einem separaten System verwaltet werden.
 
-**Implementierungshinweis:** Entwicklung eines Testframeworks mit umfassenden Testfällen für die Governance-Layer.
+**Implementierungshinweis:** Einrichten eines Secret-Managers wie HashiCorp Vault für die Speicherung und Verwaltung von geheimen Daten.
+
+**Belege:** [general] Security: Secrets-Management — env-Variablen vs. Vault
+
+---
+
+### 7. Batch Processing für Datenpipeline [MEDIUM]
+
+Die Datenpipeline sollte batch-basiert arbeiten, um effizienter und skalierbarer zu sein.
+
+**Implementierungshinweis:** Implementieren eines batch-basierten Datenverarbeitungspipelines für die Indexierung.
+
+**Belege:** [general] Datenpipeline: Batch vs. Stream-Processing fuer ADR-Indexierung
+
+---
+
+### 8. Automatisierte Tests [HIGH]
+
+Ein umfassendes Testframework sollte implementiert werden, um die Qualität und Stabilität des Systems zu gewährleisten.
+
+**Implementierungshinweis:** Entwickeln und integrieren eines Testframeworks mit unitären und integrationären Tests.
 
 **Belege:** [general] Testing-Strategie: Unit vs. Integration Tests fuer Governance-Layer
 
@@ -89,20 +89,20 @@ Ein umfassendes Testsystem, bestehend aus Unit-Tests und Integrationstests, soll
 
 ### 9. On-Device Datenschutz [HIGH]
 
-Der Datenschutz sollte auf dem Gerät durchgeführt werden, um den Datenverlust zu minimieren.
+Der Datenschutz sollte so weit wie möglich auf dem Gerät durchgeführt werden, um die Sicherheit der Daten zu erhöhen.
 
-**Implementierungshinweis:** Implementierung von Datenschutzmechanismen, die auf dem Gerät ausgeführt werden.
+**Implementierungshinweis:** Implementieren eines Datenschutzkonzepts, das die Datenverarbeitung auf dem Gerät optimiert.
 
 **Belege:** [daysensos] DaySensOS: Datenschutz-Architektur — On-Device vs. Cloud-Processing
 
 ---
 
-### 10. Strukturiertes Logging [MEDIUM]
+### 10. API Authentifizierung mit JWT [MEDIUM]
 
-Strukturierte Logdaten sollten verwendet werden, um eine effiziente Analyse und Überwachung des Systems zu ermöglichen.
+JWT sollte bevorzugt zur Authentifizierung von APIs verwendet werden, um eine sichere und effiziente Authentifizierungsmechanik zu gewährleisten.
 
-**Implementierungshinweis:** Überprüfung der Logdatenstruktur und Implementierung eines strukturierten Logging-Systems.
+**Implementierungshinweis:** Implementieren einer JWT-Basierten Authentifizierung für alle relevanten APIs.
 
-**Belege:** [cna_cli] CNA CLI: Logging-Strategie — strukturiert vs. plain text
+**Belege:** [cna_cli] CNA CLI: Authentifizierung — JWT vs. API-Key
 
 ---

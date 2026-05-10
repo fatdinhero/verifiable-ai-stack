@@ -62,3 +62,12 @@ crsoc/
 reports/
 governance/ots/
 data/training/
+
+# ─── Runtime-Artefakte & lokale Zustände ─────────────────────────
+.bot_queue.json
+.loop_state.json
+.claude/
+*.zip
+loop_result_*.json
+evaluation_report_*.json
+export/
