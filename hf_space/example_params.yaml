@@ -1,0 +1,26 @@
+# Beispiel-Input für: cognitum-cna check --input example_params.yaml
+# Alle Werte entsprechen einer normkonformen Anlage.
+
+# GEG §71 — Aufstellungsbedingungen Außenluft-Wärmepumpe
+abstand_m: 3.5            # Abstand zur Grundstücksgrenze [m]   (≥ 3)
+tagpegel_db: 47.0         # Schallimmission Tagzeit [dB(A)]      (≤ 50)
+nachtpegel_db: 33.0       # Schallimmission Nachtzeit [dB(A)]    (≤ 35)
+
+# GEG §72 — Effizienz der Wärmepumpe
+jaz: 3.8                  # Jahresarbeitszahl [-]                (≥ 3.5)
+
+# GEG §74 — Anlagendokumentation
+dokumentation_vollstaendig: true  # Doku vollständig übergeben  (== true)
+
+# KfW-BEG — Technische Mindestanforderungen
+vorlauftemp_c: 50.0       # Vorlauftemperatur [°C]              (≤ 55)
+heizstab_prozent: 2.0     # Heizstabanteil Jahresenergie [%]    (< 5)
+waermebruecken_w_mk: 0.15 # Wärmebrücken-Zuschlag [W/(m²·K)]   (< 0.2)
+
+# TA Lärm — Immissionsschutz
+mischgebiet_db: 52.0      # Beurteilungspegel Mischgebiet [dB(A)] (≤ 55)
+wohngebiet_nacht_db: 32.0 # Beurteilungspegel Wohngebiet Nacht [dB(A)] (≤ 35)
+
+# VDI 4645 — Aufstellungsplanung
+wandabstand_m: 0.8        # Wandabstand Wärmepumpe [m]          (≥ 0.5)
+oeffnungsabstand_m: 2.5   # Abstand Ansaug-/Blasöffnung [m]     (≥ 2)
