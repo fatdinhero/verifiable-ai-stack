@@ -127,29 +127,31 @@ class ParagraphPublisher:
 
 class RedditPublisher:
     def publish(self, content, job):
-        keys = ["REDDIT_CLIENT_ID","REDDIT_CLIENT_SECRET","REDDIT_USERNAME","REDDIT_PASSWORD"]
-        if not all(k in ENV for k in keys):
-            return False, "Reddit-Credentials fehlen"
-        try:
-            t = requests.post("https://www.reddit.com/api/v1/access_token",
-                auth=(ENV["REDDIT_CLIENT_ID"], ENV["REDDIT_CLIENT_SECRET"]),
-                data={"grant_type":"password","username":ENV["REDDIT_USERNAME"],
-                      "password":ENV["REDDIT_PASSWORD"]},
-                headers={"User-Agent":"COGNITUM-APA/0.1"}, timeout=30)
-            token = t.json().get("access_token")
-            r = requests.post("https://oauth.reddit.com/api/submit",
-                headers={"Authorization":f"bearer {token}","User-Agent":"COGNITUM-APA/0.1"},
-                data={"sr":"cognitum","kind":"self","title":job.title,
-                      "text":content,"resubmit":"true"}, timeout=30)
-            return r.ok, "Reddit post ok"
-        except Exception as e:
-            return False, str(e)
+        return False, "Reddit API Registrierung ausstehend"
 
 class HuggingFacePublisher:
     def publish(self, content, job):
         if not ENV.get("HF_TOKEN"):
             return False, "HF_TOKEN fehlt"
         return True, "HF: manuelles Update empfohlen"
+
+class MastodonPublisher:
+    def publish(self, content, job):
+        token    = ENV.get("MASTODON_ACCESS_TOKEN")
+        instance = ENV.get("MASTODON_INSTANCE")
+        if not token or not instance:
+            return False, "MASTODON_ACCESS_TOKEN fehlt"
+        try:
+            r = requests.post(
+                f"{instance.rstrip('/')}/api/v1/statuses",
+                headers={"Authorization": f"Bearer {token}"},
+                data={"status": content[:500]},
+                timeout=30,
+            )
+            r.raise_for_status()
+            return True, r.json().get("url", "ok")
+        except Exception as e:
+            return False, str(e)
 
 class GumroadNotifier:
     """No API call — only confirms the buy-link was embedded in all posts."""
@@ -164,6 +166,7 @@ class AutonomousPublishingAgent:
         "paragraph":   ParagraphPublisher(),
         "reddit":      RedditPublisher(),
         "huggingface": HuggingFacePublisher(),
+        "mastodon":    MastodonPublisher(),
         "gumroad":     GumroadNotifier(),
     }
     def __init__(self):
