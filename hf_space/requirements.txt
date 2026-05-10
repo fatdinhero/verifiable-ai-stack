@@ -1,5 +1,2 @@
-gradio==4.44.0
-pydub==0.25.1
-pyaudioop-compat; python_version>="3.13"
 pyyaml
 typer
