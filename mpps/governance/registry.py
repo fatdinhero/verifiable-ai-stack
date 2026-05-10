@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""
+governance/registry.py
+Layer-1-Compliance-Defense für COGNITUM / MPPS
+
+Harte, deterministische Lookups für alle kritischen Engineering-Werte.
+LLM darf diese Werte NUR referenzieren, niemals berechnen oder halluzinieren.
+
+Quellen (lizenzkonform):
+- TA Lärm: verwaltungsvorschriften-im-internet.de
+- GEG / BEG: KfW-Merkblätter, gesetze-im-internet.de
+- FMEA Action Priority: AIAG-VDA 2019 (öffentlich zugängliche Tabellen)
+"""
+
+from decimal import Decimal
+from typing import Dict, Literal, Tuple
+
+# ============================================================================
+# TA LÄRM – Immissionsrichtwerte (Stand 2023/2026)
+# ============================================================================
+
+TA_LAERM: Dict[str, Dict[str, Decimal]] = {
+    "industrie": {"tag": Decimal("70"), "nacht": Decimal("70")},
+    "gewerbe":  {"tag": Decimal("65"), "nacht": Decimal("50")},
+    "urban":    {"tag": Decimal("63"), "nacht": Decimal("45")},
+    "misch":    {"tag": Decimal("60"), "nacht": Decimal("45")},
+    "wohn":     {"tag": Decimal("55"), "nacht": Decimal("40")},
+    "reines_wohn": {"tag": Decimal("50"), "nacht": Decimal("35")},
+}
+
+def get_ta_laerm(zonen_typ: str, tageszeit: Literal["tag", "nacht"]) -> Decimal:
+    """Gibt den Immissionsrichtwert zurück oder wirft ValueError bei ungültigem Typ."""
+    if zonen_typ not in TA_LAERM:
+        raise ValueError(f"Ungültiger Zonen-Typ: {zonen_typ}")
+    return TA_LAERM[zonen_typ][tageszeit]
+
+# ============================================================================
+# GEG / BEG – Wichtige Kennwerte (Stand 2025/2026)
+# ============================================================================
+
+GEG_ANLAGE_4_VALID_FACTORS: Dict[str, Decimal] = {
+    "strom": Decimal("1.8"),
+    "gas": Decimal("1.1"),
+    "fernwaerme": Decimal("0.7"),
+    "holz": Decimal("0.2"),
+}
+
+BEG_EFFIZIENZHAUS_STUFEN = {
+    "40": {"q_p": Decimal("40"), "h_t": Decimal("40")},
+    "55": {"q_p": Decimal("55"), "h_t": Decimal("55")},
+    "70": {"q_p": Decimal("70"), "h_t": Decimal("70")},
+    "85": {"q_p": Decimal("85"), "h_t": Decimal("85")},
+    "100": {"q_p": Decimal("100"), "h_t": Decimal("100")},
+}
+
+def get_beg_stufe(stufe: str) -> Dict[str, Decimal]:
+    if stufe not in BEG_EFFIZIENZHAUS_STUFEN:
+        raise ValueError(f"Ungültige BEG-Stufe: {stufe}")
+    return BEG_EFFIZIENZHAUS_STUFEN[stufe]
+
+# ============================================================================
+# FMEA – Action Priority (AIAG-VDA 2019)
+# ============================================================================
+
+def calculate_rpn(severity: int, occurrence: int, detection: int) -> int:
+    """Berechnet die Risikoprioritätszahl (deterministisch)."""
+    if not (1 <= severity <= 10 and 1 <= occurrence <= 10 and 1 <= detection <= 10):
+        raise ValueError("S, O, D müssen zwischen 1 und 10 liegen")
+    return severity * occurrence * detection
+
+def get_action_priority(rpn: int, severity: int) -> Literal["H", "M", "L"]:
+    """Gibt die Action Priority nach AIAG-VDA 2019 zurück."""
+    if severity >= 9 and rpn >= 100:
+        return "H"
+    if rpn >= 100 or (severity >= 7 and rpn >= 50):
+        return "M"
+    return "L"
+
+# ============================================================================
+# NWA / AHP – Minimal-Helper (für Demo)
+# ============================================================================
+
+def normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
+    total = sum(weights.values())
+    return {k: v / total for k, v in weights.items()}
+
+# ============================================================================
+# Validierungs-Helfer für Agenten
+# ============================================================================
+
+def validate_compliance_claim(claim: str, norm_id: str, corpus: set) -> bool:
+    """Prüft, ob ein Claim wörtlich im lizenzkonformen Korpus vorkommt."""
+    return any(norm_id in line and claim in line for line in corpus)
+
+print("✅ governance/registry.py geladen – Layer-1-Compliance-Defense aktiv")

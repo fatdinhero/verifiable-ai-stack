@@ -1,0 +1,236 @@
+version: 1.0.0
+framework_name: Methodisches Produktentwicklungs- und Problemlösungssystem (MPPS)
+description: |
+  Ein universelles, 4-schichtiges Framework zur strukturierten Produktentwicklung und Problemlösung.
+  Basierend auf bewährten Ingenieursmethoden: SPALTEN-ähnliches Rahmenwerk für Problemlösung,
+  8-Schritt-Versuchsplanung (DoE), 7-Phasen-Produktplanung und integrierte Bewertungs-/Kreativitätswerkzeuge.
+  Entwickelt für agentenbasierte Systeme, Governance und als standalone-Produkt.
+  Kompatibel mit VDI 2221/2222/2225 (morphologisches Gate, Konstruktionsprotokoll).
+  Ziel: Maximale Struktur, Reflexion, Qualität und Nachvollziehbarkeit bei minimalem Overhead.
+  Anwendbar auf Hardware, Software, Prozesse, KI-Produkte und hybride Entwicklungen.
+
+layers:
+  - id: L1_strategic_planning
+    name: Strategische Produktplanung
+    description: Klärt den Gesamtrahmen, Zielmarkt, Kundenbedürfnisse und Positionierung vor der Konzeptphase.
+    steps:
+      - id: 1.1
+        name: Planungsauftrag konkretisieren
+        inputs: [Unternehmensstrategie, Markttrends, Ressourcen-Constraints, Zeitrahmen]
+        outputs: [Klar formulierter Planungsauftrag mit Problemraum, Zielraum, Akzeptanzkriterien]
+        checks: [Zielmarktsegment definiert?, Strategische Vorgaben dokumentiert?, Erfolgskriterien messbar?]
+        tools: [Stakeholder-Map, SWOT light]
+      - id: 1.2
+        name: Kundenwünsche analysieren
+        inputs: [Zielgruppen, Pain Points, Gains]
+        outputs: [Strukturierte Kundenanforderungen mit Gewichtung (Kano-ähnlich: Basis, Leistungs-, Begeisterungsfaktoren)]
+        checks: [Repräsentative Zielgruppen abgedeckt?, Wünsche priorisiert?, Messbare Erfolgskriterien?]
+        tools: [Kano-Modell, Voice-of-Customer-Interviews, Umfragen]
+      - id: 1.3
+        name: Wettbewerbs- und Referenzanalyse
+        inputs: [Konkurrenzprodukte, Referenzlösungen, Technologie-Trends]
+        outputs: [Differenzierungsprofil, Benchmark-Matrix, Alleinstellungsmerkmale]
+        checks: [Wettbewerbslandschaft vollständig?, Differenzierung klar?, Risiken identifiziert?]
+        tools: [Benchmarking-Matrix, Feature-Vergleich, Patent-Recherche light]
+      - id: 1.4
+        name: Innovationsrichtung und Handlungsbedarfe definieren
+        inputs: [Kundenwünsche, Benchmark, Strategie]
+        outputs: [Priorisierte Handlungsbedarfe, Innovationsvektor]
+        checks: [Konsistenz mit Strategie?, Machbarkeit grob geprüft?]
+        tools: [Priorisierungsmatrix, Gap-Analyse]
+
+  - id: L2_concept_development
+    name: Konzeptentwicklung und -synthese
+    description: Erzeugt und strukturiert Lösungskonzepte auf Basis von Funktionen und Kreativität.
+    steps:
+      - id: 2.1
+        name: Funktionsanalyse und -struktur
+        inputs: [Kundenanforderungen, Produktidee]
+        outputs: [Funktionsstruktur (Haupt-, Neben-, Hilfsfunktionen), Funktionshierarchie]
+        checks: [Alle Kundenanforderungen abgedeckt?, Funktionen vollständig und nicht redundant?]
+        tools: [Funktionsbaum, Black-Box-Modell]
+      - id: 2.2
+        name: Ideengenerierung und Kreativität
+        inputs: [Funktionsstruktur, Handlungsbedarfe]
+        outputs: [Ideenpool (mind. 20-50 Ideen), variantenreiche Lösungsansätze]
+        checks: [Vielfalt der Ideen?, Querdenken ermöglicht?]
+        tools: [6-3-5-Methode, Brainstorming, SCAMPER, Morphologischer Kasten]
+      - id: 2.3
+        name: Konzeptbildung und Varianten
+        inputs: [Ideenpool, Funktionsstruktur]
+        outputs: [Konzepte (3-7 Varianten), Variantenbäume, morphologische Matrix]
+        checks: [Technische Machbarkeit grob?, Wirtschaftlichkeit skizziert?]
+        tools: [Morphologischer Kasten, Variantenbaum, TRIZ-Elemente light]
+      - id: 2.4
+        name: Verknüpfung mit Anforderungen (QFD-ähnlich)
+        inputs: [Kundenanforderungen, Konzepte]
+        outputs: [House-of-Quality-Matrix light, Korrelation Anforderung-Funktion]
+        checks: [Kritische Anforderungen erfüllt?, Trade-offs transparent?]
+        tools: [QFD-Matrix light, Korrelationsdiagramm]
+
+  - id: L3_problem_solving_risk
+    name: Strukturierte Problemlösung und Risikomanagement
+    description: Übergeordnetes Rahmenwerk für alle operativen Probleme und Risiken (SPALTEN-ähnlich).
+    steps:  # SPALTEN-ähnlich: S= Situation, P=Problem, A=Alternativen, L=Lösungsauswahl, T=Tragweiten, E=Entscheidung, N=Nachbereitung
+      - id: 3.1
+        name: Situation und Problem analysieren
+        inputs: [Aktueller Zustand, Symptome, Kontext]
+        outputs: [Klar formuliertes Problem, Ursachen (Ishikawa-Diagramm)]
+        checks: [Problem von Symptomen getrennt?, Ursachen vollständig?]
+        tools: [Ishikawa-Diagramm (5-Why), Pareto-Analyse]
+      - id: 3.2
+        name: Alternativen entwickeln
+        inputs: [Problem, Funktionsstruktur]
+        outputs: [Lösungsalternativen (mind. 3-5)]
+        checks: [Vielfalt?, Kreativität genutzt?]
+        tools: [6-3-5, Brainwriting, TRIZ]
+      - id: 3.3
+        name: Alternativen bewerten (NWA)
+        inputs: [Alternativen, Kriterien (technisch, wirtschaftlich, strategisch, Risiko)]
+        outputs: [Nutzwertmatrix, Ranking der Alternativen]
+        checks: [Kriterien gewichtet und messbar?, Sensitivitätsanalyse durchgeführt?]
+        tools: [Nutzwertanalyse (NWA), Paarweiser Vergleich]
+      - id: 3.4
+        name: Risiko- und Tragweitenanalyse (FMEA light)
+        inputs: [Ausgewählte Alternative, Prozess]
+        outputs: [FMEA-Tabelle light (Risiko-Prioritätszahl RPN), Maßnahmen zur Risikominderung]
+        checks: [Kritische Risiken adressiert?, Restrisiko akzeptabel?]
+        tools: [FMEA light, SWOT, Risikomatrix]
+      - id: 3.5
+        name: Entscheidung und Umsetzungsplan
+        inputs: [Bewertung, Risikoanalyse]
+        outputs: [Entscheidungsdokument, Umsetzungsplan mit Meilensteinen]
+        checks: [Entscheidung begründet und dokumentiert?, Verantwortlichkeiten klar?]
+        tools: [Entscheidungsmatrix, Go/No-Go-Checkliste]
+      - id: 3.6
+        name: Reflexion und Nachbereitung
+        inputs: [Umsetzungsergebnisse, Lessons Learned]
+        outputs: [Reflexionsbericht, Wissensdokumentation, Verbesserungsvorschläge]
+        checks: [Was hat funktioniert/nicht?, Übertragbarkeit auf andere Projekte?]
+        tools: [After-Action-Review, Lessons-Learned-Template]
+
+  - id: L4_experimentation_validation
+    name: Versuchsplanung und Validierung (DoE)
+    description: Systematische Experimente zur Optimierung, Absicherung und Wissensgewinnung (8-Schritt-Modell).
+    steps:
+      - id: 4.1
+        name: Problem erkennen und formulieren
+        inputs: [Unklarheiten aus oberen Schichten, Optimierungsbedarf]
+        outputs: [Klar formulierte Versuchsfrage, Zielgrößen (messbar, relevant)]
+        checks: [Frage präzise?, Zielgrößen quantifizierbar?]
+        tools: [Problemstatement-Template]
+      - id: 4.2
+        name: Einflussfaktoren und Faktorstufen auswählen
+        inputs: [Prozesswissen, Ishikawa, FMEA]
+        outputs: [Steuergrößen (einstellbar), Störgrößen (nicht kontrollierbar), Faktorstufen (min. 2)]
+        checks: [Relevante Faktoren vollständig?, Physikalische Grenzen respektiert?]
+        tools: [Prozessflussdiagramm, Expertenbefragung, Multi-Vari-Analyse]
+      - id: 4.3
+        name: Versuchsplan auswählen
+        inputs: [Anzahl Faktoren (k), gewünschte Tiefe (Screening vs. Optimierung)]
+        outputs: [Versuchsplan-Typ (teilfaktoriell, vollfaktoriell, quadratisch, Response-Surface)]
+        checks: [Aufwand vs. Informationsgewinn abgewogen?, Alias-Struktur bekannt?]
+        tools: [Design-Table, Software (z.B. Minitab light oder Python DoE-Bibliothek)]
+      - id: 4.4
+        name: Versuche durchführen und Daten erfassen
+        inputs: [Versuchsplan]
+        outputs: [Rohdaten-Tabelle (Faktoren + Zielgrößen + Störgrößen)]
+        checks: [Randomisierung eingehalten?, Wiederholungen ausreichend?]
+        tools: [Standardisierte Versuchsprotokolle, Messsystem-Analyse (MSA light)]
+      - id: 4.5
+        name: Datenanalyse und Modellbildung
+        inputs: [Rohdaten]
+        outputs: [Statistisches Modell (Regression, ANOVA), signifikante Effekte, Wechselwirkungen]
+        checks: [Modellgüte (R², p-Werte) akzeptabel?, Residuen normalverteilt?]
+        tools: [Statistik-Software, Python (statsmodels/scikit-learn)]
+      - id: 4.6
+        name: Interpretation und Maßnahmenplan
+        inputs: [Modell, Prozesswissen]
+        outputs: [Optimale Faktoreinstellungen, Robustheitsmaßnahmen, Vorhersageintervall]
+        checks: [Ergebnisse plausibel und physikalisch sinnvoll?, Unsicherheiten quantifiziert?]
+        tools: [Konturplots, Haupteffekt-Diagramme]
+      - id: 4.7
+        name: Absicherung (Bestätigungsversuche)
+        inputs: [Optimale Einstellungen]
+        outputs: [Bestätigungsdaten, Validierung des Modells]
+        checks: [Vorhersage vs. Realität innerhalb Toleranz?, Prozess stabil?]
+        tools: [Run-Chart, Capability-Analyse (Cpk light)]
+      - id: 4.8
+        name: Dokumentation und Wissenssicherung
+        inputs: [Gesamter Prozess]
+        outputs: [Vollständiger Versuchsbericht, Lessons Learned, übertragbare Erkenntnisse]
+        checks: [Reproduzierbar?, Für andere Projekte nutzbar?]
+        tools: [Standardisierter Bericht-Template]
+
+orchestration:
+  supervisor_role: |
+    Der Methoden-Supervisor (Agent oder Governance-Layer) wählt basierend auf Projektphase und Komplexität die passenden Schichten/Flows aus.
+    Jeder Schritt muss mit Checklisten abgeschlossen und als ADR oder Issue dokumentiert werden (Art. 5, 14 der Constitution).
+    Morphologisches Gate (VDI 2221/2225): Jede Entscheidung durchläuft Bewertungsmatrix mit Kriterien wie Machbarkeit, Nutzen, Risiko, Aufwand.
+  integration_rules:
+    - Alle Agenten müssen auf die YAML-Modelle referenzieren (keine freien Prompts für methodische Schritte).
+    - Ergebnisse werden als strukturierte Artefakte (Markdown + JSON) in /docs oder Git-Issues geschrieben.
+    - Reflexions-Layer (L3.6 + L4.8) ist obligatorisch für jedes Projekt > 1 Woche.
+    - Halluzinations-Kennzeichnung (Art. 11): Alle nicht-verifizierten Annahmen mit [Unverified] markieren.
+
+data_structures:
+  ProductPlanningSession:
+    type: object
+    properties:
+      session_id: string
+      layer: L1_strategic_planning
+      current_step: integer
+      artifacts: array  # z.B. Planungsauftrag.md, Kano-Matrix.json
+      decisions: array  # mit Begründung und ADR-Ref
+  ProblemSolvingSession:
+    type: object
+    properties:
+      session_id: string
+      layer: L3_problem_solving_risk
+      spalten_phase: string  # z.B. "3.3 NWA"
+      nwa_matrix: object
+      fmea_table: object
+      final_decision: object
+  ExperimentPlan:
+    type: object
+    properties:
+      plan_id: string
+      doe_type: string  # screening | full_factorial | quadratic
+      factors: array
+      responses: array
+      design_table: object  # CSV-ähnlich
+      analysis_results: object
+      confirmation_runs: array
+
+prompt_templates:
+  - id: spalten_step
+    template: |
+      Du bist ein Experte für strukturierte Problemlösung nach dem SPALTEN-Prinzip.
+      Aktueller Schritt: {step_name}
+      Kontext: {context}
+      Führe den Schritt durch und liefere:
+      1. Strukturiertes Ergebnis
+      2. Begründung
+      3. Nächste Schritte / offene Fragen
+      4. [Unverified]-Marker für Annahmen
+  - id: doe_planner
+    template: |
+      Plane einen Versuchsplan nach dem 8-Schritt-Modell.
+      Frage: {question}
+      Bekannte Faktoren: {factors}
+      Gewünschte Tiefe: {depth}
+      Liefere den vollständigen Plan inkl. Design-Tabelle und Analyse-Strategie.
+
+usage_examples:
+  - for_internal: |
+      In COGNITUM: Supervisor liest masterplan.yaml, erkennt offene Entscheidung (z.B. "CNA CLI vs. Phone MVP"),
+      startet L1 + L3 Flow, schreibt Ergebnis als ADR-Update.
+  - for_product: |
+      Als standalone: `python -m cognitum_methoden plan --project "DaySensOS v2"` oder API-Call.
+
+future_extensions:
+  - Integration mit L4-Features (DayScore) für "Entwicklungs-Wellness" der Agenten selbst.
+  - Automatische Generierung von morphologischen Kästen aus Funktionsstrukturen.
+  - zkVM-Proof für kritische Entscheidungen (z.B. Go/No-Go bei hohem Risiko).
+
+confidence: 0.92  # Hohe Abdeckung der Quellen, universell erweiterbar

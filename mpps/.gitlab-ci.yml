@@ -1,0 +1,43 @@
+# .gitlab-ci.yml
+# ADR Validation + Evaluation Pipeline
+
+stages:
+  - validate
+  - evaluate
+
+variables:
+  PYTHON_VERSION: "3.11"
+
+adr_validation:
+  stage: validate
+  image: python:3.11-slim
+  script:
+    - pip install pydantic jsonschema
+    - python -c "
+import json
+from jsonschema import validate
+with open('data/adr_schema.json') as f:
+    schema = json.load(f)
+for f in Path('docs/adr').glob('*.md'):
+    # Simple check: ADR must contain 'VDI 2225' or 'SPALTEN'
+    content = f.read_text()
+    if 'VDI 2225' not in content and 'SPALTEN' not in content:
+        print(f'❌ ADR {f.name} fehlt methodische Referenz')
+        exit(1)
+print('✅ Alle ADRs validiert')
+"
+  only:
+    - merge_requests
+  allow_failure: false
+
+adr_evaluation:
+  stage: evaluate
+  image: python:3.11-slim
+  script:
+    - pip install ollama pydantic
+    - python evaluator.py --batch data/synthetic_adrs/*.json
+  only:
+    - merge_requests
+    - main
+  allow_failure: true
+  when: manual
