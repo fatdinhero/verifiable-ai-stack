@@ -3,13 +3,16 @@
 //! Startup sequence:
 //!   1. Open RocksDB storage
 //!   2. Create ClaimMempool (S_con-sorted)
-//!   3. Spawn BlockProducer task (drains mempool, assembles + publishes blocks)
-//!   4. Run P2P event loop (routes inbound claims to mempool, blocks to store)
+//!   3. Create P2p (gets net_tx sender)
+//!   4. Spawn BlockProducer task (uses net_tx)
+//!   5. Spawn RPC server task (axum, cfg.rpc_addr)
+//!   6. Run P2P event loop
 
 mod config;
 mod consensus;
 mod mempool;
 mod network;
+mod rpc;
 mod storage;
 mod validation;
 mod zk;
@@ -17,7 +20,6 @@ mod zk;
 use std::sync::Arc;
 
 use anyhow::Result;
-
 use mempool::{BlockProducer, ClaimMempool};
 
 #[tokio::main]
@@ -26,17 +28,12 @@ async fn main() -> Result<()> {
 
     let cfg = config::ProtocolConfig::load()?;
 
-    // -- Storage --------------------------------------------------------------
     let store = Arc::new(storage::DagStore::open(&cfg.data_dir)?);
-
-    // -- Mempool --------------------------------------------------------------
     let mempool = Arc::new(ClaimMempool::new(cfg.clone()));
-
-    // -- Network --------------------------------------------------------------
     let mut net = network::P2p::new(cfg.clone()).await?;
     let net_tx = net.sender();
 
-    // -- Block producer -------------------------------------------------------
+    // BlockProducer — drains mempool, assembles blocks, publishes via net_tx
     let producer = BlockProducer::new(
         cfg.clone(),
         Arc::clone(&mempool),
@@ -45,11 +42,23 @@ async fn main() -> Result<()> {
     );
     tokio::spawn(async move {
         if let Err(e) = producer.run().await {
-            tracing::error!("BlockProducer error: {e}");
+            tracing::error!("BlockProducer: {e}");
         }
     });
 
-    // -- P2P event loop (blocks until shutdown) -------------------------------
+    // RPC server — submit_claim, get_block/:hash, status
+    let rpc_state = rpc::AppState {
+        node_id: cfg.node_id.clone(),
+        store: Arc::clone(&store),
+        mempool: Arc::clone(&mempool),
+    };
+    let rpc_addr = cfg.rpc_addr.clone();
+    tokio::spawn(async move {
+        if let Err(e) = rpc::serve(&rpc_addr, rpc_state).await {
+            tracing::error!("RPC server: {e}");
+        }
+    });
+
     tracing::info!("AgentsProtocol validator starting (node: {})", cfg.node_id);
     let listen_addr = cfg.listen_addr.parse().ok();
     net.run(&store, Some(&mempool), listen_addr).await?;

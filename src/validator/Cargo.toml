@@ -18,6 +18,9 @@ thiserror      = "1"
 rocksdb        = "0.22"
 tracing        = "0.1"
 hex            = "0.4"
+axum           = "0.7"
+tower          = "0.4"
+tower-http     = { version = "0.5", features = ["cors"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 futures        = "0.3"
 chrono         = { version = "0.4", features = ["serde"] }
