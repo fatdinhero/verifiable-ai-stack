@@ -1,3 +1,4 @@
+
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 from cognitum_core.runtime import Runtime

@@ -37,7 +37,7 @@ class TestPolicyEngineCheck:
         
         assert result["compliance_passed"] is True
         assert result["violations"] == []
-        assert result["confidence"] == 0.85
+        assert result["confidence"] == pytest.approx(0.85, rel=1e-9)
     
     def test_check_some_rules_fail(self, monkeypatch):
         rule1 = self._create_mock_rule("rule1", passed=False, violation="violation1", confidence=0.7)
