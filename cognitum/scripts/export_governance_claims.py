@@ -22,7 +22,10 @@ import hmac
 import json
 import os
 import platform
+import subprocess
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,12 +45,14 @@ DEFAULT_MASTERPLAN = COGNITUM_ROOT / "governance" / "masterplan.yaml"
 DEFAULT_AUDIT_DIR = REPO_ROOT / "docs" / "governance-audit"
 AGENTSPROTOCOL_SRC = REPO_ROOT / "agentsprotocol" / "src"
 
-REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.1"
-REPORT_VERSION = "2.1.0"
+REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.2"
+REPORT_VERSION = "2.2.0"
 CLAIM_SCHEMA = "verifiable-ai-stack/governance-claim/v1"
 DEFAULT_VALIDATORS = ("baseline",)
 DEFAULT_HMAC_ENV = "GOVERNANCE_AUDIT_HMAC_KEY"
 DEFAULT_API_TIMEOUT_SECONDS = 15
+DEFAULT_API_RETRIES = 2
+DEFAULT_MAX_WORKERS = 4
 
 if str(AGENTSPROTOCOL_SRC) not in sys.path:
     sys.path.insert(0, str(AGENTSPROTOCOL_SRC))
@@ -72,6 +77,7 @@ class ValidatorProfile:
     description: str
     corpus_mode: str
     tau: float
+    version: str = "1.0.0"
 
 
 BUILT_IN_VALIDATORS: dict[str, ValidatorProfile] = {
@@ -126,6 +132,23 @@ def _file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _git_commit_hash() -> str | None:
+    """Return the current Git commit hash, preferring CI metadata."""
+    if os.getenv("GITHUB_SHA"):
+        return os.getenv("GITHUB_SHA")
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return result.stdout.strip() or None
 
 
 def _as_list(value: Any) -> list[Any]:
@@ -330,6 +353,7 @@ def _run_builtin_validator(
     return {
         "name": profile.name,
         "type": "built-in",
+        "version": profile.version,
         "description": profile.description,
         "corpus_mode": profile.corpus_mode,
         "tau": profile.tau,
@@ -383,6 +407,7 @@ def _normalize_external_validator_results(
             {
                 "name": str(name),
                 "type": "external",
+                "version": str(entry.get("version", "external")),
                 "description": entry.get("description", "External validator result"),
                 "source": source,
                 "scores": normalized,
@@ -402,6 +427,7 @@ def _load_external_validator_results_api(
     claims: Sequence[Claim],
     *,
     timeout_seconds: int = DEFAULT_API_TIMEOUT_SECONDS,
+    retries: int = DEFAULT_API_RETRIES,
 ) -> list[ValidatorResult]:
     """Load external validator outputs from an HTTP(S) API endpoint.
 
@@ -409,17 +435,33 @@ def _load_external_validator_results_api(
     Network failures are surfaced as validation setup errors so CI fails closed.
     """
     request = Request(url, headers={"Accept": "application/json"})
-    try:
-        with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310
-            status = getattr(response, "status", 200)
-            if status >= 400:
-                raise ValueError(f"Validator API {url!r} returned HTTP {status}")
-            data = json.loads(response.read().decode("utf-8"))
-    except HTTPError as exc:
-        raise ValueError(f"Validator API {url!r} returned HTTP {exc.code}") from exc
-    except URLError as exc:
-        raise ValueError(f"Validator API {url!r} is unreachable: {exc.reason}") from exc
-    return _normalize_external_validator_results(data, claims, source=url)
+    attempts = max(1, retries + 1)
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310
+                status = getattr(response, "status", 200)
+                if status >= 400:
+                    raise ValueError(f"HTTP {status}")
+                data = json.loads(response.read().decode("utf-8"))
+            return _normalize_external_validator_results(data, claims, source=url)
+        except HTTPError as exc:
+            last_error = ValueError(f"HTTP {exc.code}")
+        except URLError as exc:
+            last_error = ValueError(f"unreachable: {exc.reason}")
+        except TimeoutError as exc:
+            last_error = ValueError(f"timeout after {timeout_seconds}s")
+        except json.JSONDecodeError as exc:
+            last_error = ValueError(f"invalid JSON: {exc}")
+        except ValueError as exc:
+            last_error = exc
+
+        if attempt < attempts:
+            time.sleep(min(2 ** (attempt - 1), 5))
+
+    raise ValueError(
+        f"Validator API {url!r} failed after {attempts} attempt(s): {last_error}"
+    )
 
 
 def _select_builtin_validators(names: Sequence[str]) -> list[ValidatorProfile]:
@@ -430,6 +472,108 @@ def _select_builtin_validators(names: Sequence[str]) -> list[ValidatorProfile]:
             raise ValueError(f"Unknown validator {name!r}. Available: {available}")
         profiles.append(BUILT_IN_VALIDATORS[name])
     return profiles
+
+
+def _with_duration(result: ValidatorResult, duration_ms: float) -> ValidatorResult:
+    result["duration_ms"] = round(duration_ms, 3)
+    return result
+
+
+def _run_timed_builtin_validator(
+    profile: ValidatorProfile,
+    claims: Sequence[Claim],
+) -> ValidatorResult:
+    started = time.perf_counter()
+    result = _run_builtin_validator(profile, claims)
+    return _with_duration(result, (time.perf_counter() - started) * 1000)
+
+
+def _load_timed_external_validator_results(
+    path: Path,
+    claims: Sequence[Claim],
+) -> list[ValidatorResult]:
+    started = time.perf_counter()
+    results = _load_external_validator_results(path, claims)
+    duration_ms = (time.perf_counter() - started) * 1000
+    return [_with_duration(result, duration_ms) for result in results]
+
+
+def _load_timed_external_validator_results_api(
+    url: str,
+    claims: Sequence[Claim],
+    *,
+    timeout_seconds: int,
+    retries: int,
+) -> list[ValidatorResult]:
+    started = time.perf_counter()
+    results = _load_external_validator_results_api(
+        url,
+        claims,
+        timeout_seconds=timeout_seconds,
+        retries=retries,
+    )
+    duration_ms = (time.perf_counter() - started) * 1000
+    return [_with_duration(result, duration_ms) for result in results]
+
+
+def _run_validators_parallel(
+    claims: Sequence[Claim],
+    *,
+    validator_names: Sequence[str],
+    validator_results_path: Path | None,
+    validator_result_apis: Sequence[str],
+    validator_api_timeout_seconds: int,
+    validator_api_retries: int,
+    max_workers: int,
+) -> list[ValidatorResult]:
+    """Run built-in and external validators concurrently with stable output order."""
+    tasks: list[tuple[str, Any]] = []
+    profiles = _select_builtin_validators(validator_names)
+    worker_count = max(1, min(max_workers, len(profiles) + len(validator_result_apis) + 1))
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        for profile in profiles:
+            tasks.append(
+                (
+                    profile.name,
+                    executor.submit(_run_timed_builtin_validator, profile, claims),
+                )
+            )
+        if validator_results_path:
+            tasks.append(
+                (
+                    str(validator_results_path),
+                    executor.submit(
+                        _load_timed_external_validator_results,
+                        validator_results_path,
+                        claims,
+                    ),
+                )
+            )
+        for url in validator_result_apis:
+            tasks.append(
+                (
+                    url,
+                    executor.submit(
+                        _load_timed_external_validator_results_api,
+                        url,
+                        claims,
+                        timeout_seconds=validator_api_timeout_seconds,
+                        retries=validator_api_retries,
+                    ),
+                )
+            )
+
+        results: list[ValidatorResult] = []
+        for source, future in tasks:
+            try:
+                value = future.result()
+            except Exception as exc:
+                raise ValueError(f"Validator {source!r} failed: {exc}") from exc
+            if isinstance(value, list):
+                results.extend(value)
+            else:
+                results.append(value)
+    return results
 
 
 def _score_claims(
@@ -531,33 +675,31 @@ def validate_governance_claims(
     *,
     validator_names: Sequence[str] = DEFAULT_VALIDATORS,
     validator_results_path: Path | None = None,
-    validator_results_api: str | None = None,
+    validator_result_apis: Sequence[str] = (),
     theta_min: float = 0.6,
     psi_min: float = 0.7,
     generated_at: datetime | None = None,
     masterplan_path: Path = DEFAULT_MASTERPLAN,
     hmac_key_env: str = DEFAULT_HMAC_ENV,
+    validator_api_timeout_seconds: int = DEFAULT_API_TIMEOUT_SECONDS,
+    validator_api_retries: int = DEFAULT_API_RETRIES,
+    max_workers: int = DEFAULT_MAX_WORKERS,
 ) -> dict[str, Any]:
     """Validate exported governance claims and return an audit report."""
     if not claims:
         raise ValueError("No governance claims were exported")
 
     generated_at = generated_at or _utc_now()
-    builtin_results = [
-        _run_builtin_validator(profile, claims)
-        for profile in _select_builtin_validators(validator_names)
-    ]
-    external_results = (
-        _load_external_validator_results(validator_results_path, claims)
-        if validator_results_path
-        else []
+    audit_started = time.perf_counter()
+    validator_results = _run_validators_parallel(
+        claims,
+        validator_names=validator_names,
+        validator_results_path=validator_results_path,
+        validator_result_apis=validator_result_apis,
+        validator_api_timeout_seconds=validator_api_timeout_seconds,
+        validator_api_retries=validator_api_retries,
+        max_workers=max_workers,
     )
-    api_results = (
-        _load_external_validator_results_api(validator_results_api, claims)
-        if validator_results_api
-        else []
-    )
-    validator_results = [*builtin_results, *external_results, *api_results]
     if not validator_results:
         raise ValueError("At least one validator is required")
 
@@ -595,8 +737,12 @@ def validate_governance_claims(
             "claim_schema": CLAIM_SCHEMA,
             "generated_at": generated_at.isoformat(),
             "generated_date": generated_at.date().isoformat(),
-            "python": platform.python_version(),
-            "platform": platform.platform(),
+            "git_commit": _git_commit_hash(),
+            "runtime": {
+                "python": platform.python_version(),
+                "python_executable": sys.executable,
+                "platform": platform.platform(),
+            },
             "github": _github_context(),
         },
         "generated_at": generated_at.isoformat(),
@@ -611,7 +757,10 @@ def validate_governance_claims(
             "external_validator_results": str(validator_results_path)
             if validator_results_path
             else None,
-            "external_validator_api": validator_results_api,
+            "external_validator_apis": list(validator_result_apis),
+            "validator_api_timeout_seconds": validator_api_timeout_seconds,
+            "validator_api_retries": validator_api_retries,
+            "max_workers": max_workers,
         },
         "quality_gate": quality_gate,
         "quality_model": {
@@ -646,11 +795,17 @@ def validate_governance_claims(
                 "corpus_mode": result.get("corpus_mode"),
                 "tau": result.get("tau"),
                 "source": result.get("source"),
+                "version": result.get("version"),
+                "duration_ms": result.get("duration_ms"),
             }
             for result in validator_results
         ],
         "claims": scored_claims,
     }
+    report_without_integrity["metadata"]["duration_ms"] = round(
+        (time.perf_counter() - audit_started) * 1000,
+        3,
+    )
     report_hash = _report_payload_hash(report_without_integrity)
     return {
         **report_without_integrity,
@@ -683,6 +838,12 @@ def _parse_validator_names(raw: str) -> tuple[str, ...]:
     return names or DEFAULT_VALIDATORS
 
 
+def _parse_csv_values(raw: str | None) -> tuple[str, ...]:
+    if not raw:
+        return ()
+    return tuple(value.strip() for value in raw.split(",") if value.strip())
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--masterplan", type=Path, default=DEFAULT_MASTERPLAN)
@@ -707,8 +868,14 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--validator-api",
         default=None,
-        help="Optional HTTP(S) endpoint returning external validator scores as JSON.",
+        help=(
+            "Optional comma-separated HTTP(S) endpoint(s) returning external "
+            "validator scores as JSON."
+        ),
     )
+    parser.add_argument("--validator-api-timeout", type=int, default=DEFAULT_API_TIMEOUT_SECONDS)
+    parser.add_argument("--validator-api-retries", type=int, default=DEFAULT_API_RETRIES)
+    parser.add_argument("--max-workers", type=int, default=DEFAULT_MAX_WORKERS)
     parser.add_argument("--hmac-key-env", default=DEFAULT_HMAC_ENV)
     parser.add_argument("--stdout", action="store_true", help="Print report instead of writing")
     parser.add_argument(
@@ -730,11 +897,14 @@ def main() -> None:
             claims,
             validator_names=_parse_validator_names(args.validators),
             validator_results_path=args.validator_results,
-            validator_results_api=args.validator_api,
+            validator_result_apis=_parse_csv_values(args.validator_api),
             theta_min=args.theta_min,
             psi_min=args.psi_min,
             masterplan_path=args.masterplan,
             hmac_key_env=args.hmac_key_env,
+            validator_api_timeout_seconds=args.validator_api_timeout,
+            validator_api_retries=args.validator_api_retries,
+            max_workers=args.max_workers,
         )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise SystemExit(f"Governance audit failed before validation: {exc}") from exc

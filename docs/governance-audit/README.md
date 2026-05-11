@@ -43,9 +43,9 @@ python cognitum/scripts/export_governance_claims.py --fail-on-reject
 
 Each report contains:
 
-- `report_schema` (`verifiable-ai-stack/governance-audit/v2.1`)
+- `report_schema` (`verifiable-ai-stack/governance-audit/v2.2`)
 - `report_version`
-- structured `metadata` with tool, runtime, and GitHub Actions context when available
+- structured `metadata` with tool, runtime, Git commit, and GitHub Actions context when available
 - `source_sha256` for `cognitum/governance/masterplan.yaml`
 - `original_claim_sha256` for each exported governance claim
 - `quality_gate` with thresholds, observed values, and pass/fail status
@@ -60,6 +60,13 @@ python cognitum/scripts/export_governance_claims.py
 ```
 
 If the environment variable is absent, the report is explicitly marked as `unsigned`.
+
+### Key management
+
+- Store `GOVERNANCE_AUDIT_HMAC_KEY` only in CI/repository secrets or an approved secret manager.
+- Rotate the key if it is exposed in logs, reports, commits, or local terminals.
+- Do not use personal passwords as HMAC keys.
+- For stricter environments, replace HMAC with an external signing service or Ed25519 signer and keep the private key outside the repository.
 
 ## Validators
 
@@ -100,11 +107,13 @@ External validators can also be fetched from an HTTP(S) API:
 
 ```bash
 python cognitum/scripts/export_governance_claims.py \
-  --validator-api https://validator.example.com/governance-audit.json \
+  --validator-api https://validator-a.example.com/audit,https://validator-b.example.com/audit \
+  --validator-api-timeout 15 \
+  --validator-api-retries 2 \
   --fail-on-reject
 ```
 
-The API must return the same JSON shape as `--validator-results`. Network and schema errors fail closed before validation.
+The API must return the same JSON shape as `--validator-results`. Network and schema errors fail closed before validation. API validators are executed in parallel with built-in validators and local result-file validators. Retries use bounded exponential backoff.
 
 ## Adding a new validator
 
@@ -115,6 +124,13 @@ Use one of two paths:
 
 For regulated environments, prefer independent external validators operated in separate trust domains. Keep validator output immutable, signed, and archived with the audit report.
 
+Recommended validator metadata:
+
+- `name`: stable validator identifier,
+- `version`: validator implementation or ruleset version,
+- `description`: short purpose and trust-domain note,
+- `scores`: complete claim-id to score mapping.
+
 ## CI quality gate
 
 `.github/workflows/governance-audit.yml` runs on push, pull requests, and manual dispatch. It:
@@ -122,8 +138,11 @@ For regulated environments, prefer independent external validators operated in s
 1. installs audit dependencies,
 2. runs `cognitum/scripts/export_governance_claims.py --fail-on-reject`,
 3. validates the generated report shape,
-4. uploads the audit report as a workflow artifact,
-5. fails the job when `check_acceptance` rejects the report.
+4. writes a GitHub Step Summary with quality-gate details,
+5. uploads the audit report as a workflow artifact with run-specific naming and 90-day retention,
+6. fails the job when `check_acceptance` rejects the report.
+
+The workflow includes a commented Slack/Teams notification template for regulated deployments. Keep notification payloads free of secrets and private user data.
 
 ## Interpretation
 
