@@ -1,0 +1,605 @@
+{
+  "claims": [
+    {
+      "id": "4a4e35cd1dffd9f0f5906809ff0dd6cddba032284f8bbe7aa1fafa739985b0d7",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "1"
+      },
+      "s_con": 1.0,
+      "source_id": "1",
+      "statement": "COGNITUM constitution article 1 (Privacy-First) states: Zero-Retention ist unverueckbar. Keine Nutzerdaten verlassen das Geraet.",
+      "title": "Privacy-First"
+    },
+    {
+      "id": "d4e48c97ee3705e0df87ef7ca73570af0bdb5e876f9afba05d04bc7b06168b87",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "2"
+      },
+      "s_con": 1.0,
+      "source_id": "2",
+      "statement": "COGNITUM constitution article 2 (Per-Sensor-Consent) states: Jeder Sensorkanal individuell steuerbar. Kamera und Mikrofon default OFF.",
+      "title": "Per-Sensor-Consent"
+    },
+    {
+      "id": "e0957d30cce8e85d37812bce597e81bf2706620fc3874da9576a4298d85848d1",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "3"
+      },
+      "s_con": 1.0,
+      "source_id": "3",
+      "statement": "COGNITUM constitution article 3 (Local-First) states: Keine Cloud-Abhaengigkeit. Alle Kernfunktionen muessen offline funktionieren.",
+      "title": "Local-First"
+    },
+    {
+      "id": "587e8afe1a119085711d7addd476f92b34240e594ba0c85f5c291965724f584f",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "4"
+      },
+      "s_con": 1.0,
+      "source_id": "4",
+      "statement": "COGNITUM constitution article 4 (Morphologisches Gate) states: Jede Funktionsentscheidung durchlaeuft VDI 2221/2222/2225 Konstruktionsprotokoll.",
+      "title": "Morphologisches Gate"
+    },
+    {
+      "id": "27be369999c2bb780301c68ab571d93af908bc3b006cd24fca48fa2ab250c85b",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "5"
+      },
+      "s_con": 1.0,
+      "source_id": "5",
+      "statement": "COGNITUM constitution article 5 (ADR-Pflicht) states: Keine Implementierung ohne dokumentierte Architekturentscheidung (ADR).",
+      "title": "ADR-Pflicht"
+    },
+    {
+      "id": "9c9af79bb23da5c1902226370b7650ee5fbc4125185721d8fa6fa60382838931",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "6"
+      },
+      "s_con": 1.0,
+      "source_id": "6",
+      "statement": "COGNITUM constitution article 6 (Halal-Gate) states: AAOIFI 6-Faktor-Screening auf alle Revenue-Streams.",
+      "title": "Halal-Gate"
+    },
+    {
+      "id": "2da3c49d7bb2c627edd89567c0d6355ca0bdb44d4ee6551bdbcb1b22467b6c63",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "7"
+      },
+      "s_con": 1.0,
+      "source_id": "7",
+      "statement": "COGNITUM constitution article 7 (Zakat) states: 2.5% automatische Berechnung auf alle Einnahmen.",
+      "title": "Zakat"
+    },
+    {
+      "id": "33c60545f63e448f7d0df3eccf2b333221286fb0d88219250f84f867b61807a0",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "8"
+      },
+      "s_con": 1.0,
+      "source_id": "8",
+      "statement": "COGNITUM constitution article 8 (OTS-First) states: OpenTimestamps-Anker vor jeder Veroeffentlichung.",
+      "title": "OTS-First"
+    },
+    {
+      "id": "21db41950aa15688282d5fedae5e465ad634511ada827104c018b1a595a9e62b",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "9"
+      },
+      "s_con": 1.0,
+      "source_id": "9",
+      "statement": "COGNITUM constitution article 9 (SAFE Mode) states: Externes Backup vor jeder destruktiven Aktion.",
+      "title": "SAFE Mode"
+    },
+    {
+      "id": "f2d9bc5933beb9274050664b2dfc81a3e6b94b167bf251c1bc12fdaf8370389c",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "10"
+      },
+      "s_con": 1.0,
+      "source_id": "10",
+      "statement": "COGNITUM constitution article 10 (Golden ZIP) states: Vollstaendige One-Shot-Deliverables.",
+      "title": "Golden ZIP"
+    },
+    {
+      "id": "b0e742485c8cf9b8f06c128c88d5f74f670940d738534d7cc1a691354f27745e",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "11"
+      },
+      "s_con": 1.0,
+      "source_id": "11",
+      "statement": "COGNITUM constitution article 11 (Halluzinations-Kennzeichnung) states: Jede LLM-generierte Aussage MUSS mit Confidence-Score >= 0.8 ODER explizitem [Unverified]-Marker ausgegeben werden. Keine Erfindung von Normen, Zahlen, Paragrafen.",
+      "title": "Halluzinations-Kennzeichnung"
+    },
+    {
+      "id": "74eccd4634727cb2db7f33d29c30561fe04da6c0800f6b12fb96049a9ec5e164",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "12"
+      },
+      "s_con": 1.0,
+      "source_id": "12",
+      "statement": "COGNITUM constitution article 12 (Output-Format-Regeln) states: Jeder Agent-Output MUSS strukturiert sein: { summary, detail, sources[], confidence }. Kein reiner Fliesstext bei sicherheitsrelevanten Ausgaben.",
+      "title": "Output-Format-Regeln"
+    },
+    {
+      "id": "0cbf23ecaea589b4cbd88ee17641db3a834507038e77baef657c76992af7df92",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "13"
+      },
+      "s_con": 1.0,
+      "source_id": "13",
+      "statement": "COGNITUM constitution article 13 (Glossar-Verweis) states: Alle fachspezifischen Begriffe MUESSEN mit Verweis auf glossary.md versehen werden. Kein Term wird ohne Definition verwendet.",
+      "title": "Glossar-Verweis"
+    },
+    {
+      "id": "28e7daf239ef6675937ea5d7780adbf1d32e26c34426a64d65fd2a4e3d048800",
+      "kind": "constitution_article",
+      "metadata": {
+        "article_id": "14"
+      },
+      "s_con": 1.0,
+      "source_id": "14",
+      "statement": "COGNITUM constitution article 14 (Morphologisches Entscheidungsprotokoll) states: Jede Entscheidung (Produkt, Architektur, Priorisierung) MUSS den morphologischen Kasten (VDI 2221) und die Bewertungsmatrix (VDI 2225) durchlaufen. Agenten liefern begruendete Empfehlungen, keine Optionslisten.",
+      "title": "Morphologisches Entscheidungsprotokoll"
+    },
+    {
+      "id": "7ab94a55327d2a6db2da2af774f884bfa0c1321f5d19ea903c5d73706719315f",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-001",
+      "statement": "Architecture decision ADR-2026-05-03-001 (Annahme des DaySensOS-Konstruktionsprotokolls) has status accepted. Decision: Protokoll als systemischer Gate-Mechanismus uebernommen. Consequences: Jede Implementierungsentscheidung durchlaeuft morphologisches Gate",
+      "title": "Annahme des DaySensOS-Konstruktionsprotokolls"
+    },
+    {
+      "id": "33390f23d762fc22fe4d8781736afe9eac58640c73cdb506438d9892a3ab4919",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "deprecated",
+        "superseded_by": "ADR-2026-05-03-003"
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-002",
+      "statement": "Architecture decision ADR-2026-05-03-002 (G2G Cert AI als externer Compliance-Pruefservice) has status deprecated. Decision: Externer Pruefservice per API. Consequences: Wurde durch ADR-003 revidiert",
+      "title": "G2G Cert AI als externer Compliance-Pruefservice"
+    },
+    {
+      "id": "6bb9e11cb322c500f71797d9cfca8729754c2913a885283e3ff72682372fad2a",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-003",
+      "statement": "Architecture decision ADR-2026-05-03-003 (Make-or-Buy COGNITUM Norm-Adapter statt G2G Cert AI) has status accepted. Decision: Eigenentwicklung CNA, YAML-Regelwerk plus zkVM-Proof. Consequences: CNA wird als MCP-Server integriert.",
+      "title": "Make-or-Buy COGNITUM Norm-Adapter statt G2G Cert AI"
+    },
+    {
+      "id": "ddf3bcb64c3ed8b025e5d180f793b67986292eaca3abe5f9a1f0f6050cae156d",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-004",
+      "statement": "Architecture decision ADR-2026-05-03-004 (CNA v0.1 COGNITUM Norm-Adapter Architektur) has status accepted. Decision: MCP-Server, YAML-Regeln, zkVM-Proof. Consequences: Erste Anwendung GEG/KfW fuer Waermepumpen",
+      "title": "CNA v0.1 COGNITUM Norm-Adapter Architektur"
+    },
+    {
+      "id": "2f081d9bf56be0ea80926ab673282a2267db6b93be6446e8a1ea76b9e1becc9c",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-005",
+      "statement": "Architecture decision ADR-2026-05-03-005 (CNA v0.2 Integration der Morphologischen Systemanalyse) has status accepted. Decision: Regeln referenzieren Sensorkanaele. Per-Sensor-Consent respektiert.. Consequences: CNA wird nativer COGNITUM-Buerger",
+      "title": "CNA v0.2 Integration der Morphologischen Systemanalyse"
+    },
+    {
+      "id": "66f378d9aaf6be364688d872bd7b99444dc0983bf75e91d77c80fe67a0ce3411",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-006",
+      "statement": "Architecture decision ADR-2026-05-03-006 (Lebendiger Masterplan YAML-SSoT-System) has status accepted. Decision: masterplan.yaml als SSoT, Pydantic plus Yamale, Jinja2, Pandoc, GitLab-CI. Consequences: Phase 7 Implementierung abgeschlossen.",
+      "title": "Lebendiger Masterplan YAML-SSoT-System"
+    },
+    {
+      "id": "daba4b192a03b7de1f865fb00acd5447c17d1334f212ef3619eb2c12d5065baa",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-007",
+      "statement": "Architecture decision ADR-2026-05-03-007 (Tool-Auswahl fuer das Masterplan-SSoT-System) has status accepted. Decision: Jinja2, Pandoc, Pydantic plus Yamale, git-cliff, pytest plus networkx. Consequences: Alle Tools offline-first, Python-nativ, CI-freundlich.",
+      "title": "Tool-Auswahl fuer das Masterplan-SSoT-System"
+    },
+    {
+      "id": "d821363fa05d226e68cef981df126202f364f75836a182902e3e9b7af2cec110",
+      "kind": "architecture_decision",
+      "metadata": {
+        "date": "2026-05-03",
+        "status": "accepted",
+        "superseded_by": null
+      },
+      "s_con": 1.0,
+      "source_id": "ADR-2026-05-03-008",
+      "statement": "Architecture decision ADR-2026-05-03-008 (Naechster Produktschritt: CNA CLI vor NGI0 und Smartphone MVP) has status accepted. Decision: CNA CLI zuerst (VDI 2225 Score 3.65). NGI0 danach (3.10). Phone MVP nach Funding (2.10). Begruendung: YAML-Regeln existieren, Wrapper minimal, Revenue in 3-5 Tagen moeglich.. Consequences: CNA CLI wird als erstes verkaufbares Produkt auf Gumroad gebaut. NGI0-Antrag folgt nach erstem Revenue-Signal.",
+      "title": "Naechster Produktschritt: CNA CLI vor NGI0 und Smartphone MVP"
+    },
+    {
+      "id": "d45f4c202f76634f731510484d9aeada3b61ec12b7218eb13debf096e45103ba",
+      "kind": "module",
+      "metadata": {
+        "downstream": [
+          "L2"
+        ],
+        "layer": "L1",
+        "status": "accepted",
+        "upstream": [],
+        "version": "0.9.0"
+      },
+      "s_con": 1.0,
+      "source_id": "L1",
+      "statement": "COGNITUM module L1 (Perception) is accepted. Purpose: 8-Kanal multimodale Sensorfusion. Validation: 839 Tests, 97% Coverage",
+      "title": "Perception"
+    },
+    {
+      "id": "cf7a97e01b61b121e3b1d11b495c6dc5110492c7b47af13fe928d1a63ae55dc6",
+      "kind": "module",
+      "metadata": {
+        "downstream": [
+          "L3"
+        ],
+        "layer": "L2",
+        "status": "accepted",
+        "upstream": [
+          "L1"
+        ],
+        "version": "0.8.0"
+      },
+      "s_con": 1.0,
+      "source_id": "L2",
+      "statement": "COGNITUM module L2 (Situation RuleEngine) is accepted. Purpose: YAML-Regelwerk plus optionaler RF-Classifier. Validation: 97% Coverage",
+      "title": "Situation RuleEngine"
+    },
+    {
+      "id": "137c08c3273338c549b58cb3649e34be4bdd0bb141c227a9befca4cf46e882b9",
+      "kind": "module",
+      "metadata": {
+        "downstream": [
+          "L4"
+        ],
+        "layer": "L3",
+        "status": "accepted",
+        "upstream": [
+          "L2"
+        ],
+        "version": "0.8.0"
+      },
+      "s_con": 1.0,
+      "source_id": "L3",
+      "statement": "COGNITUM module L3 (Episodes SQLite) is accepted. Purpose: Temporale Segmentierung mit 3-Kontext-Sequenz-Buffer. Validation: 839 Tests gruen",
+      "title": "Episodes SQLite"
+    },
+    {
+      "id": "0c8223614c08b6293dfde1864183c3e099b9ba8d472e4addcf9db12820a4e0cf",
+      "kind": "module",
+      "metadata": {
+        "downstream": [
+          "L5",
+          "CNA"
+        ],
+        "layer": "L4",
+        "status": "accepted",
+        "upstream": [
+          "L3"
+        ],
+        "version": "0.8.0"
+      },
+      "s_con": 1.0,
+      "source_id": "L4",
+      "statement": "COGNITUM module L4 (Features Engineer) is accepted. Purpose: Feature-Extraktion mit relativer 14-Tage-Normalisierung. Validation: 100% Coverage",
+      "title": "Features Engineer"
+    },
+    {
+      "id": "e9ab6b0e5dc860907e95e2fa498e090d2e43611565f79b64a333274a39d96806",
+      "kind": "module",
+      "metadata": {
+        "downstream": [],
+        "layer": "L5",
+        "status": "accepted",
+        "upstream": [
+          "L4"
+        ],
+        "version": "0.8.0"
+      },
+      "s_con": 1.0,
+      "source_id": "L5",
+      "statement": "COGNITUM module L5 (Intelligence DayScore) is accepted. Purpose: DayScore, WellnessState, Evening Coach Guided Journaling. Validation: 100% Coverage",
+      "title": "Intelligence DayScore"
+    },
+    {
+      "id": "b2e270da175ec2217de4884efce13c2a26485b3da7231fc1618257d7db8a0d15",
+      "kind": "module",
+      "metadata": {
+        "downstream": [],
+        "layer": "L3-Compliance",
+        "status": "proposed",
+        "upstream": [
+          "L4",
+          "L1"
+        ],
+        "version": "0.3.0"
+      },
+      "s_con": 1.0,
+      "source_id": "CNA",
+      "statement": "COGNITUM module CNA (COGNITUM Norm-Adapter) is proposed. Purpose: Generischer Norm-Pruefadapter mit Consent-Gate und zkVM-Proof. Validation: Noch nicht implementiert",
+      "title": "COGNITUM Norm-Adapter"
+    },
+    {
+      "id": "816f95c79a2d5e81ed8691be913c8a63b90349ddc493cdacf4a518249750ca0a",
+      "kind": "risk",
+      "metadata": {
+        "impact": "Datenschutzverletzung, DSGVO-Verstoss",
+        "probability": "low",
+        "status": "accepted"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-01",
+      "statement": "ISO 23894 risk RISK-01 is accepted. Description: Sensor-Consent wird ignoriert oder umgangen. Probability: low. Impact: Datenschutzverletzung, DSGVO-Verstoss. Mitigation: Per-Sensor-Consent-Gate in L1 mit Default-OFF fuer Kamera und Mikrofon",
+      "title": "RISK-01"
+    },
+    {
+      "id": "aded03d2cef6366c7c386ac5e1f0142997a51c31dfb61b8fbcf6bb06a2a1a3cc",
+      "kind": "risk",
+      "metadata": {
+        "impact": "Unfaire DayScore-Bewertung, Nutzervertrauensverlust",
+        "probability": "medium",
+        "status": "accepted"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-02",
+      "statement": "ISO 23894 risk RISK-02 is accepted. Description: RF-Classifier in L2 produziert diskriminierende Kontextklassifikation. Probability: medium. Impact: Unfaire DayScore-Bewertung, Nutzervertrauensverlust. Mitigation: Primaer YAML-Regelwerk. RF nur optional. Fairness-Tests als Privacy-Invariante",
+      "title": "RISK-02"
+    },
+    {
+      "id": "b9c0e83e8743e1dd38ef04a2b8f264fba87965d810e0b3d687f381719268c369",
+      "kind": "risk",
+      "metadata": {
+        "impact": "Vollstaendiger Episoden-Verlauf kompromittiert",
+        "probability": "medium",
+        "status": "proposed"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-03",
+      "statement": "ISO 23894 risk RISK-03 is proposed. Description: SQLite-Datenbank in L3 wird von Drittapp exfiltriert. Probability: medium. Impact: Vollstaendiger Episoden-Verlauf kompromittiert. Mitigation: SQLCipher-Verschluesselung. Android Scoped Storage. Kein Export ohne expliziten User-Intent",
+      "title": "RISK-03"
+    },
+    {
+      "id": "b524fb797c91202c5705eacd3d0e17cee8f47e2de4fecfc6d0dddf608458e327",
+      "kind": "risk",
+      "metadata": {
+        "impact": "Nutzer-Wellbeing verschlechtert sich statt verbessert",
+        "probability": "medium",
+        "status": "accepted"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-04",
+      "statement": "ISO 23894 risk RISK-04 is accepted. Description: DayScore-Algorithmus erzeugt psychischen Druck durch Gamification. Probability: medium. Impact: Nutzer-Wellbeing verschlechtert sich statt verbessert. Mitigation: Evening Coach als Guided Journaling statt Ranking. Keine Streaks. Kein Leaderboard",
+      "title": "RISK-04"
+    },
+    {
+      "id": "6e8e289e7bceccfd17d23d855ca99cbe2d505efb95654c06f5152c5f4f930dba",
+      "kind": "risk",
+      "metadata": {
+        "impact": "Falsche Gesundheits- oder Verhaltensempfehlungen",
+        "probability": "high",
+        "status": "accepted"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-05",
+      "statement": "ISO 23894 risk RISK-05 is accepted. Description: Ollama-Modell halluziniert in Evening Coach Recommendations. Probability: high. Impact: Falsche Gesundheits- oder Verhaltensempfehlungen. Mitigation: LLM nur fuer Formulierung, nicht fuer medizinische Aussagen. Disclaimer. Fakten aus L4-Features. Art. 11 Halluzinations-Kennzeichnung",
+      "title": "RISK-05"
+    },
+    {
+      "id": "f29d29673d28ecc093ac3cc76d54f55461eb42d0b8a166961c32100021b1fba7",
+      "kind": "risk",
+      "metadata": {
+        "impact": "CNA-Konformitaetspruefung nur auf Desktop moeglich",
+        "probability": "medium",
+        "status": "proposed"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-06",
+      "statement": "ISO 23894 risk RISK-06 is proposed. Description: zkVM-Proof in CNA ist zu rechenintensiv fuer Smartphone. Probability: medium. Impact: CNA-Konformitaetspruefung nur auf Desktop moeglich. Mitigation: Proof-Generierung optional asynchron. Fallback auf signierte YAML-Attestation",
+      "title": "RISK-06"
+    },
+    {
+      "id": "1dbd9452d90df566e5c08751c823d77a44b564c51862724abc49c034a8c8a372",
+      "kind": "risk",
+      "metadata": {
+        "impact": "Projekt stirbt bei Ausfall",
+        "probability": "high",
+        "status": "accepted"
+      },
+      "s_con": 1.0,
+      "source_id": "RISK-07",
+      "statement": "ISO 23894 risk RISK-07 is accepted. Description: Solo-Entwickler-Risiko: Bus-Faktor 1. Probability: high. Impact: Projekt stirbt bei Ausfall. Mitigation: SSoT-Pipeline macht Repo selbstdokumentierend. CLAUDE.md und AGENTS.md als Onboarding. IP via OTS gesichert",
+      "title": "RISK-07"
+    },
+    {
+      "id": "97a3c05ce59f8cee650609bea430003ad038869bba1c81dc4034e7dbf3dc5e56",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Network-Monitor-Test: Kein HTTP-Egress waehrend 24h-Betrieb",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-01",
+      "statement": "Privacy invariant PRIV-01 is mandatory. Description: Zero-Retention: Keine Nutzerdaten verlassen das Geraet. Test tool: pytest. Test method: Network-Monitor-Test: Kein HTTP-Egress waehrend 24h-Betrieb",
+      "title": "PRIV-01"
+    },
+    {
+      "id": "a432645a78395e03c47df20a75202dd81a1e92e245a6d2dfaf2320598129dc92",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Consent-Matrix-Test: Alle 8 Sensoren einzeln togglen, Pipeline laeuft weiter",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-02",
+      "statement": "Privacy invariant PRIV-02 is mandatory. Description: Per-Sensor-Consent: Jeder Sensor individuell aktivierbar/deaktivierbar. Test tool: pytest. Test method: Consent-Matrix-Test: Alle 8 Sensoren einzeln togglen, Pipeline laeuft weiter",
+      "title": "PRIV-02"
+    },
+    {
+      "id": "e359bbf5cc80b9f2c1dc03a399881bbeb6c4c7389ab3def96152a72bdf6964b9",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Fresh-Install-Test: Nach Erstinstallation beide Sensoren verifiziert OFF",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-03",
+      "statement": "Privacy invariant PRIV-03 is mandatory. Description: Kamera und Mikrofon Default-OFF. Test tool: pytest. Test method: Fresh-Install-Test: Nach Erstinstallation beide Sensoren verifiziert OFF",
+      "title": "PRIV-03"
+    },
+    {
+      "id": "c5ae5a6a591831c4862b54da0502478fdf5385fa67cab40d42f9f0e9ea813735",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "No-Auto-Export-Test: Kein DayGraph-File ohne User-Tap",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-04",
+      "statement": "Privacy invariant PRIV-04 is mandatory. Description: DayGraph-Export nur durch expliziten User-Intent. Test tool: pytest. Test method: No-Auto-Export-Test: Kein DayGraph-File ohne User-Tap",
+      "title": "PRIV-04"
+    },
+    {
+      "id": "86868e1bd56a49a0fa1b0b8013ccbdeb86233d73ec723f4910140d4718b93c3a",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Scoped-Storage-Test: adb shell versucht DB-Zugriff, wird verweigert",
+        "test_tool": "adb"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-05",
+      "statement": "Privacy invariant PRIV-05 is mandatory. Description: SQLite-DB nicht durch Drittapps lesbar. Test tool: adb. Test method: Scoped-Storage-Test: adb shell versucht DB-Zugriff, wird verweigert",
+      "title": "PRIV-05"
+    },
+    {
+      "id": "2fbb4d286dae81d99290363a108a37e1ea179e91c517d48d9f23cec1aa0ab073",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Feature-Schema-Test: DayFeatures enthalten nur focus/energy/social/movement, keine biometrischen Rohdaten",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-06",
+      "statement": "Privacy invariant PRIV-06 is mandatory. Description: Keine biometrischen Daten in DayFeatures. Test tool: pytest. Test method: Feature-Schema-Test: DayFeatures enthalten nur focus/energy/social/movement, keine biometrischen Rohdaten",
+      "title": "PRIV-06"
+    },
+    {
+      "id": "28ca7a24539d1bb3be6751a667410a8bc1299f41a1955d33663044528f60f347",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Audit-PII-Scan: Regex-Scan auf Email, Telefon, GPS-Koordinaten in audit_trail",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-07",
+      "statement": "Privacy invariant PRIV-07 is mandatory. Description: Audit-Trail enthaelt keine personenbezogenen Daten. Test tool: pytest. Test method: Audit-PII-Scan: Regex-Scan auf Email, Telefon, GPS-Koordinaten in audit_trail",
+      "title": "PRIV-07"
+    },
+    {
+      "id": "eeec110cdace331fbc4bccf8b6d2300cd818d1c4766e7a78db0af7e41f86ccf9",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "API-Endpoint-Test: GET /dsar/export und DELETE /dsar/data mit Auth",
+        "test_tool": "pytest"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-08",
+      "statement": "Privacy invariant PRIV-08 is mandatory. Description: DSAR-Funktion: Auskunft, Berichtigung, Loeschung innerhalb 30 Tage. Test tool: pytest. Test method: API-Endpoint-Test: GET /dsar/export und DELETE /dsar/data mit Auth",
+      "title": "PRIV-08"
+    },
+    {
+      "id": "8d64f4eac90c844de61a242824417577ab6cd0e3b2ab2e3ff16e32e2f35802c0",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "TLS-Config-Test plus SQLite PRAGMA key-Check",
+        "test_tool": "pytest + openssl"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-09",
+      "statement": "Privacy invariant PRIV-09 is mandatory. Description: Verschluesselung ruhend (SQLCipher) und im Transport (TLS 1.3). Test tool: pytest + openssl. Test method: TLS-Config-Test plus SQLite PRAGMA key-Check",
+      "title": "PRIV-09"
+    },
+    {
+      "id": "54fb84a856745ea8f20c18b18c96daf440b8c544e758925c3789db562e97af59",
+      "kind": "privacy_invariant",
+      "metadata": {
+        "test_method": "Property-based: Gegner-Modell aus 100 Episoden darf kein Re-Identifikationsmerkmal enthalten",
+        "test_tool": "Hypothesis"
+      },
+      "s_con": 1.0,
+      "source_id": "PRIV-10",
+      "statement": "Privacy invariant PRIV-10 is mandatory. Description: Membership-Inference-Schutz: DayGraph-Export gegen MIA robust. Test tool: Hypothesis. Test method: Property-based: Gegner-Modell aus 100 Episoden darf kein Re-Identifikationsmerkmal enthalten",
+      "title": "PRIV-10"
+    }
+  ],
+  "generated_at": "2026-05-11T12:38:19+00:00",
+  "parameters": {
+    "psi_min": 0.7,
+    "tau": 0.1,
+    "theta_min": 0.6
+  },
+  "report_schema": "verifiable-ai-stack/governance-audit/v1",
+  "source": "cognitum/governance/masterplan.yaml",
+  "summary": {
+    "accepted": true,
+    "claim_count": 45,
+    "counts_by_kind": {
+      "architecture_decision": 8,
+      "constitution_article": 14,
+      "module": 6,
+      "privacy_invariant": 10,
+      "risk": 7
+    },
+    "mean_s_con": 1.0,
+    "psi": 1.0
+  },
+  "validator": "agentsprotocol"
+}
