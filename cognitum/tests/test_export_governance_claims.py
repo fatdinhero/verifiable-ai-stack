@@ -39,8 +39,10 @@ def test_validates_claims_with_agentsprotocol_primitives():
     report = module.validate_governance_claims(claims)
 
     assert report["validator"] == "agentsprotocol"
-    assert report["report_version"] == "2.1.0"
+    assert report["report_version"] == "2.2.0"
     assert report["metadata"]["tool"] == "cognitum-governance-audit"
+    assert report["metadata"]["runtime"]["python"]
+    assert "git_commit" in report["metadata"]
     assert report["summary"]["claim_count"] == 6
     assert report["summary"]["accepted"] is True
     assert report["quality_gate"]["passed"] is True
@@ -142,7 +144,7 @@ def test_accepts_external_validator_results_api(monkeypatch):
 
     report = module.validate_governance_claims(
         claims,
-        validator_results_api="https://validators.example/audit",
+        validator_result_apis=("https://validators.example/audit",),
     )
 
     assert report["summary"]["validator_count"] == 2
@@ -150,6 +152,48 @@ def test_accepts_external_validator_results_api(monkeypatch):
         validator["name"] == "api-validator-a" and validator["source"] == "https://validators.example/audit"
         for validator in report["validators"]
     )
+
+
+def test_retries_external_validator_api(monkeypatch):
+    module = _load_module()
+    claims = module.export_governance_claims()[:2]
+    payload = {
+        "validators": [
+            {
+                "name": "retry-validator",
+                "version": "1.2.3",
+                "scores": {claim["id"]: 0.99 for claim in claims},
+            }
+        ]
+    }
+    calls = {"count": 0}
+
+    class FakeResponse(io.BytesIO):
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    def fake_urlopen(request, timeout):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise module.URLError("temporary outage")
+        return FakeResponse(json.dumps(payload).encode("utf-8"))
+
+    monkeypatch.setattr(module, "urlopen", fake_urlopen)
+    monkeypatch.setattr(module.time, "sleep", lambda _seconds: None)
+
+    report = module.validate_governance_claims(
+        claims,
+        validator_result_apis=("https://validators.example/retry",),
+        validator_api_retries=1,
+    )
+
+    assert calls["count"] == 2
+    assert any(validator["name"] == "retry-validator" for validator in report["validators"])
 
 
 def test_writes_latest_audit_report(tmp_path):

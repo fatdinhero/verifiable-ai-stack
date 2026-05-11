@@ -34,13 +34,17 @@ jobs:
         env:
           GOVERNANCE_AUDIT_HMAC_KEY: ${{ secrets.GOVERNANCE_AUDIT_HMAC_KEY }}
         run: |
+          set -euo pipefail
           python cognitum/scripts/export_governance_claims.py \
             --audit-dir "$RUNNER_TEMP/governance-audit" \
             --validators baseline \
+            --validator-api-timeout 15 \
+            --validator-api-retries 2 \
             --fail-on-reject
 
       - name: Validate generated report shape
         run: |
+          set -euo pipefail
           python - <<'PY'
           import json
           import os
@@ -48,10 +52,11 @@ jobs:
 
           report_path = Path(os.environ["RUNNER_TEMP"]) / "governance-audit" / "latest.json"
           report = json.loads(report_path.read_text(encoding="utf-8"))
-          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.1"
-          assert report["report_version"] == "2.1.0"
+          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.2"
+          assert report["report_version"] == "2.2.0"
           assert report["quality_gate"]["passed"] is True
           assert report["summary"]["accepted"] is True
+          assert report["metadata"]["git_commit"]
           assert report["integrity"]["report_payload_sha256"]
           print("governance-audit-ok", report["summary"])
           PY
@@ -78,11 +83,27 @@ jobs:
           print(f"- mean_s_con: `{summary['mean_s_con']}`")
           print(f"- psi: `{summary['psi']}`")
           print(f"- Signature: `{report['integrity']['signature']['status']}`")
+          print(f"- Report hash: `{report['integrity']['report_payload_sha256']}`")
           PY
+
+      # Optional notification hook for regulated deployments:
+      # Add SLACK_WEBHOOK_URL or TEAMS_WEBHOOK_URL as a repository secret and
+      # replace this commented example with a hardened org-approved notifier.
+      # Keep notification payloads free of secrets and private user data.
+      #
+      # - name: Notify failed governance gate
+      #   if: failure()
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #   run: |
+      #     test -z "$SLACK_WEBHOOK_URL" && exit 0
+      #     curl -X POST -H 'Content-type: application/json' \
+      #       --data '{"text":"Governance audit quality gate failed."}' \
+      #       "$SLACK_WEBHOOK_URL"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: governance-audit-report
+          name: governance-audit-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/governance-audit/
-          retention-days: 30
+          retention-days: 90
