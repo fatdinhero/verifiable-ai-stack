@@ -24,9 +24,9 @@ from export_governance_claims import (  # noqa: E402
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, default=0, help="Limit validated claims")
-    parser.add_argument("--tau", type=float, default=0.1)
     parser.add_argument("--theta-min", type=float, default=0.6)
     parser.add_argument("--psi-min", type=float, default=0.7)
+    parser.add_argument("--validators", default="baseline")
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON")
     args = parser.parse_args()
 
@@ -36,7 +36,9 @@ def main() -> None:
 
     report = validate_governance_claims(
         claims,
-        tau=args.tau,
+        validator_names=tuple(
+            name.strip() for name in args.validators.split(",") if name.strip()
+        ),
         theta_min=args.theta_min,
         psi_min=args.psi_min,
     )
