@@ -1,6 +1,7 @@
 # AgentsProtocol
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19642292.svg)](https://doi.org/10.5281/zenodo.19642292)
+[![Radicle](https://img.shields.io/badge/Radicle-rad:z2rcpKt6WkzXsdyPs9shwnrtpcPmS-blue)](https://app.radicle.xyz/nodes/iris.radicle.xyz/rad:z2rcpKt6WkzXsdyPs9shwnrtpcPmS)
 ![Bitcoin Block](https://img.shields.io/badge/Bitcoin_Block-945622-orange)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![CI](https://github.com/fatdinhero/agentsprotocol/actions/workflows/ci.yml/badge.svg)
