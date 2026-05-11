@@ -1,0 +1,20 @@
+AgentsProtocol + PoISV + Meta-Bell Theory — Bitcoin Priority Timestamp
+======================================================================
+
+The SHA-256 hash of the published AgentsProtocol.zip archive is committed
+to the Bitcoin ledger via an OpenTimestamps attestation embedded in the
+coinbase transaction of the block below.
+
+Block height:   945622
+Block date:     2026-04-18 (CET)
+Archive DOI:    10.5281/zenodo.19642292
+
+To independently verify:
+
+    1. Download the .ots attestation from poisv.com/ots.
+    2. Run:   ots verify AgentsProtocol.zip.ots
+    3. Confirm the included block height equals 945622.
+
+Any party obtaining the archive after 2026-04-18 cannot claim to have
+produced it earlier. Conversely, any revision published after that date
+will receive a new attestation pinned to a later block.
