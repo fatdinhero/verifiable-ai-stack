@@ -10,6 +10,7 @@
 //!   Psi   = 1 - (2 / N(N-1)) * sum_{i<j} |rho(e_i, e_j)|
 //!   Psi_w = 1 - sum_{i<j} w_i w_j |rho| / sum_{i<j} w_i w_j,  w_i = sqrt(s_i)
 
+use ed25519_dalek::{Signature, VerifyingKey};
 use sha2::{Digest, Sha256};
 
 use crate::config::ProtocolConfig;
@@ -220,6 +221,44 @@ impl Validator {
     }
 }
 
+// -- Ed25519 claim signature verification -------------------------------------
+
+/// Verify the Ed25519 signature on a claim.
+///
+/// Protocol (DevDocs §2):
+///   message   = SHA-256(canonical JSON of payload_json)
+///   pubkey    = 32-byte Ed25519 verifying key, hex-encoded in `submitter`
+///   signature = 64-byte Ed25519 signature, hex-encoded in `signature`
+///
+/// Returns `Ok(true)` if valid, `Ok(false)` if invalid, `Err` on parse failure.
+pub fn verify_claim_signature(
+    submitter_hex: &str,
+    signature_hex: &str,
+    payload_json: &str,
+) -> anyhow::Result<bool> {
+    let pub_bytes = hex::decode(submitter_hex)
+        .map_err(|e| anyhow::anyhow!("submitter hex decode: {e}"))?;
+    let sig_bytes = hex::decode(signature_hex)
+        .map_err(|e| anyhow::anyhow!("signature hex decode: {e}"))?;
+
+    let pub_array: [u8; 32] = pub_bytes
+        .try_into()
+        .map_err(|_| anyhow::anyhow!("submitter must be 32 bytes"))?;
+    let sig_array: [u8; 64] = sig_bytes
+        .try_into()
+        .map_err(|_| anyhow::anyhow!("signature must be 64 bytes"))?;
+
+    let verifying_key = VerifyingKey::from_bytes(&pub_array)
+        .map_err(|e| anyhow::anyhow!("invalid Ed25519 public key: {e}"))?;
+    let signature = Signature::from_bytes(&sig_array);
+
+    // message = SHA-256(canonical payload JSON)
+    let message = Sha256::digest(payload_json.as_bytes());
+
+    use ed25519_dalek::Verifier;
+    Ok(verifying_key.verify(message.as_slice(), &signature).is_ok())
+}
+
 // -- Tests --------------------------------------------------------------------
 
 #[cfg(test)]
@@ -340,6 +379,58 @@ mod tests {
         assert!((ev[0][1] - 0.1).abs() < 1e-10);
         assert!((ev[0][2] - 0.05).abs() < 1e-10);
         assert!((ev[1][0] - 0.3).abs() < 1e-10);
+    }
+
+    #[test]
+    fn verify_signature_valid() {
+        use ed25519_dalek::{Signer, SigningKey};
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let payload_json = r#"{"statement":"The sky is blue."}"#;
+        let message = Sha256::digest(payload_json.as_bytes());
+        let signature = signing_key.sign(message.as_slice());
+
+        let submitter_hex = hex::encode(verifying_key.as_bytes());
+        let signature_hex = hex::encode(signature.to_bytes());
+
+        assert!(verify_claim_signature(&submitter_hex, &signature_hex, payload_json).unwrap());
+    }
+
+    #[test]
+    fn verify_signature_tampered_payload_rejected() {
+        use ed25519_dalek::{Signer, SigningKey};
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let payload_json = r#"{"statement":"The sky is blue."}"#;
+        let message = Sha256::digest(payload_json.as_bytes());
+        let signature = signing_key.sign(message.as_slice());
+
+        let submitter_hex = hex::encode(verifying_key.as_bytes());
+        let signature_hex = hex::encode(signature.to_bytes());
+        let tampered = r#"{"statement":"The sky is red."}"#;
+
+        assert!(!verify_claim_signature(&submitter_hex, &signature_hex, tampered).unwrap());
+    }
+
+    #[test]
+    fn verify_signature_wrong_key_rejected() {
+        use ed25519_dalek::{Signer, SigningKey};
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let other_key = SigningKey::generate(&mut OsRng);
+        let payload_json = r#"{"statement":"test"}"#;
+        let message = Sha256::digest(payload_json.as_bytes());
+        let signature = signing_key.sign(message.as_slice());
+
+        let wrong_pubkey = hex::encode(other_key.verifying_key().as_bytes());
+        let signature_hex = hex::encode(signature.to_bytes());
+
+        assert!(!verify_claim_signature(&wrong_pubkey, &signature_hex, payload_json).unwrap());
     }
 
     #[test]

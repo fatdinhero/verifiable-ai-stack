@@ -4,11 +4,49 @@ Reference: DevDocs Section 5/8, PoISV 3.4.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Sequence
 
 from .psi_test import check_acceptance, compute_psi, compute_psi_weighted, compute_error_vectors
 from .s_con import compute_s_con
+
+
+def verify_claim_signature(claim: dict) -> bool:
+    """Verify the Ed25519 signature on a claim dict.
+
+    Protocol (DevDocs §2):
+        message  = SHA-256(canonical JSON of claim["payload"])
+        pubkey   = hex-decoded claim["submitter"]
+        signature = hex-decoded claim["signature"]
+
+    Returns True if the signature is valid, False otherwise.
+    Requires the `cryptography` package (added to dependencies).
+    """
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        from cryptography.exceptions import InvalidSignature
+
+        submitter_hex: str = claim["submitter"]
+        signature_hex: str = claim["signature"]
+        payload = claim["payload"]
+
+        # Canonical payload: sorted keys, no whitespace
+        payload_bytes = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        message = hashlib.sha256(payload_bytes).digest()
+
+        pub_bytes = bytes.fromhex(submitter_hex)
+        sig_bytes = bytes.fromhex(signature_hex)
+
+        public_key = Ed25519PublicKey.from_public_bytes(pub_bytes)
+        public_key.verify(sig_bytes, message)
+        return True
+    except (ImportError, KeyError, ValueError):
+        return False
+    except Exception:
+        # InvalidSignature or any other crypto error
+        return False
 
 
 @dataclass

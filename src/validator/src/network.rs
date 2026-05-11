@@ -28,6 +28,7 @@ use tracing::{info, warn};
 use crate::config::ProtocolConfig;
 use crate::mempool::ClaimMempool;
 use crate::storage::{DagStore, StoredBlock, StoredClaim};
+use crate::validation::verify_claim_signature;
 
 // -- Topic constants ----------------------------------------------------------
 
@@ -101,7 +102,7 @@ impl P2p {
                 };
                 let gossipsub_cfg = gossipsub::ConfigBuilder::default()
                     .heartbeat_interval(Duration::from_secs(10))
-                    .validation_mode(ValidationMode::Permissive)
+                    .validation_mode(ValidationMode::Strict)
                     .message_id_fn(msg_id_fn)
                     .build()
                     .expect("valid gossipsub config");
@@ -241,13 +242,23 @@ fn handle_inbound(
         TOPIC_CLAIMS => {
             match serde_json::from_slice::<StoredClaim>(&message.data) {
                 Ok(claim) => {
-                    if let Some(pool) = mempool {
-                        // Score and queue for block assembly
-                        pool.insert(claim, &[]);
-                    } else if let Err(e) = store.save_claim(&claim) {
-                        warn!("store claim {}: {e}", claim.id);
-                    } else {
-                        info!("stored inbound claim {}", claim.id);
+                    // Verify Ed25519 signature before accepting
+                    match verify_claim_signature(
+                        &claim.submitter,
+                        &claim.signature,
+                        &claim.payload_json,
+                    ) {
+                        Ok(true) => {
+                            if let Some(pool) = mempool {
+                                pool.insert(claim, &[]);
+                            } else if let Err(e) = store.save_claim(&claim) {
+                                warn!("store claim {}: {e}", claim.id);
+                            } else {
+                                info!("stored inbound claim {}", claim.id);
+                            }
+                        }
+                        Ok(false) => warn!("rejected claim {}: invalid signature", claim.id),
+                        Err(e) => warn!("rejected claim {}: sig verify error: {e}", claim.id),
                     }
                 }
                 Err(e) => warn!("deserialise claim: {e}"),

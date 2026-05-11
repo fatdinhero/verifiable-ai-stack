@@ -23,6 +23,7 @@ from .wise_score import (
     attacker_success_probability,
 )
 from .schemas import Claim, Block, ValidatorOutput, ControlTask, ControlSet
+from .validator import verify_claim_signature
 
 __version__ = "1.0.0"
 __author__ = "Fatih Dinc"
@@ -48,4 +49,5 @@ __all__ = [
     "ValidatorOutput",
     "ControlTask",
     "ControlSet",
+    "verify_claim_signature",
 ]
