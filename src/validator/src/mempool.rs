@@ -136,13 +136,15 @@ impl BlockProducer {
         store: Arc<DagStore>,
         net_tx: mpsc::Sender<OutboundMsg>,
     ) -> Self {
+        let min_claims = cfg.min_claims_per_block;
+        let timeout = Duration::from_secs(cfg.block_timeout_secs);
         Self {
             cfg,
             mempool,
             store,
             net_tx,
-            min_claims: 3,
-            timeout: Duration::from_secs(30),
+            min_claims,
+            timeout,
             corpus: Vec::new(),
         }
     }
@@ -178,7 +180,7 @@ impl BlockProducer {
 
     /// Drain mempool, assemble block, persist, publish.
     async fn produce_block(&self) -> Result<String> {
-        let scored = self.mempool.drain(64); // max 64 claims per block
+        let scored = self.mempool.drain(self.cfg.max_claims_per_block);
         if scored.is_empty() {
             anyhow::bail!("mempool empty");
         }

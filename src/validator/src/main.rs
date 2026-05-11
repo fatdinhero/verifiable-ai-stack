@@ -51,7 +51,8 @@ async fn main() -> Result<()> {
 
     // -- P2P event loop (blocks until shutdown) -------------------------------
     tracing::info!("AgentsProtocol validator starting (node: {})", cfg.node_id);
-    net.run(&store, Some(&mempool), None).await?;
+    let listen_addr = cfg.listen_addr.parse().ok();
+    net.run(&store, Some(&mempool), listen_addr).await?;
 
     Ok(())
 }
