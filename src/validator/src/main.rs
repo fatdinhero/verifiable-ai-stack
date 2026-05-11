@@ -1,8 +1,7 @@
-//! AgentsProtocol validator — main entry point (skeleton).
+//! AgentsProtocol validator — main entry point.
 //!
-//! Wires up the six modules: network, consensus, validation, zk, storage,
-//! config. This is a Phase-1 skeleton: the structural layout compiles and
-//! the `cargo check` gate on CI passes, but most functions are todo!().
+//! Wires up: config, storage, validation, consensus, network.
+//! Phase 2: network event loop is live; zk and RPC are Phase 3.
 
 mod config;
 mod consensus;
@@ -15,13 +14,15 @@ use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
+
     let cfg = config::ProtocolConfig::load()?;
     let store = storage::DagStore::open(&cfg.data_dir)?;
-    let validator = validation::Validator::new(cfg.clone());
-    let consensus = consensus::Ghostdag::new(cfg.clone(), &store);
-    let net = network::P2p::new(cfg.clone()).await?;
+    let _validator = validation::Validator::new(cfg.clone());
+    let _consensus = consensus::Ghostdag::new(cfg.clone(), &store);
+    let mut net = network::P2p::new(cfg.clone()).await?;
 
     tracing::info!("AgentsProtocol validator starting (node: {})", cfg.node_id);
-    net.run(&consensus, &validator, &store).await?;
+    net.run(&store, None).await?;
     Ok(())
 }
