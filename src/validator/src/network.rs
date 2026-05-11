@@ -1,4 +1,4 @@
-//! P2P transport — gossipsub over TCP/noise/yamux.
+//! P2P transport — gossipsub over TCP/noise/yamux + mDNS discovery.
 //!
 //! Topics (DevDocs §7):
 //!   /agentsprotocol/claims/1.0.0   — new claims (JSON)
@@ -6,22 +6,20 @@
 //!   /agentsprotocol/control/1.0.0  — control-set updates
 //!   /agentsprotocol/peers/1.0.0    — peer discovery
 //!
-//! The event loop receives gossipsub messages and routes them to DagStore:
-//!   claims topic  → DagStore::save_claim
-//!   blocks topic  → DagStore::save_block
+//! Inbound claims are routed to ClaimMempool (if provided) after Ed25519
+//! signature verification. Inbound blocks go to DagStore::save_block.
 
+use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use futures::StreamExt;
 use libp2p::{
-    gossipsub::{self, IdentTopic, MessageAuthenticity, ValidationMode},
-    mdns,
-    noise,
+    gossipsub, mdns, noise,
     swarm::{NetworkBehaviour, SwarmEvent},
-    tcp, yamux, Multiaddr, SwarmBuilder,
+    tcp, yamux,
 };
+use tokio::select;
 use tokio::sync::mpsc;
 use tracing::{info, warn};
 
@@ -57,9 +55,7 @@ pub enum OutboundMsg {
 
 pub struct P2p {
     pub cfg: ProtocolConfig,
-    /// Sender half — clone this to publish claims/blocks from the RPC layer.
     tx: mpsc::Sender<OutboundMsg>,
-    /// Receiver half — consumed by `run()`.
     rx: Option<mpsc::Receiver<OutboundMsg>>,
 }
 
@@ -75,18 +71,16 @@ impl P2p {
     }
 
     /// Subscribe to all protocol topics, then run the event loop.
-    ///
-    /// Incoming claims are routed to `mempool` (if provided) or directly to
-    /// `store.save_claim`. Incoming blocks go to `store.save_block`.
-    /// mDNS peer discovery is handled automatically.
     pub async fn run(
         &mut self,
         store: &DagStore,
         mempool: Option<&ClaimMempool>,
-        listen_addr: Option<Multiaddr>,
+        listen_addr: Option<libp2p::Multiaddr>,
     ) -> Result<()> {
-        // -- Build swarm ------------------------------------------------------
-        let mut swarm = SwarmBuilder::with_new_identity()
+        let mut rx = self.rx.take().context("P2p::run called twice")?;
+
+        // -- Build swarm (mirrors official chat example) ----------------------
+        let mut swarm = libp2p::SwarmBuilder::with_new_identity()
             .with_tokio()
             .with_tcp(
                 tcp::Config::default(),
@@ -94,31 +88,26 @@ impl P2p {
                 yamux::Config::default,
             )?
             .with_behaviour(|key| {
-                // Gossipsub: message-id = SHA-256(source + seq_no + data)
-                let msg_id_fn = |msg: &gossipsub::Message| {
-                    let mut s = std::collections::hash_map::DefaultHasher::new();
+                let message_id_fn = |msg: &gossipsub::Message| {
+                    let mut s = DefaultHasher::new();
                     msg.data.hash(&mut s);
                     gossipsub::MessageId::from(s.finish().to_string())
                 };
                 let gossipsub_cfg = gossipsub::ConfigBuilder::default()
                     .heartbeat_interval(Duration::from_secs(10))
-                    .validation_mode(ValidationMode::Strict)
-                    .message_id_fn(msg_id_fn)
+                    .validation_mode(gossipsub::ValidationMode::Strict)
+                    .message_id_fn(message_id_fn)
                     .build()
-                    .expect("valid gossipsub config");
+                    .map_err(std::io::Error::other)?;
 
                 let gossipsub = gossipsub::Behaviour::new(
-                    MessageAuthenticity::Signed(key.clone()),
+                    gossipsub::MessageAuthenticity::Signed(key.clone()),
                     gossipsub_cfg,
-                )
-                .expect("gossipsub behaviour");
-
+                )?;
                 let mdns = mdns::tokio::Behaviour::new(
                     mdns::Config::default(),
                     key.public().to_peer_id(),
-                )
-                .expect("mdns behaviour");
-
+                )?;
                 Ok(AgentsBehaviour { gossipsub, mdns })
             })?
             .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
@@ -126,7 +115,7 @@ impl P2p {
 
         // -- Subscribe to topics ----------------------------------------------
         for topic_str in [TOPIC_CLAIMS, TOPIC_BLOCKS, TOPIC_CONTROL, TOPIC_PEERS] {
-            let topic = IdentTopic::new(topic_str);
+            let topic = gossipsub::IdentTopic::new(topic_str);
             swarm
                 .behaviour_mut()
                 .gossipsub
@@ -135,20 +124,16 @@ impl P2p {
         }
 
         // -- Listen -----------------------------------------------------------
-        let addr: Multiaddr = listen_addr.unwrap_or_else(|| {
+        let addr: libp2p::Multiaddr = listen_addr.unwrap_or_else(|| {
             "/ip4/0.0.0.0/tcp/0".parse().expect("valid multiaddr")
         });
         swarm.listen_on(addr)?;
-
-        // -- Outbound channel -------------------------------------------------
-        let mut rx = self.rx.take().context("P2p::run called twice")?;
 
         info!("P2P node starting (node_id={})", self.cfg.node_id);
 
         // -- Event loop -------------------------------------------------------
         loop {
-            tokio::select! {
-                // Outbound: publish claim or block
+            select! {
                 Some(msg) = rx.recv() => {
                     match msg {
                         OutboundMsg::Claim(claim) => {
@@ -172,66 +157,50 @@ impl P2p {
                     }
                 }
 
-                // Inbound: swarm events
-                event = swarm.next() => {
-                    let Some(event) = event else { break };
-                    match event {
-                        SwarmEvent::Behaviour(AgentsBehaviourEvent::Gossipsub(
-                            gossipsub::Event::Message { message, .. },
-                        )) => {
-                            handle_inbound(message, store, mempool);
-                        }
-                        SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
-                            mdns::Event::Discovered(peers),
-                        )) => {
-                            for (peer_id, addr) in peers {
-                                info!("mDNS discovered {peer_id} at {addr}");
-                                swarm
-                                    .behaviour_mut()
-                                    .gossipsub
-                                    .add_explicit_peer(&peer_id);
-                            }
-                        }
-                        SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
-                            mdns::Event::Expired(peers),
-                        )) => {
-                            for (peer_id, _) in peers {
-                                swarm
-                                    .behaviour_mut()
-                                    .gossipsub
-                                    .remove_explicit_peer(&peer_id);
-                            }
-                        }
-                        SwarmEvent::NewListenAddr { address, .. } => {
-                            info!("listening on {address}");
-                        }
-                        _ => {}
+                event = swarm.select_next_some() => match event {
+                    SwarmEvent::Behaviour(AgentsBehaviourEvent::Gossipsub(
+                        gossipsub::Event::Message { message, .. },
+                    )) => {
+                        handle_inbound(message, store, mempool);
                     }
+                    SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
+                        mdns::Event::Discovered(peers),
+                    )) => {
+                        for (peer_id, addr) in peers {
+                            info!("mDNS discovered {peer_id} at {addr}");
+                            swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                        }
+                    }
+                    SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
+                        mdns::Event::Expired(peers),
+                    )) => {
+                        for (peer_id, _) in peers {
+                            swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
+                        }
+                    }
+                    SwarmEvent::NewListenAddr { address, .. } => {
+                        info!("listening on {address}");
+                    }
+                    _ => {}
                 }
             }
         }
-        Ok(())
     }
 }
 
 // -- Helpers ------------------------------------------------------------------
 
-/// Serialise `value` as JSON and publish to `topic`.
 fn publish_json<T: serde::Serialize>(
     gossipsub: &mut gossipsub::Behaviour,
     topic_str: &str,
     value: &T,
 ) -> Result<()> {
     let data = serde_json::to_vec(value).context("serialise outbound message")?;
-    let topic = IdentTopic::new(topic_str);
-    gossipsub
-        .publish(topic, data)
-        .context("gossipsub publish")?;
+    let topic = gossipsub::IdentTopic::new(topic_str);
+    gossipsub.publish(topic, data).context("gossipsub publish")?;
     Ok(())
 }
 
-/// Route an inbound gossipsub message to the mempool (claims) or store.
-/// Errors are logged and swallowed — a bad message must not crash the loop.
 fn handle_inbound(
     message: gossipsub::Message,
     store: &DagStore,
@@ -242,7 +211,6 @@ fn handle_inbound(
         TOPIC_CLAIMS => {
             match serde_json::from_slice::<StoredClaim>(&message.data) {
                 Ok(claim) => {
-                    // Verify Ed25519 signature before accepting
                     match verify_claim_signature(
                         &claim.submitter,
                         &claim.signature,
@@ -277,23 +245,20 @@ fn handle_inbound(
             }
         }
         TOPIC_CONTROL | TOPIC_PEERS => {
-            // Phase 3: control-set distribution and peer metadata
             info!("received {topic} message ({} bytes)", message.data.len());
         }
         other => warn!("unknown topic: {other}"),
     }
 }
 
-// -- Convenience publish functions (called from outside the event loop) -------
+// -- Convenience publish functions --------------------------------------------
 
-/// Publish a claim to the network via the outbound channel.
 pub async fn publish_claim(tx: &mpsc::Sender<OutboundMsg>, claim: StoredClaim) -> Result<()> {
     tx.send(OutboundMsg::Claim(claim))
         .await
         .context("outbound channel closed")
 }
 
-/// Publish a block to the network via the outbound channel.
 pub async fn publish_block(tx: &mpsc::Sender<OutboundMsg>, block: StoredBlock) -> Result<()> {
     tx.send(OutboundMsg::Block(block))
         .await

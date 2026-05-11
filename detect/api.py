@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 from agentsprotocol.s_con import compute_s_con, _stub_embed
 from agentsprotocol.psi_test import compute_psi, compute_error_vectors
-from agentsprotocol.wise_score import wise_score, attacker_success_probability
+from agentsprotocol.wise_score import compute_wise_score_aggregate, attacker_success_probability
 
 app = FastAPI(title="AgentsProtocol Detect API", version="1.0")
 
@@ -100,20 +100,19 @@ def validate(req: ValidateRequest) -> ValidateResponse:
     psi = compute_psi(error_vecs)
 
     # WiseScore W(i) = T × C × R × E  (PoWW §4)
-    # Use S_con as T proxy; derive others from text features
-    w = wise_score(
-        truth=s,
-        context=min(1.0, 0.68 + 0.1 * (len(req.claim.split()) >= 8)),
-        relevance=min(1.0, 0.55 + 0.3 * s),
-        ethics={"general": 1.0, "finance": 0.90, "politics": 0.86,
-                "science": 0.95, "crypto": 0.87}.get(req.category or "general", 1.0),
-    )
+    # Use S_con as T proxy; derive C, R, E from text features
+    ethics_map = {"general": 1.0, "finance": 0.90, "politics": 0.86,
+                  "science": 0.95, "crypto": 0.87}
+    t_val = s
+    c_val = min(1.0, 0.68 + 0.1 * (len(req.claim.split()) >= 8))
+    r_val = min(1.0, 0.55 + 0.3 * s)
+    e_val = ethics_map.get(req.category or "general", 1.0)
+    w = compute_wise_score_aggregate([t_val], [c_val], [r_val], [e_val])
 
     # Attacker success probability (PoWW §11)
     q = max(0.0, 1.0 - psi)   # attacker hash-rate proxy
-    p = 1.0 - q
     z = max(1, round(w * 10))  # lead blocks proportional to WiseScore
-    asp = attacker_success_probability(q=q, p=p, z=z)
+    asp = attacker_success_probability(q=q, z=z)
 
     # Manipulation risk 0–100
     risk = round((1.0 - psi) * 100 * (1.5 if s < 0.5 else 1.0))

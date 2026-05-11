@@ -20,7 +20,7 @@ mod zk;
 use std::sync::Arc;
 
 use anyhow::Result;
-use mempool::{BlockProducer, ClaimMempool};
+use crate::mempool::{BlockProducer, ClaimMempool};
 
 #[tokio::main]
 async fn main() -> Result<()> {
