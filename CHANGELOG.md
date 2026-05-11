@@ -2,6 +2,30 @@
 
 All notable changes to AgentsProtocol are documented here.
 
+## [1.3.0] — 2026-05-11
+
+### Summary
+
+Production-ready release. Supersedes v1.2.0 (initial draft).
+Full Phase 3 + Phase 4 implementation with CI-verified test suite
+(68 Python + 48 Rust = 116 tests).
+
+### Added vs v1.2.0
+
+- Phase 3: embedding sidecar (sentence-transformers), bootstrap peer dialing, simplified Dockerfile
+- Phase 4: ZK proof abstraction (MockZkBackend + Risc0 skeleton), GET /verify_block/:hash RPC
+- GitLab CI (.gitlab-ci.yml)
+- CHANGELOG.md
+- Trusted Publisher PyPI workflow (publish.yml)
+
+### Changed
+
+- Storage: rocksdb → sled (pure Rust, no libclang)
+- Tagline: "makes AI-generated knowledge verifiable"
+- Test count: 62 → 116 (68 Python + 48 Rust)
+
+---
+
 ## [1.0.0] — 2026-05-11
 
 ### Summary

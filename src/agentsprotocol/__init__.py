@@ -25,7 +25,7 @@ from .wise_score import (
 from .schemas import Claim, Block, ValidatorOutput, ControlTask, ControlSet
 from .validator import verify_claim_signature
 
-__version__ = "1.0.0"
+__version__ = "1.3.0"
 __author__ = "Fatih Dinc"
 __doi__ = "10.5281/zenodo.19642292"
 
