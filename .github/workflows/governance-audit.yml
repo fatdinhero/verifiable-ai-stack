@@ -52,11 +52,13 @@ jobs:
 
           report_path = Path(os.environ["RUNNER_TEMP"]) / "governance-audit" / "latest.json"
           report = json.loads(report_path.read_text(encoding="utf-8"))
-          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.2"
-          assert report["report_version"] == "2.2.0"
+          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.3"
+          assert report["report_version"] == "2.3.0"
           assert report["quality_gate"]["passed"] is True
           assert report["summary"]["accepted"] is True
           assert report["metadata"]["git_commit"]
+          assert report["metadata"]["report_id"]
+          assert report["metadata"]["dependencies"]["agentsprotocol"]
           assert report["integrity"]["report_payload_sha256"]
           print("governance-audit-ok", report["summary"])
           PY
@@ -84,6 +86,8 @@ jobs:
           print(f"- psi: `{summary['psi']}`")
           print(f"- Signature: `{report['integrity']['signature']['status']}`")
           print(f"- Report hash: `{report['integrity']['report_payload_sha256']}`")
+          print(f"- Report ID: `{report['metadata']['report_id']}`")
+          print(f"- Git commit: `{report['metadata']['git_commit']}`")
           PY
 
       # Optional notification hook for regulated deployments:

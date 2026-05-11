@@ -107,6 +107,7 @@ docs/governance-audit/latest.json
 Reports include:
 
 - report schema and version,
+- report ID, Git commit/status, runtime and dependency metadata,
 - SHA-256 of the masterplan source,
 - SHA-256 of each original claim,
 - report payload SHA-256,
@@ -126,6 +127,9 @@ cd verifiable-ai-stack
 # Run the governance audit quality gate
 python -m pip install pyyaml numpy scipy pydantic
 python cognitum/scripts/export_governance_claims.py --fail-on-reject
+
+# Or use the root task runner
+make audit
 
 # Run core Python tests
 cd cognitum
@@ -151,6 +155,19 @@ Root workflows:
 
 - `.github/workflows/monorepo-smoke.yml` checks structure, Python syntax, Rust validator tests, and TypeScript build.
 - `.github/workflows/governance-audit.yml` runs the governance audit as a quality gate and uploads the generated report artifact.
+
+## Root task runner
+
+Common tasks are available through `make`:
+
+```bash
+make audit
+make smoke
+make test-python
+make test-rust
+make test-node
+make test-all
+```
 
 ## Documentation
 

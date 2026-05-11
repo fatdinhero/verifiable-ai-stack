@@ -42,6 +42,14 @@ python mcp/semantic-layer/validate_governance_claims.py --limit 10
 
 These commands are the first bridge between COGNITUM and AgentsProtocol. They do not mutate the masterplan; they produce deterministic JSON for review and future audit signing.
 
+The canonical quality gate is:
+
+```bash
+make audit
+# or
+python cognitum/scripts/export_governance_claims.py --fail-on-reject
+```
+
 ## 5. Work by layer
 
 - Governance changes start in `cognitum/governance/masterplan.yaml`.
