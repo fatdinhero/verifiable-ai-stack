@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![CI](https://github.com/fatdinhero/agentsprotocol/actions/workflows/ci.yml/badge.svg)
 
-> **MCP/A2A connect systems. AgentsProtocol proves the content is true.**
+> **AgentsProtocol makes AI-generated knowledge verifiable.**
 
 An open protocol and reference implementation for decentralised **semantic**
 validation. Every claim is scored against a public knowledge corpus (S_con),
@@ -45,7 +45,7 @@ agentsprotocol/
 ├── src/agentsprotocol/     Python reference implementation (S_con, Psi, WiseScore, schemas)
 ├── src/validator/          Rust validator node (tokio, libp2p gossipsub, sled, axum RPC)
 ├── detect/                 FastAPI demo backend (POST /validate, GET /health)
-├── tests/                  pytest suite — 68 tests, all green
+├── tests/                  pytest suite — 105 tests, all green (68 Python + 37 Rust)
 ├── examples/               Runnable demos
 ├── scripts/                seed_claim.py — generates signed genesis claim
 ├── docker-compose.yml      3-node local testnet
