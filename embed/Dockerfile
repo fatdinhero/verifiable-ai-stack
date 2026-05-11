@@ -2,16 +2,18 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies first (cached layer)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install all deps from bundled wheels — no PyPI access needed
+COPY wheels/ /wheels/
+RUN pip install --no-cache-dir --no-index --find-links=/wheels \
+    fastapi "uvicorn[standard]" numpy onnxruntime tokenizers \
+    && rm -rf /wheels
 
-# Pre-download model so container starts instantly
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+# Bake model into image — no runtime download needed
+COPY model/ ./model/
 
 COPY main.py .
 
-ENV EMBED_MODEL=all-MiniLM-L6-v2
+ENV MODEL_DIR=/app/model
 
 EXPOSE 8000
 

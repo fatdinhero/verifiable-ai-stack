@@ -526,11 +526,10 @@ function render(sc){
 
 /* ── API endpoint (detect/api.py via uvicorn) ── */
 const API_URL = (()=>{
-  // Same origin in production; localhost:8000 for local dev
-  const base = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : window.location.origin;
-  return base + '/validate';
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000/validate';
+  }
+  return 'https://agentsprotocol-detect.fly.dev/validate';
 })();
 
 async function fetchFromAPI(text, category){

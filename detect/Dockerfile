@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY wheels/ /wheels/
 RUN pip install --no-cache-dir --no-index --find-links=/wheels \
-    fastapi uvicorn[standard] pydantic numpy scipy cryptography \
+    fastapi uvicorn[standard] pydantic numpy scipy cryptography httpx \
     && rm -rf /wheels
 
 COPY agentsprotocol_pkg ./agentsprotocol

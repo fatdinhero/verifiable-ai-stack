@@ -15,8 +15,10 @@ the stub embedder (SHA-256 tiling) is used by default.
 from __future__ import annotations
 
 import math
+import os
 from typing import Optional
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -24,6 +26,18 @@ from pydantic import BaseModel
 from agentsprotocol.s_con import compute_s_con, _stub_embed
 from agentsprotocol.psi_test import compute_psi, compute_error_vectors
 from agentsprotocol.wise_score import compute_wise_score_aggregate, attacker_success_probability
+
+EMBED_URL = os.getenv("EMBED_URL", "https://agentsprotocol-embed.fly.dev/embed")
+
+
+def _remote_embed(text: str):
+    """Call the embed sidecar; fall back to stub on any error."""
+    try:
+        r = httpx.post(EMBED_URL, json={"texts": [text]}, timeout=5.0)
+        r.raise_for_status()
+        return r.json()["embeddings"][0]
+    except Exception:
+        return _stub_embed(text)
 
 app = FastAPI(title="AgentsProtocol Detect API", version="1.0")
 
@@ -77,7 +91,7 @@ def validate(req: ValidateRequest) -> ValidateResponse:
     s = compute_s_con(
         claim_text=req.claim,
         knowledge_corpus=corpus,
-        embed=_stub_embed,
+        embed=_remote_embed,
         tau=0.0,  # no threshold clipping — return raw score
     )
 
@@ -129,7 +143,7 @@ def validate(req: ValidateRequest) -> ValidateResponse:
     unverified = confidence < 0.8
 
     detail = (
-        f"S_con={s:.3f} (stub embedder), Psi={psi:.3f} ({_N_VALIDATORS} simulated validators), "
+        f"S_con={s:.3f} (all-MiniLM-L6-v2), Psi={psi:.3f} ({_N_VALIDATORS} simulated validators), "
         f"W={w:.3f}. "
         + ("Accepted by protocol." if accepted else
            f"Rejected: {'WiseScore below θ_min=0.60' if w < theta_min else 'Ψ below ψ_min=0.70'}.")
