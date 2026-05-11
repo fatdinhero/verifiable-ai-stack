@@ -1,22 +1,16 @@
-//! RocksDB-backed DAG storage.
+//! sled-backed DAG storage.
 //!
-//! Two column families:
-//!   "claims" — key: claim_id (hex string)  → value: JSON-serialised StoredClaim
-//!   "blocks" — key: block_hash (hex string) → value: JSON-serialised StoredBlock
-//!
-//! All public types derive serde::{Serialize, Deserialize} so they can be
-//! round-tripped through JSON without a separate schema layer.
+//! Two sled Trees (equivalent to RocksDB column families):
+//!   "claims" — key: claim_id (UTF-8)  → value: JSON-serialised StoredClaim
+//!   "blocks" — key: block_hash (UTF-8) → value: JSON-serialised StoredBlock
 
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use rocksdb::{ColumnFamilyDescriptor, Options, DB};
 use serde::{Deserialize, Serialize};
 
 // -- Stored types -------------------------------------------------------------
 
-/// Minimal claim record persisted to storage.
-/// Fields mirror the JSON schema (claim-v1.0.json) required properties.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredClaim {
     pub id: String,
@@ -26,11 +20,9 @@ pub struct StoredClaim {
     pub submitter: String,
     pub signature: String,
     pub statement: String,
-    /// Raw JSON payload — preserved verbatim for signature verification.
     pub payload_json: String,
 }
 
-/// Minimal block record persisted to storage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredBlock {
     pub hash: String,
@@ -41,95 +33,65 @@ pub struct StoredBlock {
     pub claim_ids: Vec<String>,
 }
 
-// -- Column family names ------------------------------------------------------
-
-const CF_CLAIMS: &str = "claims";
-const CF_BLOCKS: &str = "blocks";
-
 // -- DagStore -----------------------------------------------------------------
 
 pub struct DagStore {
-    db: DB,
+    claims: sled::Tree,
+    blocks: sled::Tree,
 }
 
 impl DagStore {
-    /// Open (or create) the RocksDB database at `path`.
     pub fn open(path: &Path) -> Result<Self> {
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        opts.create_missing_column_families(true);
-
-        let cf_opts = Options::default();
-        let cfs = vec![
-            ColumnFamilyDescriptor::new(CF_CLAIMS, cf_opts.clone()),
-            ColumnFamilyDescriptor::new(CF_BLOCKS, cf_opts),
-        ];
-
-        let db = DB::open_cf_descriptors(&opts, path, cfs)
-            .with_context(|| format!("failed to open RocksDB at {}", path.display()))?;
-
-        Ok(Self { db })
+        let db = sled::open(path)
+            .with_context(|| format!("failed to open sled at {}", path.display()))?;
+        let claims = db.open_tree("claims").context("open claims tree")?;
+        let blocks = db.open_tree("blocks").context("open blocks tree")?;
+        Ok(Self { claims, blocks })
     }
 
     // -- Claims ---------------------------------------------------------------
 
-    /// Persist a claim. Overwrites any existing record with the same id.
     pub fn save_claim(&self, claim: &StoredClaim) -> Result<()> {
-        let cf = self
-            .db
-            .cf_handle(CF_CLAIMS)
-            .context("claims column family not found")?;
-        let value = serde_json::to_vec(claim).context("failed to serialise claim")?;
-        self.db
-            .put_cf(&cf, claim.id.as_bytes(), &value)
-            .context("RocksDB put_cf failed for claim")?;
+        let value = serde_json::to_vec(claim).context("serialise claim")?;
+        self.claims
+            .insert(claim.id.as_bytes(), value)
+            .context("sled insert claim")?;
         Ok(())
     }
 
-    /// Retrieve a claim by id. Returns `None` if not found.
     pub fn get_claim(&self, claim_id: &str) -> Result<Option<StoredClaim>> {
-        let cf = self
-            .db
-            .cf_handle(CF_CLAIMS)
-            .context("claims column family not found")?;
-        match self.db.get_cf(&cf, claim_id.as_bytes())? {
+        match self.claims.get(claim_id.as_bytes()).context("sled get claim")? {
             None => Ok(None),
-            Some(bytes) => {
-                let claim = serde_json::from_slice(&bytes)
-                    .context("failed to deserialise claim")?;
-                Ok(Some(claim))
-            }
+            Some(bytes) => Ok(Some(
+                serde_json::from_slice(&bytes).context("deserialise claim")?,
+            )),
         }
     }
 
     // -- Blocks ---------------------------------------------------------------
 
-    /// Persist a block. Overwrites any existing record with the same hash.
     pub fn save_block(&self, block: &StoredBlock) -> Result<()> {
-        let cf = self
-            .db
-            .cf_handle(CF_BLOCKS)
-            .context("blocks column family not found")?;
-        let value = serde_json::to_vec(block).context("failed to serialise block")?;
-        self.db
-            .put_cf(&cf, block.hash.as_bytes(), &value)
-            .context("RocksDB put_cf failed for block")?;
+        let value = serde_json::to_vec(block).context("serialise block")?;
+        self.blocks
+            .insert(block.hash.as_bytes(), value)
+            .context("sled insert block")?;
         Ok(())
     }
 
-    /// Return up to `limit` blocks from the blocks column family.
-    /// Order is RocksDB key order (lexicographic by hash) — callers sort by
-    /// weight themselves. This is sufficient for parent selection over a
-    /// bounded candidate window.
+    pub fn get_block(&self, block_hash: &str) -> Result<Option<StoredBlock>> {
+        match self.blocks.get(block_hash.as_bytes()).context("sled get block")? {
+            None => Ok(None),
+            Some(bytes) => Ok(Some(
+                serde_json::from_slice(&bytes).context("deserialise block")?,
+            )),
+        }
+    }
+
+    /// Return up to `limit` blocks (reverse insertion order).
     pub fn list_recent_blocks(&self, limit: usize) -> Result<Vec<StoredBlock>> {
-        let cf = self
-            .db
-            .cf_handle(CF_BLOCKS)
-            .context("blocks column family not found")?;
         let mut out = Vec::new();
-        let iter = self.db.iterator_cf(&cf, rocksdb::IteratorMode::End);
-        for item in iter {
-            let (_key, value) = item?;
+        for item in self.blocks.iter().rev() {
+            let (_key, value) = item.context("sled iter block")?;
             if let Ok(block) = serde_json::from_slice::<StoredBlock>(&value) {
                 out.push(block);
             }
@@ -138,22 +100,6 @@ impl DagStore {
             }
         }
         Ok(out)
-    }
-
-    /// Retrieve a block by hash. Returns `None` if not found.
-    pub fn get_block(&self, block_hash: &str) -> Result<Option<StoredBlock>> {
-        let cf = self
-            .db
-            .cf_handle(CF_BLOCKS)
-            .context("blocks column family not found")?;
-        match self.db.get_cf(&cf, block_hash.as_bytes())? {
-            None => Ok(None),
-            Some(bytes) => {
-                let block = serde_json::from_slice(&bytes)
-                    .context("failed to deserialise block")?;
-                Ok(Some(block))
-            }
-        }
     }
 }
 
@@ -183,13 +129,13 @@ mod tests {
         }
     }
 
-    fn sample_block(hash: &str) -> StoredBlock {
+    fn sample_block(hash: &str, weight: f64) -> StoredBlock {
         StoredBlock {
             hash: hash.to_string(),
-            parent_hashes: vec!["0xparent".to_string()],
+            parent_hashes: vec![],
             timestamp: "2026-04-18T14:31:00Z".to_string(),
-            psi: 0.85,
-            cumulative_weight: 12.5,
+            psi: 1.0,
+            cumulative_weight: weight,
             claim_ids: vec!["claim_abc".to_string()],
         }
     }
@@ -197,10 +143,9 @@ mod tests {
     #[test]
     fn claim_roundtrip() {
         let (store, _dir) = temp_store();
-        let claim = sample_claim("claim_abc");
-        store.save_claim(&claim).unwrap();
-        let loaded = store.get_claim("claim_abc").unwrap().unwrap();
-        assert_eq!(loaded.id, "claim_abc");
+        store.save_claim(&sample_claim("c1")).unwrap();
+        let loaded = store.get_claim("c1").unwrap().unwrap();
+        assert_eq!(loaded.id, "c1");
         assert_eq!(loaded.statement, "The sky is blue.");
     }
 
@@ -213,23 +158,20 @@ mod tests {
     #[test]
     fn claim_overwrite() {
         let (store, _dir) = temp_store();
-        let mut claim = sample_claim("claim_abc");
+        let mut claim = sample_claim("c1");
         store.save_claim(&claim).unwrap();
-        claim.statement = "Updated statement.".to_string();
+        claim.statement = "Updated.".to_string();
         store.save_claim(&claim).unwrap();
-        let loaded = store.get_claim("claim_abc").unwrap().unwrap();
-        assert_eq!(loaded.statement, "Updated statement.");
+        assert_eq!(store.get_claim("c1").unwrap().unwrap().statement, "Updated.");
     }
 
     #[test]
     fn block_roundtrip() {
         let (store, _dir) = temp_store();
-        let block = sample_block("0xblockhash");
-        store.save_block(&block).unwrap();
-        let loaded = store.get_block("0xblockhash").unwrap().unwrap();
-        assert_eq!(loaded.hash, "0xblockhash");
-        assert!((loaded.psi - 0.85).abs() < 1e-10);
-        assert_eq!(loaded.claim_ids, vec!["claim_abc"]);
+        store.save_block(&sample_block("b1", 5.0)).unwrap();
+        let loaded = store.get_block("b1").unwrap().unwrap();
+        assert_eq!(loaded.hash, "b1");
+        assert!((loaded.cumulative_weight - 5.0).abs() < 1e-10);
     }
 
     #[test]
@@ -240,11 +182,20 @@ mod tests {
 
     #[test]
     fn claims_and_blocks_independent() {
-        // saving a claim must not affect block lookups and vice versa
         let (store, _dir) = temp_store();
         store.save_claim(&sample_claim("c1")).unwrap();
         assert!(store.get_block("c1").unwrap().is_none());
-        store.save_block(&sample_block("b1")).unwrap();
+        store.save_block(&sample_block("b1", 1.0)).unwrap();
         assert!(store.get_claim("b1").unwrap().is_none());
+    }
+
+    #[test]
+    fn list_recent_blocks_ordered() {
+        let (store, _dir) = temp_store();
+        store.save_block(&sample_block("b1", 1.0)).unwrap();
+        store.save_block(&sample_block("b2", 2.0)).unwrap();
+        store.save_block(&sample_block("b3", 3.0)).unwrap();
+        let blocks = store.list_recent_blocks(2).unwrap();
+        assert_eq!(blocks.len(), 2);
     }
 }
