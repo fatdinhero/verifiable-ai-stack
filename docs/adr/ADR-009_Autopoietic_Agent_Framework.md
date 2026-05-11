@@ -1,6 +1,6 @@
 # ADR-009: COGNITUM → Autopoietic Agent Framework
 
-**Status:** PROPOSED  
+**Status:** ACCEPTED  
 **Datum:** 2026-05-10  
 **Autor:** Fatih Dinc  
 **Revenue-Gate:** Implementierung beginnt erst nach erstem Gumroad-Revenue  
