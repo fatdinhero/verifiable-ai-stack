@@ -221,6 +221,59 @@ impl Validator {
     }
 }
 
+// -- HTTP embedder (feature = "http-embed") -----------------------------------
+
+/// Async embedder that calls the embed sidecar service.
+///
+/// Falls back to `stub_embed` if the HTTP call fails, so the validator
+/// degrades gracefully when the sidecar is unavailable.
+///
+/// The sidecar API:
+///   POST /embed  {"texts": ["..."]}
+///   ->           {"embeddings": [[...]], "model": "..."}
+#[cfg(feature = "http-embed")]
+pub mod http_embed {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize)]
+    struct EmbedRequest<'a> {
+        texts: &'a [&'a str],
+    }
+
+    #[derive(Deserialize)]
+    struct EmbedResponse {
+        embeddings: Vec<Vec<f64>>,
+    }
+
+    /// Embed a single text via the sidecar. Returns `stub_embed` on error.
+    pub async fn embed_one(url: &str, text: &str) -> Vec<f64> {
+        match try_embed_one(url, text).await {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::warn!("http_embed failed ({e}), falling back to stub");
+                super::stub_embed(text)
+            }
+        }
+    }
+
+    async fn try_embed_one(url: &str, text: &str) -> anyhow::Result<Vec<f64>> {
+        let client = reqwest::Client::new();
+        let body = EmbedRequest { texts: &[text] };
+        let resp: EmbedResponse = client
+            .post(url)
+            .json(&body)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        resp.embeddings
+            .into_iter()
+            .next()
+            .ok_or_else(|| anyhow::anyhow!("empty embeddings array"))
+    }
+}
+
 // -- Ed25519 claim signature verification -------------------------------------
 
 /// Verify the Ed25519 signature on a claim.

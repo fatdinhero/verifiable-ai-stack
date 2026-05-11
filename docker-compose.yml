@@ -1,16 +1,14 @@
-# AgentsProtocol local testnet — 3 validator nodes
+# AgentsProtocol local testnet — 3 validator nodes + embedding sidecar
 #
 # Topology:
-#   validator-1  P2P :9000  RPC :8545  (seed node, submits genesis claim)
-#   validator-2  P2P :9001  RPC :8546
-#   validator-3  P2P :9002  RPC :8547
-#
-# mDNS discovery works across the shared bridge network.
-# validator-1 waits for its RPC to be ready, then posts a signed seed claim.
+#   embed        HTTP :8000  — sentence-transformers sidecar (all-MiniLM-L6-v2)
+#   validator-1  P2P  :9000  RPC :8545  — seed node
+#   validator-2  P2P  :9001  RPC :8546  — dials validator-1 as bootstrap
+#   validator-3  P2P  :9002  RPC :8547  — dials validator-1 as bootstrap
+#   seed         one-shot    — posts a signed claim to validator-1
 #
 # Usage:
 #   docker compose up --build
-#   docker compose logs -f validator-1
 #   curl http://localhost:8545/status
 #   curl http://localhost:8545/get_block/<hash>
 
@@ -20,7 +18,28 @@ networks:
   ap-net:
     driver: bridge
 
+# ---------------------------------------------------------------------------
+# Embedding sidecar
+# ---------------------------------------------------------------------------
 services:
+  embed:
+    build:
+      context: embed
+      dockerfile: Dockerfile
+    container_name: ap-embed
+    networks: [ap-net]
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+# ---------------------------------------------------------------------------
+# Validator nodes
+# ---------------------------------------------------------------------------
   validator-1:
     build:
       context: src/validator
@@ -40,7 +59,11 @@ services:
       AP_MIN_CLAIMS: "1"
       AP_BLOCK_TIMEOUT_SECS: "10"
       AP_TAU: "0.0"
+      AP_EMBED_URL: "http://embed:8000/embed"
       RUST_LOG: "info"
+    depends_on:
+      embed:
+        condition: service_healthy
 
   validator-2:
     build:
@@ -61,8 +84,11 @@ services:
       AP_MIN_CLAIMS: "1"
       AP_BLOCK_TIMEOUT_SECS: "10"
       AP_TAU: "0.0"
+      AP_EMBED_URL: "http://embed:8000/embed"
+      AP_BOOTSTRAP_PEERS: "/ip4/ap-validator-1/tcp/9000"
       RUST_LOG: "info"
-    depends_on: [validator-1]
+    depends_on:
+      - validator-1
 
   validator-3:
     build:
@@ -83,20 +109,28 @@ services:
       AP_MIN_CLAIMS: "1"
       AP_BLOCK_TIMEOUT_SECS: "10"
       AP_TAU: "0.0"
+      AP_EMBED_URL: "http://embed:8000/embed"
+      AP_BOOTSTRAP_PEERS: "/ip4/ap-validator-1/tcp/9000"
       RUST_LOG: "info"
-    depends_on: [validator-1]
+    depends_on:
+      - validator-1
 
-  # Seed service: generates a real Ed25519 keypair, signs a claim, and
-  # POSTs it to validator-1 via /submit_claim. Exits after submission.
+# ---------------------------------------------------------------------------
+# Seed: posts a signed claim to validator-1 after all nodes are up
+# ---------------------------------------------------------------------------
   seed:
     image: python:3.11-slim
     container_name: ap-seed
     networks: [ap-net]
-    depends_on: [validator-1, validator-2, validator-3]
+    depends_on:
+      - validator-1
+      - validator-2
+      - validator-3
     volumes:
       - ./scripts:/scripts
     command: >
       sh -c "pip install -q cryptography requests &&
+             sleep 5 &&
              python /scripts/seed_claim.py http://validator-1:8545"
 
 volumes:

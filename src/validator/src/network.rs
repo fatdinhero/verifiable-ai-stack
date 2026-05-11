@@ -110,6 +110,18 @@ impl P2p {
             .unwrap_or_else(|| "/ip4/0.0.0.0/tcp/0".parse().expect("valid multiaddr"));
         swarm.listen_on(addr)?;
 
+        // Dial bootstrap peers from AP_BOOTSTRAP_PEERS env var.
+        // Format: "/ip4/1.2.3.4/tcp/9000/p2p/12D3Koo..."
+        for peer_addr in &self.cfg.bootstrap_peers {
+            match peer_addr.parse::<libp2p::Multiaddr>() {
+                Ok(ma) => {
+                    info!("dialing bootstrap peer {peer_addr}");
+                    let _ = swarm.dial(ma);
+                }
+                Err(e) => warn!("invalid bootstrap peer addr {peer_addr}: {e}"),
+            }
+        }
+
         info!("P2P node starting (node_id={})", self.cfg.node_id);
 
         loop {

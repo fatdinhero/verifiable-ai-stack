@@ -40,6 +40,12 @@ pub struct ProtocolConfig {
     pub listen_addr: String,
     /// JSON-RPC listen address.
     pub rpc_addr: String,
+    /// URL of the embedding sidecar (feature = "http-embed").
+    /// e.g. "http://embed:8000/embed"
+    pub embed_url: String,
+    /// Comma-separated list of bootstrap peer multiaddrs.
+    /// e.g. "/ip4/1.2.3.4/tcp/9000/p2p/12D3Koo..."
+    pub bootstrap_peers: Vec<String>,
 }
 
 impl ProtocolConfig {
@@ -74,6 +80,15 @@ impl ProtocolConfig {
                 .unwrap_or_else(|_| "/ip4/0.0.0.0/tcp/0".into()),
             rpc_addr: std::env::var("AP_RPC_ADDR")
                 .unwrap_or_else(|_| "0.0.0.0:8545".into()),
+            embed_url: std::env::var("AP_EMBED_URL")
+                .unwrap_or_else(|_| "http://localhost:8000/embed".into()),
+            bootstrap_peers: std::env::var("AP_BOOTSTRAP_PEERS")
+                .unwrap_or_default()
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(String::from)
+                .collect(),
         })
     }
 }
