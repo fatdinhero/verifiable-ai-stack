@@ -28,6 +28,21 @@
     code { background: var(--card); padding: .1rem .3rem; border-radius: 3px; font-size: .87em; }
     footer { background: var(--card); border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-size: .85rem; color: #8b949e; }
     footer a { color: var(--accent); }
+    .contribute-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .contribute-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; gap: .6rem; }
+    .contribute-card h3 { color: #fff; font-size: 1rem; }
+    .contribute-card p { font-size: .88rem; color: #8b949e; flex: 1; }
+    .label { display: inline-block; font-size: .75rem; font-weight: 600; padding: .15rem .55rem; border-radius: 12px; }
+    .label-help    { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+    .label-research{ background: #8b5cf633; color: #c4b5fd; border: 1px solid #8b5cf6; }
+    .label-first   { background: #23863633; color: #3fb950; border: 1px solid #238636; }
+    .label-docs    { background: #9e6a0333; color: #e3b341; border: 1px solid #9e6a03; }
+    .contribute-card a.card-link { font-size: .82rem; color: var(--accent); margin-top: .2rem; }
+    .cta-group { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .btn { display: inline-block; padding: .55rem 1.2rem; border-radius: 6px; font-size: .9rem; font-weight: 600; transition: opacity .15s; }
+    .btn:hover { opacity: .85; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
   </style>
 </head>
 <body>
@@ -175,6 +190,52 @@ agentsprotocol/
       All contents of this repository (source and docs) are included in the
       SHA-256 hash attested on <strong>Bitcoin block 945622 (2026-04-18)</strong>.
     </p>
+  </section>
+
+
+  <section id="contribute">
+    <h2>Build with us.</h2>
+    <p style="margin-bottom:.5rem;">
+      AgentsProtocol is open research.<br />
+      Every contribution matters — code, math, docs, testing.
+    </p>
+
+    <div class="contribute-grid">
+
+      <div class="contribute-card">
+        <span class="label label-help">help wanted</span>
+        <h3>Rust Developer</h3>
+        <p>Implement the validator client in Rust (tokio + libp2p). Phase 2 priority.</p>
+        <a class="card-link" href="https://github.com/fatdinhero/agentsprotocol/issues">View issues →</a>
+      </div>
+
+      <div class="contribute-card">
+        <span class="label label-research">research</span>
+        <h3>zkVM Engineer</h3>
+        <p>Integrate Ψ computation into RISC Zero / Nexus / SP1. Phase 3 critical path.</p>
+        <a class="card-link" href="https://github.com/fatdinhero/agentsprotocol/issues">View issues →</a>
+      </div>
+
+      <div class="contribute-card">
+        <span class="label label-first">good first issue</span>
+        <h3>Python / ML Developer</h3>
+        <p>Extend S_con corpus, add language clients, improve test coverage.</p>
+        <a class="card-link" href="https://github.com/fatdinhero/agentsprotocol/issues">View issues →</a>
+      </div>
+
+      <div class="contribute-card">
+        <span class="label label-docs">docs</span>
+        <h3>Researcher / Writer</h3>
+        <p>Peer review, translations, documentation, academic outreach.</p>
+        <a class="card-link" href="https://github.com/fatdinhero/agentsprotocol/issues">View issues →</a>
+      </div>
+
+    </div>
+
+    <div class="cta-group">
+      <a class="btn btn-primary" href="https://github.com/fatdinhero/agentsprotocol/issues">View open issues →</a>
+      <a class="btn btn-secondary" href="https://mastodon.social/@agentsprotocol">Join the discussion →</a>
+    </div>
   </section>
 
 </main>
