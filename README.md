@@ -8,19 +8,19 @@
 
 > **MCP/A2A connect systems. AgentsProtocol proves the content is true.**
 
-An open protocol and reference client for decentralised **semantic**
-validation: every claim is scored against a public knowledge corpus, every
-block is additionally gated by a statistical non-collusion test Psi, and
-only blocks that clear both thresholds enter the canonical DAG.
+An open protocol and reference implementation for decentralised **semantic**
+validation. Every claim is scored against a public knowledge corpus (S_con),
+every block is gated by a statistical non-collusion test (Psi), and only
+blocks that clear both thresholds enter the canonical DAG.
 
-## Four Research Pillars
+## Research Pillars
 
-| Layer     | Contribution                                   | Reference                                |
-|-----------|------------------------------------------------|------------------------------------------|
-| MBT       | Statistical certificate of validator independence (Psi) | Meta-Bell Theory (Dinc, 2026)      |
-| PoWW      | Composite truth score T x C x R x E over information units | Proof of WiseWork v2 (Dinc, 2026)  |
-| PoISV     | Operational protocol: S_con + Psi + GHOSTDAG ordering     | PoISV Whitepaper v1.0 (Dinc, 2026) |
-| Bell-SPVU | Formal Proof of MetaBell Operator — Ψ ≈ 1 − \|Ŝ\|/(2√2) | [Bell-SPVU Paper (Dinc, 2026)](https://doi.org/10.5281/zenodo.19656679) |
+| Layer | Contribution | Reference |
+|---|---|---|
+| MBT | Statistical certificate of validator independence (Psi) | Meta-Bell Theory (Dinc, 2026) |
+| PoWW | Composite truth score T × C × R × E | Proof of WiseWork v2 (Dinc, 2026) |
+| PoISV | Operational protocol: S_con + Psi + GHOSTDAG ordering | PoISV Whitepaper v1.0 (Dinc, 2026) |
+| Bell-SPVU | Formal proof: Ψ ≈ 1 − \|Ŝ\|/(2√2) | [Bell-SPVU Paper](https://doi.org/10.5281/zenodo.19656679) |
 
 ## Quick Start
 
@@ -31,46 +31,98 @@ pip install agentsprotocol
 ```python
 from agentsprotocol import compute_s_con, compute_psi, check_acceptance
 
-s = compute_s_con("The sky is blue.", ["The sky is blue."], tau=0.7)
+s   = compute_s_con("The sky is blue.", ["The sky is blue."], tau=0.7)
 psi = compute_psi([[0.1, 0.2, 0.3, 0.4], [0.3, 0.2, 0.1, 0.4]])
 print(check_acceptance([s], psi, theta_min=0.6, psi_min=0.3))
 ```
 
-Full end-to-end demo: `examples/demo.py`.
+Full demo: `examples/demo.py`
 
 ## Repository Structure
 
 ```
 agentsprotocol/
-  src/agentsprotocol/       Python reference implementation
-  src/validator/            Rust validator skeleton (tokio + libp2p + zkVM)
-  schema/                   JSON schemas (claim-v1.0, control-set-v1)
-  examples/                 Runnable demos + example claim + control set
-  tests/                    pytest suite (62 tests, all green)
-  docs/                     architecture.md, api.md, math.md
-  .github/workflows/        CI (pytest + flake8 + cargo check)
+├── src/agentsprotocol/     Python reference implementation (S_con, Psi, WiseScore, schemas)
+├── src/validator/          Rust validator node (tokio, libp2p gossipsub, sled, axum RPC)
+├── detect/                 FastAPI demo backend (POST /validate, GET /health)
+├── tests/                  pytest suite — 68 tests, all green
+├── examples/               Runnable demos
+├── scripts/                seed_claim.py — generates signed genesis claim
+├── docker-compose.yml      3-node local testnet
+└── .github/workflows/      CI: Python 3.10/3.11/3.12 + Rust stable
+```
+
+## Architecture
+
+```
+  Claim (JSON + Ed25519 sig)
+        │
+        ▼
+  RPC /submit_claim  (axum, port 8545)
+        │
+        ▼
+  verify_claim_signature()   ← ed25519-dalek
+        │
+        ▼
+  ClaimMempool  (max-heap, sorted by S_con score)
+        │
+        ▼
+  BlockProducer  (drains mempool every N secs or M claims)
+        │  computes Psi, GHOSTDAG parent selection
+        ▼
+  DagStore  (sled, two trees: claims / blocks)
+        │
+        ▼
+  P2P gossipsub  (libp2p 0.54, TCP/noise/yamux)
+```
+
+## Running Locally
+
+**Python library:**
+```bash
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+**Rust validator:**
+```bash
+cd src/validator
+cargo test
+cargo run
+```
+
+**3-node testnet:**
+```bash
+docker compose up --build
+curl http://localhost:8545/status
+```
+
+**detect/ API:**
+```bash
+pip install -r detect/requirements.txt
+uvicorn detect.api:app --reload --port 8000
 ```
 
 ## Roadmap
 
-| Phase | Scope                                                              | Status        |
-|-------|--------------------------------------------------------------------|---------------|
-| 1     | Claim parser, S_con library, Psi-test, JSON-schema tests           | Reference code shipped |
-| 2     | GHOSTDAG consensus engine, synthetic Psi simulations               | Skeleton      |
-| 3     | Local testnet (no zkVM), then zkVM integration (Nexus / RISC Zero) | Planned       |
-| 4     | Full consensus, security audit, testnet launch                      | Planned       |
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | S_con, Psi, WiseScore, JSON-schema, Ed25519 signatures | ✅ Done |
+| 2 | GHOSTDAG consensus, sled storage, gossipsub P2P, axum RPC | ✅ Done |
+| 3 | Real embeddings (ONNX/fastembed), mDNS peer discovery, docker testnet | 🔧 In progress |
+| 4 | ZK-proof integration (RISC Zero / Nexus), security audit, testnet launch | Planned |
 
 ## Citation
 
 ```bibtex
 @software{dinc_agentsprotocol_2026,
-  author       = {Fatih Dinc},
-  title        = {AgentsProtocol: Reference Implementation},
-  year         = 2026,
-  publisher    = {Zenodo},
-  version      = {1.0.0},
-  doi          = {10.5281/zenodo.19642292},
-  url          = {https://github.com/fatdinhero/agentsprotocol}
+  author    = {Fatih Dinc},
+  title     = {AgentsProtocol: Reference Implementation},
+  year      = 2026,
+  publisher = {Zenodo},
+  version   = {1.0.0},
+  doi       = {10.5281/zenodo.19642292},
+  url       = {https://github.com/fatdinhero/agentsprotocol}
 }
 ```
 
@@ -80,8 +132,8 @@ Code: Apache-2.0 (`LICENSE-CODE`). Documentation: CC BY 4.0 (`LICENSE-DOCS`).
 
 ## Timestamp
 
-All contents of this repository (source and docs) are included in the
-SHA-256 hash attested on **Bitcoin block 945622 (2026-04-18)**.
+All contents are included in the SHA-256 hash attested on
+**Bitcoin block 945622 (2026-04-18)**.
 
 ---
 

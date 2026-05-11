@@ -1,7 +1,7 @@
 //! AgentsProtocol validator — main entry point.
 //!
 //! Startup sequence:
-//!   1. Open RocksDB storage
+//!   1. Open sled storage
 //!   2. Create ClaimMempool (S_con-sorted)
 //!   3. Create P2p (gets net_tx sender)
 //!   4. Spawn BlockProducer task (uses net_tx)
