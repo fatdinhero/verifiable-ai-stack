@@ -1,0 +1,48 @@
+name: Monorepo Smoke
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  structure:
+    name: Repository structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify monorepo prefixes
+        run: |
+          test -d cognitum
+          test -d agentsprotocol
+          test -d poisv
+          test -d zkhalal-mcp
+          test -d mcp
+          test -f README.md
+
+  python-syntax:
+    name: Python syntax smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile Python sources
+        run: |
+          python -m compileall -q \
+            cognitum \
+            agentsprotocol/src/agentsprotocol \
+            agentsprotocol/detect \
+            poisv/poisv \
+            poisv/meta-bell \
+            poisv/poww \
+            zkhalal-mcp/server.py
+
+  agentsprotocol-rust:
+    name: AgentsProtocol Rust validator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Test validator crate
+        run: cargo test --manifest-path agentsprotocol/src/validator/Cargo.toml
