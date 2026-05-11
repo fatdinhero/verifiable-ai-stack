@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Fatih Dinc", email = "fatdinhero@gmail.com" }]
-keywords = ["consensus", "GHOSTDAG", "zkVM", "semantic-validation", "Meta-Bell"]
+keywords = ["consensus", "GHOSTDAG", "zkVM", "semantic-validation", "Meta-Bell", "ai-verification", "proof-of-work"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: Apache Software License",
@@ -37,6 +37,7 @@ Homepage      = "https://agentsprotocol.org"
 Repository    = "https://github.com/fatdinhero/agentsprotocol"
 Documentation = "https://agentsprotocol.org/docs"
 DOI           = "https://doi.org/10.5281/zenodo.19642292"
+Changelog     = "https://github.com/fatdinhero/agentsprotocol/blob/main/CHANGELOG.md"
 
 [project.scripts]
 agentsprotocol = "agentsprotocol.cli:main"
