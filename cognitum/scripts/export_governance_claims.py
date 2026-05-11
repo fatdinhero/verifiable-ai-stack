@@ -464,7 +464,11 @@ def _normalize_external_validator_results(
 def _load_external_validator_results(path: Path, claims: Sequence[Claim]) -> list[ValidatorResult]:
     """Load external validator outputs from a local JSON file."""
     data = json.loads(path.read_text(encoding="utf-8"))
-    return _normalize_external_validator_results(data, claims, source=str(path))
+    results = _normalize_external_validator_results(data, claims, source=str(path))
+    source_hash = _file_sha256(path)
+    for result in results:
+        result["source_sha256"] = source_hash
+    return results
 
 
 def _load_external_validator_results_api(
@@ -565,7 +569,7 @@ def _run_validators_parallel(
     claims: Sequence[Claim],
     *,
     validator_names: Sequence[str],
-    validator_results_path: Path | None,
+    validator_results_paths: Sequence[Path],
     validator_result_apis: Sequence[str],
     validator_api_timeout_seconds: int,
     validator_api_retries: int,
@@ -583,7 +587,7 @@ def _run_validators_parallel(
                     executor.submit(_run_timed_builtin_validator, profile, claims),
                 )
             )
-        if validator_results_path:
+        for validator_results_path in validator_results_paths:
             tasks.append(
                 (
                     str(validator_results_path),
@@ -720,6 +724,7 @@ def validate_governance_claims(
     *,
     validator_names: Sequence[str] = DEFAULT_VALIDATORS,
     validator_results_path: Path | None = None,
+    validator_results_paths: Sequence[Path] = (),
     validator_result_apis: Sequence[str] = (),
     theta_min: float = 0.6,
     psi_min: float = 0.7,
@@ -737,10 +742,14 @@ def validate_governance_claims(
 
     generated_at = generated_at or _utc_now()
     audit_started = time.perf_counter()
+    all_validator_result_paths = (
+        ([validator_results_path] if validator_results_path else [])
+        + list(validator_results_paths)
+    )
     validator_results = _run_validators_parallel(
         claims,
         validator_names=validator_names,
-        validator_results_path=validator_results_path,
+        validator_results_paths=all_validator_result_paths,
         validator_result_apis=validator_result_apis,
         validator_api_timeout_seconds=validator_api_timeout_seconds,
         validator_api_retries=validator_api_retries,
@@ -763,6 +772,15 @@ def validate_governance_claims(
     signature_preview = _signature_block(report_hash_placeholder, hmac_key_env)
     signature_present = signature_preview["status"] == "signed"
     quality_gate_passed = accepted and (signature_present or not require_signature)
+    failure_reasons: list[str] = []
+    if not accepted:
+        failure_reasons.append(
+            "AgentsProtocol check_acceptance rejected the governance claim set"
+        )
+    if require_signature and not signature_present:
+        failure_reasons.append(
+            f"Signature is required but {hmac_key_env} is missing or empty"
+        )
     quality_gate = {
         "name": "governance-audit",
         "status": "passed" if quality_gate_passed else "failed",
@@ -777,6 +795,7 @@ def validate_governance_claims(
             "psi": round(psi, 6),
             "signature_present": signature_present,
         },
+        "failure_reasons": failure_reasons,
         "rule": (
             "check_acceptance(mean_s_con, psi, theta_min, psi_min) "
             "AND (signature_present OR NOT signature_required)"
@@ -829,6 +848,9 @@ def validate_governance_claims(
             "external_validator_results": str(validator_results_path)
             if validator_results_path
             else None,
+            "external_validator_result_files": [
+                str(path) for path in all_validator_result_paths
+            ],
             "external_validator_apis": list(validator_result_apis),
             "validator_api_timeout_seconds": validator_api_timeout_seconds,
             "validator_api_retries": validator_api_retries,
@@ -870,6 +892,7 @@ def validate_governance_claims(
                 "corpus_mode": result.get("corpus_mode"),
                 "tau": result.get("tau"),
                 "source": result.get("source"),
+                "source_sha256": result.get("source_sha256"),
                 "version": result.get("version"),
                 "duration_ms": result.get("duration_ms"),
             }
@@ -919,6 +942,10 @@ def _parse_csv_values(raw: str | None) -> tuple[str, ...]:
     return tuple(value.strip() for value in raw.split(",") if value.strip())
 
 
+def _parse_path_values(raw: str | None) -> tuple[Path, ...]:
+    return tuple(Path(value) for value in _parse_csv_values(raw))
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--masterplan", type=Path, default=DEFAULT_MASTERPLAN)
@@ -936,9 +963,8 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--validator-results",
-        type=Path,
         default=None,
-        help="Optional JSON file with external validator scores.",
+        help="Optional comma-separated JSON file path(s) with external validator scores.",
     )
     parser.add_argument(
         "--validator-api",
@@ -976,7 +1002,7 @@ def main() -> None:
         report = validate_governance_claims(
             claims,
             validator_names=_parse_validator_names(args.validators),
-            validator_results_path=args.validator_results,
+            validator_results_paths=_parse_path_values(args.validator_results),
             validator_result_apis=_parse_csv_values(args.validator_api),
             theta_min=args.theta_min,
             psi_min=args.psi_min,
