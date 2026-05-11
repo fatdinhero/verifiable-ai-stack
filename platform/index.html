@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentsProtocol Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c0f;--surface:#111318;--border:#1e2330;--text:#e8eaf0;--muted:#6b7590;--accent:#3b82f6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+nav{border-bottom:1px solid var(--border);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;}
+nav a{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);text-decoration:none;}
+nav a:hover{color:var(--text);}
+.badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);padding:3px 10px;border-radius:99px;}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px;}
+.hero{padding:72px 0 48px;text-align:center;}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+.hero h1 em{font-style:normal;background:linear-gradient(120deg,#3b82f6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{color:var(--muted);max-width:520px;margin:0 auto;line-height:1.7;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:40px 0 64px;}
+.tile{background:var(--surface);padding:28px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;transition:background .2s;position:relative;}
+.tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--tc);opacity:0;transition:opacity .2s;}
+.tile:hover{background:#14181f;}
+.tile:hover::after{opacity:1;}
+.icon{width:40px;height:40px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.tag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--tc);text-transform:uppercase;}
+.tile h2{font-size:1rem;font-weight:700;}
+.tile p{font-size:.85rem;color:var(--muted);line-height:1.6;flex:1;}
+.arr{font-family:'DM Mono',monospace;font-size:11px;color:var(--tc);opacity:0;transition:opacity .2s;}
+.tile:hover .arr{opacity:1;}
+footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center;}
+footer p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+footer a{color:var(--accent);text-decoration:none;}
+</style>
+</head>
+<body>
+<nav class="wrap">
+<a href="https://agentsprotocol.org">← agentsprotocol.org</a>
+<span class="badge">PLATFORM v0.1</span>
+</nav>
+<div class="wrap">
+<section class="hero">
+<h1>One entry point.<br><em>Every layer.</em></h1>
+<p>The orchestration layer for AI agent development — from validated protocol to live demo, from open contribution to revenue.</p>
+</section>
+<div class="grid">
+<a class="tile" style="--tc:#22c55e" href="https://agentsprotocol.org/detect/" target="_blank">
+<div class="icon">⚡</div><span class="tag">Live</span><h2>Try the Demo</h2>
+<p>Run a real Meta-Bell Ψ analysis on any claim. WiseScore, manipulation risk, validator independence — live.</p>
+<span class="arr">Open demo →</span></a>
+<a class="tile" style="--tc:#f59e0b" href="https://saskiaspohrmann.gumroad.com" target="_blank">
+<div class="icon">🛒</div><span class="tag">Commerce</span><h2>Buy the CLI</h2>
+<p>CNA CLI v0.3 — automated compliance checking for GEG, TA Lärm and VDI 4645. Local, offline, €99.</p>
+<span class="arr">Get it →</span></a>
+<a class="tile" style="--tc:#3b82f6" href="https://github.com/fatdinhero/agentsprotocol" target="_blank">
+<div class="icon">⬡</div><span class="tag">Open Source</span><h2>View the Code</h2>
+<p>Reference implementation, 184 tests green, DOI-linked, Bitcoin-timestamped. Apache 2.0 + CC BY 4.0.</p>
+<span class="arr">GitHub →</span></a>
+<a class="tile" style="--tc:#a78bfa" href="https://radicle.zulipchat.com/#narrow/channel/369277-heartwood" target="_blank">
+<div class="icon">◈</div><span class="tag">Community</span><h2>Join the Discussion</h2>
+<p>Protocol development in Radicle Zulip #heartwood. Rust, zkVM, Python — good first issues available.</p>
+<span class="arr">Zulip →</span></a>
+<a class="tile" style="--tc:#22d3ee" href="https://doi.org/10.5281/zenodo.19642292" target="_blank">
+<div class="icon">∿</div><span class="tag">Science</span><h2>Read the Protocol</h2>
+<p>Whitepaper v1.2 — Meta-Bell Theory, PoWW, PoISV, Bell-SPVU. Peer-reviewable, formally specified.</p>
+<span class="arr">Zenodo DOI →</span></a>
+<a class="tile" style="--tc:#22c55e" href="https://github.com/fatdinhero/agentsprotocol/issues" target="_blank">
+<div class="icon">⊕</div><span class="tag">Contribute</span><h2>Submit a Contribution</h2>
+<p>Open issues for Rust validator client, zkVM integration, Python corpus and documentation.</p>
+<span class="arr">View issues →</span></a>
+<a class="tile" style="--tc:#3b82f6" href="https://app.radicle.xyz/nodes/iris.radicle.xyz/rad:z2rcpKt6WkzXsdyPs9shwnrtpcPmS" target="_blank">
+<div class="icon">⧖</div><span class="tag">Proof</span><h2>Verify the Proof</h2>
+<p>Bitcoin Block #945,622 · 2026-04-18. Radicle mirror live. Immutable, independently verifiable.</p>
+<span class="arr">Radicle →</span></a>
+<a class="tile" style="--tc:#6b7590" href="https://mastodon.social/@agentsprotocol" target="_blank">
+<div class="icon">⟁</div><span class="tag">Coming soon</span><h2>Translate Content</h2>
+<p>Multilingual layer in development. Follow progress on Mastodon or open a translation issue on GitHub.</p>
+<span class="arr">Follow updates →</span></a>
+</div>
+</div>
+<footer><p>AgentsProtocol — <a href="https://agentsprotocol.org">agentsprotocol.org</a> · DOI <a href="https://doi.org/10.5281/zenodo.19642292">10.5281/zenodo.19642292</a> · Bitcoin Block #945,622 · <a href="https://github.com/fatdinhero/agentsprotocol">GitHub</a></p></footer>
+</body>
+</html>
