@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jsongate"
+version = "0.1.0"
+description = "100% valid JSON from local LLMs with zero retries"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Fatih Dinc", email = "fatdinhero@gmail.com"},
+]
+keywords = ["llm", "json", "structured-output", "constrained-decoding", "mlx"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+mlx = [
+    "mlx>=0.10",
+    "mlx-lm>=0.19",
+    "transformers>=4.38",
+]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+llmjson = "llmjson.cli:main"
+
+[project.urls]
+Homepage = "https://llmjson.com"
+Repository = "https://github.com/fatdinhero/llmjson"
+
+[tool.setuptools.packages.find]
+include = ["llmjson*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

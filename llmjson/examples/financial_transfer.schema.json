@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "transaction_id": {"type": "string"},
+    "sender": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "iban": {"type": "string"}
+      }
+    },
+    "receiver": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "iban": {"type": "string"}
+      }
+    },
+    "amount": {"type": "number"},
+    "currency": {"type": "string"},
+    "timestamp": {"type": "string"}
+  }
+}
