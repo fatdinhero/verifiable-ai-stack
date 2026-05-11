@@ -43,9 +43,12 @@ python cognitum/scripts/export_governance_claims.py --fail-on-reject
 
 Each report contains:
 
+- `report_schema` (`verifiable-ai-stack/governance-audit/v2.1`)
 - `report_version`
+- structured `metadata` with tool, runtime, and GitHub Actions context when available
 - `source_sha256` for `cognitum/governance/masterplan.yaml`
 - `original_claim_sha256` for each exported governance claim
+- `quality_gate` with thresholds, observed values, and pass/fail status
 - `integrity.report_payload_sha256`
 - optional HMAC-SHA256 signature metadata
 
@@ -92,6 +95,35 @@ Expected shape:
 ```
 
 Every external validator must provide a score in `[0.0, 1.0]` for every exported claim. `Psi` is computed from the validator error vectors relative to the first validator in the report.
+
+External validators can also be fetched from an HTTP(S) API:
+
+```bash
+python cognitum/scripts/export_governance_claims.py \
+  --validator-api https://validator.example.com/governance-audit.json \
+  --fail-on-reject
+```
+
+The API must return the same JSON shape as `--validator-results`. Network and schema errors fail closed before validation.
+
+## Adding a new validator
+
+Use one of two paths:
+
+1. **Built-in deterministic validator:** add a `ValidatorProfile` entry in `BUILT_IN_VALIDATORS` inside `cognitum/scripts/export_governance_claims.py`. Use this for CI-safe, local, reproducible validation strategies.
+2. **Independent external validator:** run a separate process or service that receives exported claim IDs/statements and returns the `validators[].scores` JSON structure shown above. Attach it with `--validator-results` or `--validator-api`.
+
+For regulated environments, prefer independent external validators operated in separate trust domains. Keep validator output immutable, signed, and archived with the audit report.
+
+## CI quality gate
+
+`.github/workflows/governance-audit.yml` runs on push, pull requests, and manual dispatch. It:
+
+1. installs audit dependencies,
+2. runs `cognitum/scripts/export_governance_claims.py --fail-on-reject`,
+3. validates the generated report shape,
+4. uploads the audit report as a workflow artifact,
+5. fails the job when `check_acceptance` rejects the report.
 
 ## Interpretation
 

@@ -1,4 +1,5 @@
 import importlib.util
+import io
 import json
 import sys
 from pathlib import Path
@@ -38,9 +39,11 @@ def test_validates_claims_with_agentsprotocol_primitives():
     report = module.validate_governance_claims(claims)
 
     assert report["validator"] == "agentsprotocol"
-    assert report["report_version"] == "2.0.0"
+    assert report["report_version"] == "2.1.0"
+    assert report["metadata"]["tool"] == "cognitum-governance-audit"
     assert report["summary"]["claim_count"] == 6
     assert report["summary"]["accepted"] is True
+    assert report["quality_gate"]["passed"] is True
     assert report["summary"]["mean_s_con"] == 1.0
     assert report["summary"]["psi"] == 1.0
     assert report["integrity"]["report_payload_sha256"]
@@ -107,6 +110,46 @@ def test_accepts_external_validator_results(tmp_path):
         "built-in",
         "external",
     }
+
+
+def test_accepts_external_validator_results_api(monkeypatch):
+    module = _load_module()
+    claims = module.export_governance_claims()[:4]
+    payload = {
+        "validators": [
+            {
+                "name": "api-validator-a",
+                "scores": {claim["id"]: 0.97 for claim in claims},
+            }
+        ]
+    }
+
+    class FakeResponse(io.BytesIO):
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    def fake_urlopen(request, timeout):
+        assert request.full_url == "https://validators.example/audit"
+        assert timeout > 0
+        return FakeResponse(json.dumps(payload).encode("utf-8"))
+
+    monkeypatch.setattr(module, "urlopen", fake_urlopen)
+
+    report = module.validate_governance_claims(
+        claims,
+        validator_results_api="https://validators.example/audit",
+    )
+
+    assert report["summary"]["validator_count"] == 2
+    assert any(
+        validator["name"] == "api-validator-a" and validator["source"] == "https://validators.example/audit"
+        for validator in report["validators"]
+    )
 
 
 def test_writes_latest_audit_report(tmp_path):

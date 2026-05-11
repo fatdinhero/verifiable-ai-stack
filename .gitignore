@@ -75,6 +75,7 @@ reports/
 
 # Generated governance audit snapshots; keep docs/governance-audit/latest.json tracked.
 docs/governance-audit/governance-audit-*.json
+docs/governance-audit/20*.json
 
 # COGNITUM private/IP artefacts
 cognitum_theory/
