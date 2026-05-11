@@ -21,7 +21,6 @@ venv/
 ENV/
 .pytest_cache/
 .mypy_cache/
-.ruff_cache/
 .pyre/
 .coverage
 .coverage.*
@@ -73,6 +72,9 @@ dpo_dataset.jsonl
 dataset_metadata.json
 export/
 reports/
+
+# Generated governance audit snapshots; keep docs/governance-audit/latest.json tracked.
+docs/governance-audit/governance-audit-*.json
 
 # COGNITUM private/IP artefacts
 cognitum_theory/

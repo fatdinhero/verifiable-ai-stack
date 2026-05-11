@@ -4,8 +4,16 @@ The semantic layer connects COGNITUM governance artifacts to AgentsProtocol vali
 
 ## Scripts
 
-- `governance_claims.py` exports masterplan modules, ADRs, and privacy invariants as deterministic bridge claims.
-- `validate_governance_claims.py` validates those claims with AgentsProtocol `S_con`, `Psi`, and `check_acceptance`.
+- `governance_claims.py` is a compatibility wrapper around the canonical COGNITUM exporter.
+- `validate_governance_claims.py` is a compatibility wrapper around the canonical COGNITUM validator.
+
+The canonical implementation lives in:
+
+```text
+cognitum/scripts/export_governance_claims.py
+```
+
+because COGNITUM owns `governance/masterplan.yaml`.
 
 ## Contract
 
@@ -15,7 +23,7 @@ Bridge claims are intentionally simple and stable:
 {
   "id": "sha256",
   "source": "cognitum/governance/masterplan.yaml",
-  "kind": "module|adr|privacy_invariant",
+  "kind": "module|architecture_decision|risk|privacy_invariant",
   "statement": "human readable claim",
   "metadata": {}
 }
