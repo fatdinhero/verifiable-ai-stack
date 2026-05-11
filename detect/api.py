@@ -76,8 +76,8 @@ def validate(req: ValidateRequest) -> ValidateResponse:
     # S_con — semantic consistency of claim against corpus
     s = compute_s_con(
         claim_text=req.claim,
-        corpus=corpus,
-        embed_fn=_stub_embed,
+        knowledge_corpus=corpus,
+        embed=_stub_embed,
         tau=0.0,  # no threshold clipping — return raw score
     )
 

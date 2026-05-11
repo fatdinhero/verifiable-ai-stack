@@ -27,3 +27,7 @@ Thumbs.db
 # Secrets
 .env
 .env.*
+
+# Fly deploy artifacts
+detect/wheels/
+detect/agentsprotocol_pkg/
