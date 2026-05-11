@@ -21,11 +21,14 @@ import hashlib
 import hmac
 import json
 import os
+import platform
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 try:
     import yaml
@@ -39,11 +42,12 @@ DEFAULT_MASTERPLAN = COGNITUM_ROOT / "governance" / "masterplan.yaml"
 DEFAULT_AUDIT_DIR = REPO_ROOT / "docs" / "governance-audit"
 AGENTSPROTOCOL_SRC = REPO_ROOT / "agentsprotocol" / "src"
 
-REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2"
-REPORT_VERSION = "2.0.0"
+REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.1"
+REPORT_VERSION = "2.1.0"
 CLAIM_SCHEMA = "verifiable-ai-stack/governance-claim/v1"
 DEFAULT_VALIDATORS = ("baseline",)
 DEFAULT_HMAC_ENV = "GOVERNANCE_AUDIT_HMAC_KEY"
+DEFAULT_API_TIMEOUT_SECONDS = 15
 
 if str(AGENTSPROTOCOL_SRC) not in sys.path:
     sys.path.insert(0, str(AGENTSPROTOCOL_SRC))
@@ -333,8 +337,13 @@ def _run_builtin_validator(
     }
 
 
-def _load_external_validator_results(path: Path, claims: Sequence[Claim]) -> list[ValidatorResult]:
-    """Load external validator outputs from JSON.
+def _normalize_external_validator_results(
+    data: Any,
+    claims: Sequence[Claim],
+    *,
+    source: str,
+) -> list[ValidatorResult]:
+    """Normalize external validator outputs from a parsed JSON value.
 
     Expected shape:
     {
@@ -346,7 +355,6 @@ def _load_external_validator_results(path: Path, claims: Sequence[Claim]) -> lis
       ]
     }
     """
-    data = json.loads(path.read_text(encoding="utf-8"))
     validators = data.get("validators", data if isinstance(data, list) else [])
     if not isinstance(validators, list):
         raise ValueError("External validator results must contain a validators list")
@@ -376,10 +384,42 @@ def _load_external_validator_results(path: Path, claims: Sequence[Claim]) -> lis
                 "name": str(name),
                 "type": "external",
                 "description": entry.get("description", "External validator result"),
+                "source": source,
                 "scores": normalized,
             }
         )
     return results
+
+
+def _load_external_validator_results(path: Path, claims: Sequence[Claim]) -> list[ValidatorResult]:
+    """Load external validator outputs from a local JSON file."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return _normalize_external_validator_results(data, claims, source=str(path))
+
+
+def _load_external_validator_results_api(
+    url: str,
+    claims: Sequence[Claim],
+    *,
+    timeout_seconds: int = DEFAULT_API_TIMEOUT_SECONDS,
+) -> list[ValidatorResult]:
+    """Load external validator outputs from an HTTP(S) API endpoint.
+
+    The endpoint must return the same JSON shape accepted by `--validator-results`.
+    Network failures are surfaced as validation setup errors so CI fails closed.
+    """
+    request = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310
+            status = getattr(response, "status", 200)
+            if status >= 400:
+                raise ValueError(f"Validator API {url!r} returned HTTP {status}")
+            data = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        raise ValueError(f"Validator API {url!r} returned HTTP {exc.code}") from exc
+    except URLError as exc:
+        raise ValueError(f"Validator API {url!r} is unreachable: {exc.reason}") from exc
+    return _normalize_external_validator_results(data, claims, source=url)
 
 
 def _select_builtin_validators(names: Sequence[str]) -> list[ValidatorProfile]:
@@ -472,11 +512,26 @@ def _signature_block(report_hash: str, hmac_key_env: str) -> dict[str, Any]:
     }
 
 
+def _github_context() -> dict[str, Any]:
+    """Return GitHub Actions metadata when available."""
+    keys = {
+        "repository": "GITHUB_REPOSITORY",
+        "ref": "GITHUB_REF",
+        "sha": "GITHUB_SHA",
+        "run_id": "GITHUB_RUN_ID",
+        "run_attempt": "GITHUB_RUN_ATTEMPT",
+        "workflow": "GITHUB_WORKFLOW",
+        "actor": "GITHUB_ACTOR",
+    }
+    return {name: os.getenv(env) for name, env in keys.items() if os.getenv(env)}
+
+
 def validate_governance_claims(
     claims: Sequence[Claim],
     *,
     validator_names: Sequence[str] = DEFAULT_VALIDATORS,
     validator_results_path: Path | None = None,
+    validator_results_api: str | None = None,
     theta_min: float = 0.6,
     psi_min: float = 0.7,
     generated_at: datetime | None = None,
@@ -497,7 +552,12 @@ def validate_governance_claims(
         if validator_results_path
         else []
     )
-    validator_results = [*builtin_results, *external_results]
+    api_results = (
+        _load_external_validator_results_api(validator_results_api, claims)
+        if validator_results_api
+        else []
+    )
+    validator_results = [*builtin_results, *external_results, *api_results]
     if not validator_results:
         raise ValueError("At least one validator is required")
 
@@ -511,10 +571,34 @@ def validate_governance_claims(
     psi = compute_psi(error_vectors)
     accepted = check_acceptance(aggregate_scores, psi, theta_min=theta_min, psi_min=psi_min)
     mean_s_con = sum(aggregate_scores) / len(aggregate_scores) if aggregate_scores else 0.0
+    quality_gate = {
+        "name": "governance-audit",
+        "status": "passed" if accepted else "failed",
+        "passed": accepted,
+        "thresholds": {
+            "theta_min": theta_min,
+            "psi_min": psi_min,
+        },
+        "observed": {
+            "mean_s_con": round(mean_s_con, 6),
+            "psi": round(psi, 6),
+        },
+        "rule": "check_acceptance(mean_s_con, psi, theta_min, psi_min)",
+    }
 
     report_without_integrity: dict[str, Any] = {
         "report_schema": REPORT_SCHEMA,
         "report_version": REPORT_VERSION,
+        "metadata": {
+            "tool": "cognitum-governance-audit",
+            "tool_version": REPORT_VERSION,
+            "claim_schema": CLAIM_SCHEMA,
+            "generated_at": generated_at.isoformat(),
+            "generated_date": generated_at.date().isoformat(),
+            "python": platform.python_version(),
+            "platform": platform.platform(),
+            "github": _github_context(),
+        },
         "generated_at": generated_at.isoformat(),
         "generated_date": generated_at.date().isoformat(),
         "source": "cognitum/governance/masterplan.yaml",
@@ -527,7 +611,9 @@ def validate_governance_claims(
             "external_validator_results": str(validator_results_path)
             if validator_results_path
             else None,
+            "external_validator_api": validator_results_api,
         },
+        "quality_gate": quality_gate,
         "quality_model": {
             "vdi": "VDI 2221/2225 systematic decision and evaluation traceability",
             "iso_25010": [
@@ -541,6 +627,7 @@ def validate_governance_claims(
                 "original claim SHA-256 hashes",
                 "report payload SHA-256",
                 "optional HMAC-SHA256 signature",
+                "multi-validator Psi evidence",
             ],
         },
         "summary": {
@@ -558,6 +645,7 @@ def validate_governance_claims(
                 "description": result.get("description"),
                 "corpus_mode": result.get("corpus_mode"),
                 "tau": result.get("tau"),
+                "source": result.get("source"),
             }
             for result in validator_results
         ],
@@ -616,6 +704,11 @@ def _parse_args() -> argparse.Namespace:
         default=None,
         help="Optional JSON file with external validator scores.",
     )
+    parser.add_argument(
+        "--validator-api",
+        default=None,
+        help="Optional HTTP(S) endpoint returning external validator scores as JSON.",
+    )
     parser.add_argument("--hmac-key-env", default=DEFAULT_HMAC_ENV)
     parser.add_argument("--stdout", action="store_true", help="Print report instead of writing")
     parser.add_argument(
@@ -637,6 +730,7 @@ def main() -> None:
             claims,
             validator_names=_parse_validator_names(args.validators),
             validator_results_path=args.validator_results,
+            validator_results_api=args.validator_api,
             theta_min=args.theta_min,
             psi_min=args.psi_min,
             masterplan_path=args.masterplan,

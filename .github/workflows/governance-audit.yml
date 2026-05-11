@@ -2,21 +2,28 @@ name: Governance Audit
 
 on:
   push:
-    branches:
-      - main
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: governance-audit-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   governance-audit:
     name: COGNITUM governance quality gate
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install audit dependencies
         run: |
@@ -41,10 +48,36 @@ jobs:
 
           report_path = Path(os.environ["RUNNER_TEMP"]) / "governance-audit" / "latest.json"
           report = json.loads(report_path.read_text(encoding="utf-8"))
-          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2"
+          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.1"
+          assert report["report_version"] == "2.1.0"
+          assert report["quality_gate"]["passed"] is True
           assert report["summary"]["accepted"] is True
           assert report["integrity"]["report_payload_sha256"]
           print("governance-audit-ok", report["summary"])
+          PY
+
+      - name: Append audit summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          import os
+          from pathlib import Path
+
+          report_path = Path(os.environ["RUNNER_TEMP"]) / "governance-audit" / "latest.json"
+          if not report_path.exists():
+              print("## Governance Audit\n\nReport was not generated.")
+              raise SystemExit(0)
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          summary = report["summary"]
+          print("## Governance Audit")
+          print("")
+          print(f"- Status: `{report['quality_gate']['status']}`")
+          print(f"- Claims: `{summary['claim_count']}`")
+          print(f"- Validators: `{summary['validator_count']}`")
+          print(f"- mean_s_con: `{summary['mean_s_con']}`")
+          print(f"- psi: `{summary['psi']}`")
+          print(f"- Signature: `{report['integrity']['signature']['status']}`")
           PY
 
       - uses: actions/upload-artifact@v4
@@ -52,3 +85,4 @@ jobs:
         with:
           name: governance-audit-report
           path: ${{ runner.temp }}/governance-audit/
+          retention-days: 30
