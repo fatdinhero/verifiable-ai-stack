@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agentsprotocol.org/schema/claim-v1.0.json",
+  "title": "AgentsProtocol Claim v1.0",
+  "type": "object",
+  "required": ["protocol","version","type","id","timestamp","submitter","signature","payload"],
+  "properties": {
+    "protocol": { "const": "agentsprotocol" },
+    "version":  { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+    "type":     { "const": "claim" },
+    "id":       { "type": "string", "description": "SHA-256 hash of serialised payload" },
+    "timestamp":{ "type": "string", "format": "date-time" },
+    "submitter":{ "type": "string", "description": "Ed25519 public key (hex)" },
+    "signature":{ "type": "string", "description": "Ed25519 signature over id" },
+    "payload": {
+      "type": "object",
+      "required": ["statement","entities","predicate","value"],
+      "properties": {
+        "statement":{ "type": "string" },
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name","type"],
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "uri":  { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "predicate": { "type": "string" },
+        "value":     { "type": "object" },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type","uri"],
+            "properties": {
+              "type":      { "type": "string" },
+              "uri":       { "type": "string", "format": "uri" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "context": {
+          "type": "object",
+          "properties": {
+            "domain":          { "type": "string" },
+            "knowledgeCorpus": { "type": "string", "format": "uri" }
+          }
+        }
+      }
+    }
+  }
+}

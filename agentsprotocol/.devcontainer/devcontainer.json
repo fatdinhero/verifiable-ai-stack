@@ -1,0 +1,6 @@
+{
+  "name": "AgentsProtocol",
+  "build": { "dockerfile": "Dockerfile" },
+  "postCreateCommand": "pip install -e '.[dev]'",
+  "features": { "ghcr.io/devcontainers/features/rust:1": {} }
+}

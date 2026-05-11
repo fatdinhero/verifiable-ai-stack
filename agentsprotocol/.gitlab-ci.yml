@@ -1,0 +1,41 @@
+# GitLab CI — mirrors GitHub Actions
+# Python 3.11 + Rust stable
+
+stages:
+  - test
+
+variables:
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+# ── Python ────────────────────────────────────────────────────────────────────
+python-test:
+  stage: test
+  image: python:3.11-slim
+  cache:
+    key: pip-$CI_COMMIT_REF_SLUG
+    paths:
+      - .pip-cache/
+  script:
+    - pip install -e ".[dev]"
+    - pytest tests/ -v --tb=short
+  parallel:
+    matrix:
+      - PYTHON_IMAGE: ["python:3.10-slim", "python:3.11-slim", "python:3.12-slim"]
+  image: $PYTHON_IMAGE
+
+# ── Rust ──────────────────────────────────────────────────────────────────────
+rust-test:
+  stage: test
+  image: rust:1.78-slim
+  cache:
+    key: cargo-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cargo/
+      - src/validator/target/
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq pkg-config libssl-dev
+  script:
+    - cargo test --manifest-path src/validator/Cargo.toml
+    - cargo build --release --manifest-path src/validator/Cargo.toml
+    - cargo build --release --features http-embed --manifest-path src/validator/Cargo.toml

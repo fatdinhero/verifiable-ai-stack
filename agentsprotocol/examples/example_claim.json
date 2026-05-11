@@ -1,0 +1,28 @@
+{
+  "protocol": "agentsprotocol",
+  "version": "1.0",
+  "type": "claim",
+  "id": "0x7a9f3cabf2e1d6c7b4a0e5c8d9f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+  "timestamp": "2026-04-18T14:30:00Z",
+  "submitter": "0x1234abcd5678ef901234abcd5678ef901234abcd5678ef901234abcd5678ef90",
+  "signature": "0xef56789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01",
+  "payload": {
+    "statement": "The temperature in Berlin is 20 degrees Celsius.",
+    "entities": [
+      {"name": "Berlin", "type": "location", "uri": "https://www.wikidata.org/wiki/Q64"}
+    ],
+    "predicate": "hasTemperature",
+    "value": {"amount": 20, "unit": "Celsius"},
+    "evidence": [
+      {
+        "type": "sensor",
+        "uri": "ipfs://QmTweatherSensorReadingCID",
+        "timestamp": "2026-04-18T14:25:00Z"
+      }
+    ],
+    "context": {
+      "domain": "Weather",
+      "knowledgeCorpus": "ipfs://QmKBerlinWeatherCorpusCID"
+    }
+  }
+}
