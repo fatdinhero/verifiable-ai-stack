@@ -39,7 +39,7 @@ def test_validates_claims_with_agentsprotocol_primitives():
     report = module.validate_governance_claims(claims)
 
     assert report["validator"] == "agentsprotocol"
-    assert report["report_version"] == "2.3.0"
+    assert report["report_version"] == "2.4.0"
     assert report["metadata"]["tool"] == "cognitum-governance-audit"
     assert report["metadata"]["report_id"]
     assert report["metadata"]["dependencies"]["agentsprotocol"]
@@ -49,6 +49,7 @@ def test_validates_claims_with_agentsprotocol_primitives():
     assert report["summary"]["claim_count"] == 6
     assert report["summary"]["accepted"] is True
     assert report["quality_gate"]["passed"] is True
+    assert report["quality_gate"]["merge_check"]["github_merge_queue_event"] == "merge_group"
     assert report["summary"]["mean_s_con"] == 1.0
     assert report["summary"]["psi"] == 1.0
     assert report["integrity"]["report_payload_sha256"]
@@ -84,6 +85,21 @@ def test_report_can_be_hmac_signed(monkeypatch):
     assert signature["status"] == "signed"
     assert signature["algorithm"] == "HMAC-SHA256"
     assert len(signature["value"]) == 64
+
+
+def test_can_require_hmac_signature(monkeypatch):
+    module = _load_module()
+    monkeypatch.delenv("GOVERNANCE_AUDIT_HMAC_KEY", raising=False)
+
+    claims = module.export_governance_claims()[:2]
+    unsigned = module.validate_governance_claims(claims, require_signature=True)
+    assert unsigned["summary"]["accepted"] is True
+    assert unsigned["quality_gate"]["passed"] is False
+
+    monkeypatch.setenv("GOVERNANCE_AUDIT_HMAC_KEY", "test-secret")
+    signed = module.validate_governance_claims(claims, require_signature=True)
+    assert signed["quality_gate"]["passed"] is True
+    assert signed["quality_gate"]["observed"]["signature_present"] is True
 
 
 def test_accepts_external_validator_results(tmp_path):

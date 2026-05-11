@@ -3,6 +3,7 @@ name: Governance Audit
 on:
   push:
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 permissions:
@@ -14,7 +15,7 @@ concurrency:
 
 jobs:
   governance-audit:
-    name: COGNITUM governance quality gate
+    name: Cognitum Governance Audit / governance-audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,14 +34,20 @@ jobs:
       - name: Run governance audit
         env:
           GOVERNANCE_AUDIT_HMAC_KEY: ${{ secrets.GOVERNANCE_AUDIT_HMAC_KEY }}
+          REQUIRE_GOVERNANCE_AUDIT_SIGNATURE: ${{ vars.REQUIRE_GOVERNANCE_AUDIT_SIGNATURE || 'false' }}
         run: |
           set -euo pipefail
+          SIGNATURE_FLAG=""
+          if [ "$REQUIRE_GOVERNANCE_AUDIT_SIGNATURE" = "true" ]; then
+            SIGNATURE_FLAG="--require-signature"
+          fi
           python cognitum/scripts/export_governance_claims.py \
             --audit-dir "$RUNNER_TEMP/governance-audit" \
             --validators baseline \
             --validator-api-timeout 15 \
             --validator-api-retries 2 \
-            --fail-on-reject
+            --fail-on-reject \
+            $SIGNATURE_FLAG
 
       - name: Validate generated report shape
         run: |
@@ -52,13 +59,14 @@ jobs:
 
           report_path = Path(os.environ["RUNNER_TEMP"]) / "governance-audit" / "latest.json"
           report = json.loads(report_path.read_text(encoding="utf-8"))
-          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.3"
-          assert report["report_version"] == "2.3.0"
+          assert report["report_schema"] == "verifiable-ai-stack/governance-audit/v2.4"
+          assert report["report_version"] == "2.4.0"
           assert report["quality_gate"]["passed"] is True
           assert report["summary"]["accepted"] is True
           assert report["metadata"]["git_commit"]
           assert report["metadata"]["report_id"]
           assert report["metadata"]["dependencies"]["agentsprotocol"]
+          assert report["quality_gate"]["merge_check"]["github_merge_queue_event"] == "merge_group"
           assert report["integrity"]["report_payload_sha256"]
           print("governance-audit-ok", report["summary"])
           PY
@@ -88,6 +96,7 @@ jobs:
           print(f"- Report hash: `{report['integrity']['report_payload_sha256']}`")
           print(f"- Report ID: `{report['metadata']['report_id']}`")
           print(f"- Git commit: `{report['metadata']['git_commit']}`")
+          print(f"- Required check: `{report['quality_gate']['merge_check']['required_status_check']}`")
           PY
 
       # Optional notification hook for regulated deployments:
