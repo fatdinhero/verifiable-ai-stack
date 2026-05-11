@@ -7,8 +7,8 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
@@ -17,9 +17,15 @@ jobs:
   rust:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install clang
-        run: sudo apt-get install -y clang
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src/validator/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src/validator/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - name: cargo test
         run: cargo test --manifest-path src/validator/Cargo.toml

@@ -15,6 +15,7 @@ use std::hash::{Hash, Hasher};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use futures::StreamExt;
 use libp2p::{
     gossipsub, noise,
     swarm::SwarmEvent,
