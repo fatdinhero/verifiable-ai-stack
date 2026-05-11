@@ -274,4 +274,72 @@ class BaseAgent:
         Notes
         -----
         The default implementation returns a placeholder result indicating
-        that no execution
+        that no execution occurred. Subclasses should override this method.
+        """
+        return {
+            "summary": "No task execution implemented.",
+            "detail": (
+                f"Agent '{self._name}' uses BaseAgent._execute() directly. "
+                "Provide a subclass implementation for domain-specific work."
+            ),
+            "sources": [],
+            "confidence": 0.0,
+        }
+
+    def _normalise_result(self, result: Any) -> dict:
+        """Return a result dict that conforms to the agent output contract."""
+        if not isinstance(result, dict):
+            result = {
+                "summary": "Agent returned a non-dict result.",
+                "detail": str(result),
+                "sources": [],
+                "confidence": 0.0,
+            }
+
+        summary = str(result.get("summary", ""))
+        detail = str(result.get("detail", ""))
+        sources = result.get("sources", [])
+        if sources is None:
+            sources = []
+        elif not isinstance(sources, list):
+            sources = [str(sources)]
+
+        try:
+            confidence = float(result.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        confidence = max(0.0, min(1.0, confidence))
+
+        return {
+            "summary": summary,
+            "detail": detail,
+            "sources": sources,
+            "confidence": confidence,
+        }
+
+    def _persist_run(self, task_fingerprint: str, task_json: str, result: dict) -> None:
+        """Persist a structured run result to the SQLite run log."""
+        timestamp = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        conn = self._get_connection()
+        try:
+            conn.execute(
+                """
+                INSERT INTO agent_runs (
+                    id, agent_name, timestamp, task_fingerprint,
+                    task_json, result_json, confidence
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    str(uuid.uuid4()),
+                    self._name,
+                    timestamp,
+                    task_fingerprint,
+                    task_json,
+                    json.dumps(result, sort_keys=True, default=str),
+                    float(result.get("confidence", 0.0)),
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()

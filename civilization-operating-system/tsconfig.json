@@ -1,0 +1,40 @@
+﻿{
+    "include":  [
+                    "src/**/*"
+                ],
+    "exclude":  [
+                    "node_modules",
+                    "dist",
+                    "**/*.test.ts"
+                ],
+    "compilerOptions":  {
+                            "alwaysStrict":  true,
+                            "module":  "ES2020",
+                            "strict":  true,
+                            "moduleResolution":  "node",
+                            "outDir":  "./dist",
+                            "noUnusedParameters":  true,
+                            "lib":  [
+                                        "ES2020"
+                                    ],
+                            "noFallthroughCasesInSwitch":  true,
+                            "rootDir":  "./src",
+                            "skipLibCheck":  true,
+                            "noImplicitAny":  true,
+                            "strictPropertyInitialization":  true,
+                            "noImplicitReturns":  true,
+                            "strictBindCallApply":  true,
+                            "declarationMap":  true,
+                            "strictFunctionTypes":  true,
+                            "noUnusedLocals":  true,
+                            "strictNullChecks":  true,
+                            "allowSyntheticDefaultImports":  true,
+                            "target":  "ES2020",
+                            "noImplicitThis":  true,
+                            "declaration":  true,
+                            "resolveJsonModule":  true,
+                            "sourceMap":  true,
+                            "esModuleInterop":  true,
+                            "forceConsistentCasingInFileNames":  true
+                        }
+}

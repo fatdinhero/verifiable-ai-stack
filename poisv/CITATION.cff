@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "AgentsProtocol — Reference Implementation"
+version: "1.0.0"
+date-released: "2026-04-18"
+authors:
+  - family-names: "Dinc"
+    given-names: "Fatih"
+    email: "fatdinhero@gmail.com"
+    city: "Pforzheim"
+    country: "DE"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.19642292
+repository-code: "https://github.com/fatdinhero/agentsprotocol"
+url: "https://agentsprotocol.org"
+license: Apache-2.0
+keywords:
+  - consensus
+  - GHOSTDAG
+  - zkVM
+  - semantic-validation
+  - Meta-Bell
+preferred-citation:
+  type: generic
+  title: "AgentsProtocol, PoISV, Meta-Bell Theory — Archive v1"
+  authors:
+    - family-names: "Dinc"
+      given-names: "Fatih"
+  doi: "10.5281/zenodo.19642292"
+  year: 2026

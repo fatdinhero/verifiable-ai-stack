@@ -1,118 +1,57 @@
-# Beitragen zu COGNITUM / DaySensOS
+# Contributing to verifiable-ai-stack
 
-Vielen Dank fuer dein Interesse an COGNITUM und DaySensOS. Dieses Dokument beschreibt
-die Regeln und Ablaeufe fuer Beitraege zum Projekt.
+This monorepo is organized as a layered system. Contributions should preserve clear ownership boundaries and keep COGNITUM's `governance/masterplan.yaml` as the governance Single Source of Truth.
 
-## Grundregeln
+## Development principles
 
-### Single Source of Truth
+1. **Separation of concerns:** change the layer that owns the behavior.
+2. **No hidden coupling:** cross-repo integration belongs in `mcp/`, `docs/architecture/`, or explicit public APIs.
+3. **Governance first:** product, compliance, and architecture decisions that affect the stack should be represented in COGNITUM governance artifacts.
+4. **Local-first validation:** tests and smoke checks should not require private user data.
+5. **Structured outputs:** machine-consumed LLM output should use schemas and, where appropriate, `llmjson`.
 
-Die Datei `governance/masterplan.yaml` ist die einzige Wahrheitsquelle fuer alle
-Architekturentscheidungen, Module, Privacy-Invarianten und Normen. Aenderungen an der
-Projektstruktur, Architektur oder Governance MUESSEN zuerst in dieser Datei erfolgen.
-Generierte Artefakte (CLAUDE.md, AGENTS.md, docs/masterplan.md, governance/constitution.md)
-duerfen NIEMALS manuell editiert werden.
+## Layer ownership
 
-### Morphologisches Entscheidungsprotokoll (Art. 14)
+| Path | Owns |
+| --- | --- |
+| `cognitum/` | Governance, masterplan, ADRs, DaySensOS, generated agent context. |
+| `agentsprotocol/` | Semantic validation protocol, Python SDK, Rust validator. |
+| `poisv/` | Scientific foundation and reference implementations. |
+| `compliance/` | EU AI Act, halal, zkHalal, and related regulatory tools. |
+| `mcp/` | VeriMCP composition, routing, bridge scripts, integration contracts. |
+| `civilization-operating-system/` | Larger COS backend and vision. |
+| `llmjson/` | Structured JSON generation utility. |
+| `platform/` | Future application and platform surfaces. |
 
-Jede Architektur- oder Produktentscheidung muss den morphologischen Kasten (VDI 2221)
-und die Bewertungsmatrix (VDI 2225) durchlaufen. Entscheidungen werden als ADR
-(Architecture Decision Record) in masterplan.yaml dokumentiert. Keine Entscheidung
-ohne ADR.
+## Before opening a change
 
-### Privacy-Invarianten
-
-Die 10 Privacy-Invarianten (PRIV-01 bis PRIV-10) sind unverletzlich. Insbesondere:
-
-- PRIV-02/03: Kamera und Mikrofon sind default OFF (Per-Sensor-Consent)
-- PRIV-06: Keine biometrischen Rohdaten in DayFeatures
-- PRIV-07: PixelGuard Zero-Retention — kein Kamerabild auf Disk
-
-Kein Beitrag darf diese Invarianten verletzen.
-
-## Workflow
-
-### 1. Vorbereitung
-
-Aktuellen Masterplan lesen:
-```bash
-curl -sL https://gitlab.com/fatdinhero/cognitum/-/raw/main/governance/masterplan.yaml
-```
-
-Produkt-Kontext lesen:
-```bash
-curl -sL https://gitlab.com/fatdinhero/cognitum/-/raw/main/docs/daysensos-product-context.md
-```
-
-### 2. Entwicklung
+Run the checks relevant to the touched layers:
 
 ```bash
-cd ~/COS/cognitum
-source .venv/bin/activate
-# Aenderungen vornehmen
-python -m pytest tests/ validation/tests/ -v   # 63 Tests muessen gruen sein
+python -m compileall -q mcp llmjson/llmjson compliance/eu-ai-act/veriethiccore compliance/zkhalal-mcp/server.py
+
+cd cognitum
+python -m pytest validation/tests tests -q
+
+cd ../agentsprotocol
+python -m pytest tests -q
+rustup run stable cargo test --manifest-path src/validator/Cargo.toml
 ```
 
-### 3. Governance-Aenderungen
-
-Falls masterplan.yaml geaendert wurde:
-```bash
-python scripts/generate.py --targets all
-```
-
-### 4. Commit
-
-Commit-Messages folgen Conventional Commits:
-```
-feat(daysensos): Beschreibung des Features
-fix(l2): Bug in Kontextklassifikation behoben
-docs: Dokumentation aktualisiert
-chore(ots): OpenTimestamps-Anker hinzugefuegt
-ci: Pipeline erweitert
-```
-
-### 5. Push und CI
+For TypeScript changes:
 
 ```bash
-git push origin main
+cd civilization-operating-system
+npm ci
+npm run build
 ```
 
-Die GitLab CI fuehrt automatisch 4 Jobs aus:
-- schema-check: Yamale + Pydantic Validierung
-- consistency-test: 32 Governance-Tests
-- daysensos-test: 31 Produkt-Tests
-- render-configs: Artefakt-Generierung
+## Import policy
 
-Alle 4 Jobs MUESSEN gruen sein.
+External repositories are imported with unsquashed `git subtree` where history preservation matters. Do not replace imported component histories with copied snapshots.
 
-## Was NICHT gemacht werden darf
+## Documentation policy
 
-1. Generierte Dateien manuell editieren (CLAUDE.md, AGENTS.md, etc.)
-2. Consent-Gate umgehen oder Kamera/Mikrofon default ON setzen
-3. Cloud-Dependencies einfuehren (Local-First)
-4. Gamification implementieren (Streaks, Leaderboards, Rankings)
-5. LLM fuer medizinische Aussagen verwenden
-6. Rohaudio speichern (nur Frequenzspektrum)
-7. Kamerabilder auf Disk schreiben (PixelGuard Zero-Retention)
-8. Force-Push auf main (Branch ist protected)
-9. Musik-Referenzen (FatHooray, Cybersoultrap) — permanent eingestellt
-
-## OTS-First (Art. 8)
-
-Vor jeder Veroeffentlichung oder Version-Release MUSS ein OpenTimestamps-Stempel
-gesetzt werden:
-
-```bash
-export PATH="$HOME/Library/Python/3.9/bin:$PATH"
-git rev-parse HEAD > /tmp/commit.txt
-ots stamp /tmp/commit.txt
-cp /tmp/commit.txt.ots governance/ots/
-```
-
-## Lizenz
-
-MIT License. Siehe LICENSE Datei.
-
-## Kontakt
-
-Fatih Dinc — https://gitlab.com/fatdinhero
+- Component-specific docs remain inside the component.
+- Cross-component architecture and integration docs live under `docs/`.
+- Public bridge contracts should be documented before they become runtime-critical.

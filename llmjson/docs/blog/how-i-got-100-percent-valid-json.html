@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How I got 100% valid JSON from local LLMs with zero retries</title>
+  <meta name="description" content="LLMs produce broken JSON. Retrying is expensive. Here's how constrained decoding on Apple Silicon guarantees valid output every time.">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+    }
+    .container { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+
+    header {
+      padding: 60px 0 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    header a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    header a:hover { text-decoration: underline; }
+
+    article { padding: 48px 0 80px; }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .meta {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+    }
+    p {
+      margin-bottom: 20px;
+      font-size: 17px;
+    }
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    code {
+      font-family: var(--font-mono);
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    pre code { background: none; padding: 0; }
+    .kw { color: #ff7b72; }
+    .str { color: #a5d6ff; }
+    .cmt { color: #8b949e; }
+    .num { color: #79c0ff; }
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 20px;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 24px;
+    }
+    li { margin-bottom: 8px; font-size: 17px; }
+    strong { color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .highlight-box {
+      background: rgba(88, 166, 255, 0.08);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 24px 0;
+    }
+
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      p, li { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+<header>
+  <a href="../">&larr; llmjson</a>
+</header>
+
+<article>
+
+<h1>How I got 100% valid JSON from local LLMs with zero retries</h1>
+<p class="meta">Fatih Dinc &middot; April 2026 &middot; 8 min read</p>
+
+<p>If you've tried to get structured data out of an LLM, you know the pattern: ask for JSON, parse the response, catch the exception, retry. Maybe add "ONLY output valid JSON" to the prompt. Maybe wrap the output in a regex. Maybe try three times and hope one works.</p>
+
+<p>I got tired of hoping. I wanted a guarantee.</p>
+
+<p>Not "99.7% valid." Not "usually works after one retry." Actual, mathematical, provable 100% for the schema constructs I support. And I wanted it running locally on my MacBook, not through an API that costs money per token and sees all my data.</p>
+
+<p>This is how I built it.</p>
+
+<h2>The problem is structural</h2>
+
+<p>LLMs generate text one token at a time. Each token is selected from a probability distribution over tens of thousands of vocabulary entries. The model picks the most likely next token, appends it, and repeats.</p>
+
+<p>Nothing in this process knows about JSON. The model has seen JSON in training data, so it has a statistical tendency to produce valid syntax. But tendencies aren't guarantees. A model might emit <code>{"name": "Alice", "age": twenty-nine}</code> because "twenty-nine" is a plausible continuation of "age":</p>
+
+<p>Post-hoc validation catches the error after it happens. Retrying hopes the model makes different choices the second time. Neither approach eliminates the root cause: the model can choose tokens that break the structure.</p>
+
+<h2>The fix: don't let it choose wrong</h2>
+
+<p>The core idea is simple. Before the model picks a token, figure out which tokens would produce valid JSON. Mask everything else. The model can only choose from valid continuations.</p>
+
+<p>This is called constrained decoding. The concept isn't new. XGrammar, Outlines, and Guidance all implement variations. But they target CUDA and CPU runtimes. I wanted something for Apple Silicon, using MLX for direct GPU access.</p>
+
+<p>The implementation has three components.</p>
+
+<h2>Component 1: VocabScanner</h2>
+
+<p>Every model has a vocabulary: a fixed set of tokens it can produce. Qwen2.5-14B has about 150,000 tokens. Llama-3.1-8B has about 128,000.</p>
+
+<p>VocabScanner classifies each token in the vocabulary by its structural role in JSON. It decodes each token to text and pattern-matches it:</p>
+
+<ul>
+<li><code>{</code> is LBRACE, <code>}</code> is RBRACE</li>
+<li><code>"some text"</code> is STRING</li>
+<li><code>42</code> or <code>3.14</code> is NUMBER</li>
+<li><code>true</code>, <code>false</code>, <code>null</code> are literals</li>
+<li><code>:</code> is COLON, <code>,</code> is COMMA</li>
+</ul>
+
+<p>This classification runs once per tokenizer and gets cached to disk. Second run is instant.</p>
+
+<pre><code><span class="cmt"># Conceptually:</span>
+<span class="kw">for</span> token_id <span class="kw">in</span> range(vocab_size):
+    text = tokenizer.decode([token_id])
+    token_type = classify(text)  <span class="cmt"># LBRACE, STRING, NUMBER, ...</span>
+    mapping[token_id] = token_type</code></pre>
+
+<h2>Component 2: JSONContextTracker</h2>
+
+<p>JSON has grammar. After <code>{</code> you need a string key or <code>}</code>. After a key you need <code>:</code>. After a value you need <code>,</code> or a closing bracket.</p>
+
+<p>JSONContextTracker is a stack-based state machine that follows the JSON being generated character by character. At any point during generation, it knows exactly which token types are valid next.</p>
+
+<p>When the schema says <code>{"type": "object", "properties": {"name": {"type": "string"}}}</code>, the tracker knows:</p>
+
+<ul>
+<li>Step 0: valid = {LBRACE}. Must open an object.</li>
+<li>Step 1: valid = {STRING_KEY}. Must produce a key.</li>
+<li>Step 2: valid = {COLON}. Must separate key from value.</li>
+<li>Step 3: valid = {STRING}. The value must be a string.</li>
+<li>Step 4: valid = {COMMA, RBRACE}. More fields or close.</li>
+</ul>
+
+<p>The stack handles nesting. Objects inside objects, arrays inside objects, arbitrary depth. The tracker pushes a frame when entering a nested structure and pops when leaving.</p>
+
+<h2>Component 3: AND Gate</h2>
+
+<p>This is where it comes together. At each generation step:</p>
+
+<ol>
+<li>The model produces a logit vector: one score per vocabulary token</li>
+<li>The tracker says which token types are valid</li>
+<li>The AND Gate sets the logit of every invalid token to negative infinity</li>
+<li>The model picks from the remaining tokens</li>
+</ol>
+
+<pre><code><span class="cmt"># The AND Gate in three lines:</span>
+mask = [token_type[i] <span class="kw">in</span> valid_types <span class="kw">for</span> i <span class="kw">in</span> range(vocab_size)]
+logits[~mask] = <span class="num">-inf</span>
+next_token = argmax(logits)</code></pre>
+
+<p>After softmax, tokens with -infinity logits have zero probability. They cannot be selected. The model's creative freedom is preserved within the valid set, but it physically cannot produce a token that would break the JSON structure.</p>
+
+<div class="highlight-box">
+<strong>The guarantee:</strong> If every token is constrained to be structurally valid, the complete output is structurally valid. This isn't a statistical claim. It's a logical consequence of the mechanism.
+</div>
+
+<h2>Does it actually work?</h2>
+
+<p>I ran 80 benchmark trials across two models (Qwen2.5-14B-Instruct-4bit and Llama-3.1-8B-Instruct-4bit) and multiple schema types (flat objects, nested objects, arrays, anyOf unions). Every trial produced valid, schema-conformant JSON.</p>
+
+<p>80 out of 80. 100%. Zero retries on any trial.</p>
+
+<p>The 95% confidence interval for the true success rate is [95.5%, 100%], using the Clopper-Pearson exact method. With 80 independent successes and zero failures, the lower bound is already above 95%.</p>
+
+<h2>What it looks like in practice</h2>
+
+<pre><code><span class="kw">from</span> llmjson <span class="kw">import</span> generate
+
+result = generate(
+    model_id=<span class="str">"mlx-community/Qwen2.5-14B-Instruct-4bit"</span>,
+    prompt=<span class="str">"Generate a person profile for Alice, a senior engineer."</span>,
+    schema={
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {
+            <span class="str">"name"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+            <span class="str">"age"</span>: {<span class="str">"type"</span>: <span class="str">"integer"</span>},
+            <span class="str">"email"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+        }
+    },
+)
+
+print(result.text)
+<span class="cmt"># {"name": "Alice Chen", "age": 32, "email": "alice.chen@eng.dev"}</span>
+
+print(result.is_valid)
+<span class="cmt"># True</span></code></pre>
+
+<p>Or from the command line:</p>
+
+<pre><code>$ llmjson generate \
+    --model mlx-community/Qwen2.5-14B-Instruct-4bit \
+    --schema person.schema.json \
+    --prompt "Profile for Alice"
+
+{"name": "Alice Chen", "age": 32, "email": "alice@example.com", "active": true}</code></pre>
+
+<h2>Limitations (honest ones)</h2>
+
+<p>This approach has real constraints. Ignoring them would be dishonest.</p>
+
+<p><strong>Apple Silicon only.</strong> llmjson uses MLX for direct logit access. If you're on Linux with NVIDIA, use Outlines or XGrammar. They're good tools built for that hardware.</p>
+
+<p><strong>Schema subset.</strong> The tracker supports JSON Schema's common constructs: objects, arrays, primitives, nested structures, anyOf. It does not support <code>$ref</code>, <code>patternProperties</code>, <code>additionalProperties</code>, conditional schemas (<code>if/then/else</code>), or regex patterns. The validator rejects unsupported schemas upfront, so you find out immediately instead of getting wrong output.</p>
+
+<p><strong>Content quality is the model's job.</strong> Constrained decoding guarantees the structure. Whether the model puts sensible values in the fields is up to the model. A bad prompt with a good schema still gives you valid JSON with mediocre content.</p>
+
+<p><strong>Token alignment.</strong> Most tokenizers split text into subword tokens that don't align perfectly with JSON structural characters. A string like <code>"name":</code> might be one token or four. The tracker handles this by processing decoded text character by character, but edge cases exist with unusual tokenizers.</p>
+
+<p><strong>Ollama does this too.</strong> I ran the same 4 schemas through Ollama's <code>--format json</code> with Qwen2.5:14b. It scored 40/40. Ollama uses GBNF grammars to constrain output and it works. If you already use Ollama and don't care about speed, it's a fine choice. llmjson is 10-25x faster on the same hardware because it talks to MLX directly instead of going through a server.</p>
+
+<h2>Why llmjson over Ollama?</h2>
+
+<p>Both guarantee valid JSON. The differences are practical:</p>
+
+<ul>
+<li><strong>Speed:</strong> llmjson generates in ~1-2 seconds. Ollama takes 10-25 seconds for the same schema on the same Mac. Direct MLX access vs. HTTP intermediary.</li>
+<li><strong>No daemon:</strong> llmjson is a Python library. Import it, call it. No background server to manage.</li>
+<li><strong>Privacy:</strong> The data never leaves your process. No local network socket, no shared memory.</li>
+<li><strong>Logit access:</strong> You get the raw probability distribution. Useful if you're building something beyond basic JSON generation.</li>
+</ul>
+
+<p>If you need an HTTP API, use Ollama. If you want a library you can embed in your Python code with maximum speed, use llmjson.</p>
+
+<h2>How to try it</h2>
+
+<pre><code>pip install jsongate</code></pre>
+
+<p>You'll need Python 3.9+ and an Apple Silicon Mac (M1 or later). The MLX dependencies install automatically.</p>
+
+<p>The first run downloads the model (~8 GB for Qwen2.5-14B-4bit) and builds the token classification cache. Subsequent runs are fast.</p>
+
+<p>Source code: <a href="https://github.com/fatdinhero/llmjson">github.com/fatdinhero/llmjson</a></p>
+
+<p>If you're building something with structured LLM output on Apple Silicon, I'd like to hear about it.</p>
+
+</article>
+
+<footer>
+  <p><a href="../">llmjson</a> &middot; Built by <a href="https://github.com/fatdinhero">Fatih Dinc</a> &middot; MIT License</p>
+</footer>
+
+</div>
+
+</body>
+</html>

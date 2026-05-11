@@ -1,0 +1,35 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest tests/ -v --tb=short
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src/validator/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src/validator/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: cargo test
+        run: cargo test --manifest-path src/validator/Cargo.toml
+      - name: cargo build --release (smoke)
+        run: cargo build --release --manifest-path src/validator/Cargo.toml
+      - name: cargo build --release --features http-embed (smoke)
+        run: cargo build --release --features http-embed --manifest-path src/validator/Cargo.toml

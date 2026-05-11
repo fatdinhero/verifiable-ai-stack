@@ -1,0 +1,14 @@
+{
+  "controlSetId": "v1",
+  "genesisHash": "0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890",
+  "claims": [
+    {"id": "ctrl-001", "statement": "The capital of France is Paris.", "expectedScore": 1.0},
+    {"id": "ctrl-002", "statement": "Water boils at 100 degrees Celsius at sea level.", "expectedScore": 0.98},
+    {"id": "ctrl-003", "statement": "The Sun rises in the east.", "expectedScore": 1.0},
+    {"id": "ctrl-004", "statement": "Birds can fly.", "expectedScore": 0.9},
+    {"id": "ctrl-005", "statement": "Gold is a chemical element.", "expectedScore": 0.95},
+    {"id": "ctrl-006", "statement": "The speed of light is approximately 299792458 m/s in vacuum.", "expectedScore": 1.0},
+    {"id": "ctrl-007", "statement": "Mount Everest is the tallest mountain above sea level.", "expectedScore": 0.98},
+    {"id": "ctrl-008", "statement": "The human body has 206 bones in adulthood.", "expectedScore": 0.93}
+  ]
+}

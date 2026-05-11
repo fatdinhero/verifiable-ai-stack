@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentsProtocol — Semantic Validation Layer for the AI Age</title>
+<meta name="description" content="A decentralised protocol for the semantic validation of knowledge. Built on GHOSTDAG. Mathematically proven validator independence via Bell inequalities.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#07090f;--navy2:#0d1117;--navy3:#111620;
+  --gold:#c8a45a;--gold2:#d7b56b;--gold3:rgba(200,164,90,.12);
+  --white:#f5f5f0;--muted:rgba(245,245,240,.48);--faint:rgba(245,245,240,.2);
+  --rule:rgba(245,245,240,.07);--rule2:rgba(245,245,240,.12);
+  --green:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--purple:#a78bfa;
+  --mono:'IBM Plex Mono',monospace;--serif:'EB Garamond',Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--white);font-family:var(--mono);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(7,9,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--rule);padding:13px 40px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-logo{font-size:1.05em;font-weight:600;letter-spacing:-.01em;color:var(--white)}
+.nav-logo span{color:var(--gold)}
+.nav-links{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.nav-links a{font-size:.77em;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--gold)}
+.nav-cta{background:var(--gold);color:var(--navy)!important;padding:6px 16px;border-radius:4px;font-weight:600!important}
+.nav-cta:hover{background:var(--gold2);text-decoration:none!important}
+.nav-badges{display:flex;gap:6px}
+.nb{font-size:.64em;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1px solid var(--rule);color:var(--faint)}
+.nb.live{border-color:rgba(200,164,90,.3);color:var(--gold)}
+
+/* ── HERO ── */
+.hero{min-height:88vh;display:flex;align-items:center;justify-content:center;padding:80px 40px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(200,164,90,.06) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:800px;width:100%}
+.hero-eyebrow{font-size:.72em;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;display:flex;align-items:center;gap:10px}
+.hero-eyebrow::before{content:'';display:block;width:32px;height:1px;background:var(--gold)}
+.hero h1{font-family:var(--serif);font-size:clamp(2.4em,6vw,4.2em);font-weight:600;line-height:1.12;letter-spacing:-.03em;margin-bottom:24px}
+.hero h1 em{color:var(--gold);font-style:italic}
+.hero-sub{font-family:var(--serif);font-size:1.15em;color:var(--muted);line-height:1.75;max-width:580px;margin-bottom:40px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px}
+.btn-primary{background:var(--gold);color:var(--navy);padding:12px 28px;border-radius:6px;font-weight:600;font-family:var(--mono);font-size:.88em;letter-spacing:.04em;transition:all .2s}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px);text-decoration:none}
+.btn-ghost{border:1px solid var(--rule2);color:var(--muted);padding:12px 28px;border-radius:6px;font-family:var(--mono);font-size:.88em;letter-spacing:.04em;transition:all .2s}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);text-decoration:none}
+.hero-badges{display:flex;gap:10px;flex-wrap:wrap}
+.badge{font-size:.72em;font-family:var(--mono);padding:5px 12px;border-radius:4px;border:1px solid var(--rule);color:var(--muted)}
+.badge.gold{border-color:rgba(200,164,90,.3);color:var(--gold)}
+.badge.green{border-color:rgba(74,222,128,.3);color:#4ade80}
+
+/* ── SECTIONS ── */
+section{padding:80px 40px}
+.section-inner{max-width:900px;margin:0 auto}
+.section-label{font-size:.68em;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-label::before{content:'';display:block;width:20px;height:1px;background:var(--gold)}
+.section-label.counter{color:var(--muted)}
+.section-label.counter::before{background:var(--muted)}
+h2{font-family:var(--serif);font-size:clamp(1.7em,4vw,2.6em);font-weight:600;line-height:1.2;letter-spacing:-.02em;margin-bottom:20px}
+h2 em{color:var(--gold);font-style:italic}
+.section-desc{font-family:var(--serif);font-size:1.05em;color:var(--muted);line-height:1.75;max-width:600px;margin-bottom:48px}
+hr.rule{border:none;border-top:1px solid var(--rule);margin:0}
+
+/* ── PULL QUOTE ── */
+.pull-quote{font-family:var(--serif);font-size:clamp(1.3em,3vw,1.9em);font-style:italic;line-height:1.45;color:var(--white);border-left:2px solid var(--gold);padding-left:28px;margin:40px 0}
+.pull-quote span{color:var(--gold)}
+
+/* ── PROBLEM BLOCKS ── */
+.problem-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule)}
+.problem-item{display:grid;grid-template-columns:60px 1fr;gap:24px;padding:32px 0;border-bottom:1px solid var(--rule);align-items:start}
+.problem-num{font-size:2.2em;font-family:var(--serif);font-weight:600;color:rgba(200,164,90,.3);line-height:1}
+.problem-title{font-family:var(--serif);font-size:1.15em;font-weight:600;margin-bottom:8px}
+.problem-desc{font-size:.88em;color:var(--muted);line-height:1.7}
+
+/* ── HOW IT WORKS ── */
+.steps{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule)}
+.step{display:grid;grid-template-columns:48px 1fr;gap:20px;padding:28px 0;border-bottom:1px solid var(--rule);align-items:start}
+.step-n{width:36px;height:36px;border-radius:50%;background:var(--gold3);border:1px solid rgba(200,164,90,.3);display:flex;align-items:center;justify-content:center;font-size:.78em;font-weight:600;color:var(--gold);flex-shrink:0}
+.step-title{font-weight:600;margin-bottom:6px;font-size:.95em}
+.step-desc{font-size:.85em;color:var(--muted);line-height:1.65}
+.step-code{font-family:var(--mono);font-size:.75em;color:var(--gold);margin-top:8px;opacity:.8}
+
+/* ── PILLAR CARDS ── */
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:40px}
+.pillar{background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:10px;padding:24px;transition:border-color .2s}
+.pillar:hover{border-color:rgba(200,164,90,.25)}
+.pillar-num{font-size:.68em;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.pillar-title{font-family:var(--serif);font-size:1.1em;font-weight:600;margin-bottom:8px}
+.pillar-desc{font-size:.83em;color:var(--muted);line-height:1.65;margin-bottom:14px}
+.pillar-formula{font-family:var(--mono);font-size:.75em;color:rgba(200,164,90,.8);background:rgba(0,0,0,.3);padding:8px 12px;border-radius:4px;line-height:1.6}
+.pillar-link{font-size:.78em;color:var(--gold);margin-top:12px;display:block}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{width:100%;border-collapse:collapse;margin-top:32px}
+.comp-table th,.comp-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--rule);font-size:.85em}
+.comp-table th{font-size:.68em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400;border-bottom:1px solid var(--rule2)}
+.comp-table tr:hover td{background:rgba(255,255,255,.02)}
+.comp-table td:first-child{font-weight:600}
+.comp-table .highlight{color:var(--gold)}
+
+/* ── SECURITY TABLE ── */
+.sec-table{width:100%;border-collapse:collapse;margin-top:24px}
+.sec-table th,.sec-table td{padding:11px 16px;text-align:center;border-bottom:1px solid var(--rule);font-size:.84em}
+.sec-table th{font-size:.66em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400;border-bottom:1px solid var(--rule2)}
+.sec-table .good{color:var(--green);font-weight:600}
+
+/* ── DOCUMENTS ── */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:32px}
+.doc-card{background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:9px;padding:18px;transition:border-color .2s}
+.doc-card:hover{border-color:rgba(200,164,90,.25)}
+.doc-num{font-size:.64em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.doc-langs span{padding:1px 5px;border-radius:2px;font-size:.85em;background:rgba(255,255,255,.06);margin-left:3px}
+.doc-title{font-family:var(--serif);font-size:.95em;font-weight:600;margin-bottom:8px;line-height:1.3}
+.doc-hash{font-size:.68em;color:var(--faint);font-family:var(--mono);margin-bottom:10px;word-break:break-all}
+.doc-dl{font-size:.75em;color:var(--gold)}
+
+/* ── ROADMAP ── */
+.roadmap{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule);margin-top:32px}
+.rm-item{display:grid;grid-template-columns:120px 1fr;gap:20px;padding:24px 0;border-bottom:1px solid var(--rule)}
+.rm-phase{font-size:.72em;letter-spacing:.1em;text-transform:uppercase;padding-top:4px}
+.rm-phase.done{color:var(--green)}.rm-phase.next{color:var(--gold)}.rm-phase.future{color:var(--muted)}
+.rm-title{font-weight:600;margin-bottom:4px;font-size:.93em}
+.rm-desc{font-size:.82em;color:var(--muted);line-height:1.6}
+
+/* ── TOKEN ── */
+.token-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:28px}
+.token-item{background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:8px;padding:16px;text-align:center}
+.token-pct{font-family:var(--serif);font-size:2em;font-weight:600;color:var(--gold);line-height:1}
+.token-lbl{font-size:.75em;color:var(--muted);margin-top:6px;line-height:1.4}
+
+/* ── DETECT WIDGET EMBED ── */
+#detect-embed{background:var(--navy2);border:1px solid rgba(200,164,90,.18);border-radius:14px;overflow:hidden;margin-top:40px}
+.detect-header{background:rgba(200,164,90,.06);padding:16px 24px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.detect-title{font-size:.72em;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.detect-link{font-size:.75em;color:var(--muted)}
+.detect-link:hover{color:var(--gold)}
+.detect-body{padding:24px}
+
+.d-textarea{width:100%;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--white);font-family:var(--serif);font-size:1em;line-height:1.65;padding:12px 15px;resize:vertical;min-height:100px;outline:none;transition:border-color .2s}
+.d-textarea:focus{border-color:rgba(200,164,90,.5)}
+.d-textarea::placeholder{color:var(--faint);font-style:italic}
+.d-pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.d-pill{padding:4px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:.75em;cursor:pointer;transition:all .2s;font-family:var(--mono)}
+.d-pill:hover,.d-pill.active{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:600}
+.d-pill.coord.active{background:#ef4444;border-color:#ef4444;color:#fff}
+.d-btn{margin-top:14px;width:100%;padding:11px;background:var(--gold);color:var(--navy);border:none;border-radius:7px;font-size:.88em;font-weight:600;cursor:pointer;font-family:var(--mono);letter-spacing:.04em;transition:all .2s}
+.d-btn:hover:not(:disabled){background:var(--gold2)}
+.d-btn:disabled{opacity:.4;cursor:not-allowed}
+.d-exs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px;margin-top:14px}
+.d-ex{padding:8px 12px;background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:6px;color:var(--muted);font-size:.82em;text-align:left;cursor:pointer;font-family:var(--serif);line-height:1.4;transition:all .2s}
+.d-ex:hover{background:rgba(255,255,255,.05);border-color:rgba(200,164,90,.3);color:var(--white)}
+.d-tag{font-family:var(--mono);font-size:.6em;padding:1px 6px;border-radius:2px;margin-right:5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.dm{background:rgba(239,68,68,.15);color:#f87171}.df{background:rgba(74,222,128,.15);color:#4ade80}.dh{background:rgba(251,191,36,.15);color:#fcd34d}
+
+.d-loading{display:none;text-align:center;padding:28px}
+.d-loading.on{display:block}
+.d-spinner{width:24px;height:24px;border-radius:50%;border:2px solid rgba(200,164,90,.2);border-top-color:var(--gold);animation:spin 1s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.d-prog-bar{width:180px;height:2px;background:var(--rule);border-radius:1px;margin:10px auto 0;overflow:hidden}
+.d-prog-fill{height:100%;background:var(--gold);border-radius:1px;width:0%;transition:width .35s ease}
+
+.d-results{display:none}
+.d-results.on{display:block}
+.d-wise{background:rgba(200,164,90,.06);border:1px solid rgba(200,164,90,.2);border-radius:9px;padding:20px;text-align:center;margin-bottom:12px}
+.d-wise-lbl{font-size:.65em;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.d-wise-num{font-family:var(--serif);font-size:3.4em;font-weight:600;color:var(--gold);letter-spacing:-.03em;line-height:1}
+.d-wise-tag{font-size:.8em;color:var(--muted);margin-top:7px;font-style:italic;font-family:var(--serif)}
+.d-verdict{padding:11px 15px;border-radius:7px;font-size:.83em;line-height:1.5;margin-bottom:12px}
+.dv-ok{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.25);color:#4ade80}
+.dv-no{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);color:#f87171}
+.d-sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:560px){.d-sg{grid-template-columns:repeat(2,1fr)}}
+.d-sbox{background:rgba(0,0,0,.25);border:1px solid var(--rule);border-radius:7px;padding:12px}
+.d-slbl{font-size:.6em;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.d-snum{font-family:var(--serif);font-size:1.7em;font-weight:600;line-height:1}
+.d-sbar{height:2px;background:var(--rule);border-radius:1px;margin-top:8px;overflow:hidden}
+.d-sfill{height:100%;border-radius:1px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.d-psi-row{display:flex;align-items:center;justify-content:space-between;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18);border-radius:7px;padding:12px 16px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.d-psi-lbl{font-size:.66em;letter-spacing:.1em;text-transform:uppercase;color:#f87171}
+.d-psi-val{font-family:var(--serif);font-size:1.5em;font-weight:600}
+.d-risk-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.d-risk-lbl{font-size:.66em;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:100px}
+.d-risk-bar{flex:1;height:6px;background:var(--rule);border-radius:3px;overflow:hidden;min-width:80px}
+.d-risk-fill{height:100%;border-radius:3px;transition:width 1.2s ease}
+.d-risk-pct{font-family:var(--serif);font-size:1.1em;font-weight:600;min-width:48px;text-align:right}
+.d-signals{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.d-sig{font-size:.68em;padding:3px 8px;border-radius:3px;font-family:var(--mono)}
+.ds-red{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.22)}
+.ds-green{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.22)}
+.ds-blue{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.22)}
+.d-full-link{text-align:center;padding:14px;border-top:1px solid var(--rule);margin-top:4px}
+.d-full-link a{font-size:.82em;color:var(--gold)}
+
+/* ── WALLETS ── */
+.wallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:28px}
+.wallet-card{background:rgba(255,255,255,.025);border-radius:9px;padding:18px}
+.wallet-chain{font-size:.68em;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;font-weight:500}
+.wallet-addr{font-family:var(--mono);font-size:.72em;color:rgba(255,255,255,.7);word-break:break-all;line-height:1.6;margin-bottom:6px}
+.wallet-net{font-size:.72em;color:var(--faint)}
+.wbtc{border:1px solid rgba(247,147,26,.25)}.wbtc .wallet-chain{color:#f7931a}
+.weth{border:1px solid rgba(96,165,250,.25)}.weth .wallet-chain{color:#60a5fa}
+.wsol{border:1px solid rgba(168,85,247,.25)}.wsol .wallet-chain{color:#a855f7}
+.wtrx{border:1px solid rgba(255,77,77,.25)}.wtrx .wallet-chain{color:#ff4d4d}
+.wkas{border:1px solid rgba(112,214,114,.25)}.wkas .wallet-chain{color:#70d672}
+
+.mailing{background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:10px;padding:24px;margin-top:16px}
+.mail-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.mail-input{flex:1;min-width:180px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);padding:10px 14px;font-size:.88em;outline:none;font-family:var(--mono)}
+.mail-btn{background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:10px 18px;font-weight:600;cursor:pointer;font-family:var(--mono);font-size:.88em}
+.fund-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:24px}
+@media(max-width:480px){.fund-grid{grid-template-columns:repeat(2,1fr)}}
+.fund-item{text-align:center;padding:14px;background:rgba(255,255,255,.02);border-radius:7px}
+.fund-pct{font-family:var(--serif);font-size:1.6em;font-weight:600;color:var(--gold)}
+.fund-lbl{font-size:.72em;color:var(--muted);margin-top:4px;line-height:1.4}
+
+/* ── INTEGRITY ── */
+.integrity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-top:28px}
+@media(max-width:600px){.integrity-grid{grid-template-columns:1fr}}
+.integrity-cell{padding:22px;border-right:1px solid var(--rule)}
+.integrity-cell:last-child{border-right:none}
+.int-lbl{font-size:.64em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+.int-val{font-family:var(--mono);font-size:.8em;color:var(--white);word-break:break-all;line-height:1.5}
+.int-val a{color:var(--gold)}
+.int-link{font-size:.75em;color:var(--muted);margin-top:8px;display:block}
+.int-link:hover{color:var(--gold)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--rule);padding:40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px}
+@media(max-width:600px){footer{grid-template-columns:1fr;padding:28px}}
+.foot-col h4{font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.foot-col a{display:block;font-size:.83em;color:var(--faint);margin-bottom:7px;text-decoration:none}
+.foot-col a:hover{color:var(--gold)}
+.foot-bottom{border-top:1px solid var(--rule);padding:20px 40px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.73em;color:var(--faint)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Agents<span>Protocol</span></div>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#how">Protocol</a>
+    <a href="#detect-section">Try It</a>
+    <a href="#docs">Documents</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#support">Support</a>
+    <a href="https://github.com/fatdinhero/agentsprotocol" target="_blank">GitHub ↗</a>
+    <a href="detect/" class="nav-cta">Live Demo →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">AgentsProtocol / v1.2</div>
+    <h1>MCP and A2A connect systems.<br><em>We prove the content is true.</em></h1>
+    <p class="hero-sub">A decentralised protocol for the semantic validation of knowledge. Built on GHOSTDAG. Validator independence proven via Bell's inequalities. EU AI Act compliant by design.</p>
+    <div class="hero-actions">
+      <a href="detect/" class="btn-primary">Run Live Demo →</a>
+      <a href="https://doi.org/10.5281/zenodo.19642292" target="_blank" class="btn-ghost">Read Whitepaper ↗</a>
+      <a href="https://github.com/fatdinhero/agentsprotocol" target="_blank" class="btn-ghost">GitHub ↗</a>
+    </div>
+    <div class="hero-badges">
+      <span class="badge gold">⛓ Bitcoin Block #945,622 · 2026-04-18</span>
+      <span class="badge gold">DOI: 10.5281/zenodo.19642292</span>
+      <span class="badge green">62/62 Tests Green</span>
+      <span class="badge">CC BY 4.0 · Apache 2.0</span>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- PULL QUOTE -->
+<section style="padding:60px 40px">
+  <div class="section-inner">
+    <p class="pull-quote">"MCP and A2A are the <span>USB-C</span> of the AI age — they connect systems. AgentsProtocol is the verification layer that makes what flows through them <span>auditable and trustworthy</span>."</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="section-inner">
+    <div class="section-label counter">01 / Problem</div>
+    <h2>We have protocols for <em>connection.</em><br>Not for truth.</h2>
+    <p class="section-desc">The Internet was built to exchange information — not to verify it. Every AI system, every platform, every database has its own proprietary view of truth. None of it is independently verifiable.</p>
+    <div class="problem-list">
+      <div class="problem-item">
+        <div class="problem-num">01</div>
+        <div>
+          <div class="problem-title">AI systems hallucinate because there is no decentralised truth layer.</div>
+          <div class="problem-desc">Large models predict plausibility, not truth. Without independent consensus on semantic correctness, confident falsehoods propagate at machine speed.</div>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">02</div>
+        <div>
+          <div class="problem-title">Existing consensus orders transactions — not their semantic quality.</div>
+          <div class="problem-desc">Proof-of-Work and Proof-of-Stake answer "which block is next?" They are silent on "is the claim inside it correct?" Ordering ≠ validation.</div>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">03</div>
+        <div>
+          <div class="problem-title">MCP and A2A connect AI systems. Nobody makes the content verifiable.</div>
+          <div class="problem-desc">Agent-to-agent protocols solve technical interoperability. They do not answer the more fundamental question: has this knowledge been independently verified?</div>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">04</div>
+        <div>
+          <div class="problem-title">The EU AI Act mandates audit trails. No decentralised infrastructure satisfies this.</div>
+          <div class="problem-desc">Articles 9, 13 and 17 require cryptographically robust, tamper-evident records for high-risk AI outputs. Enforcement: 02 August 2026. No decentralised solution exists — until now.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-inner">
+    <div class="section-label counter">02 / Protocol</div>
+    <h2>How <em>AgentsProtocol</em> works.</h2>
+    <p class="section-desc">Three deterministic phases. Every accepted block carries a cryptographic quality certificate that any node can re-derive and any observer can challenge.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div>
+          <div class="step-title">Submit — A validator receives a claim</div>
+          <div class="step-desc">Any participant submits a knowledge claim A = (data, signature). The knowledge corpus K is versioned and content-addressed — its hash is fixed in the genesis block.</div>
+          <div class="step-code">claim = {data: d, σ: signature(d, private_key)}</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div>
+          <div class="step-title">Validate — S_con and Ψ are computed</div>
+          <div class="step-desc">Each validator computes the Semantic Consistency Score S_con against corpus K and solves k canonical dummy claims to generate an error vector. The Ψ statistic proves independence.</div>
+          <div class="step-code">S_con(A) = max(0, (cos(v_A, v̄_κ) − τ) / (1 − τ))<br>Ψ = 1 − Σwᵢwⱼ|ρ(eᵢ,eⱼ)| / Σwᵢwⱼ</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div>
+          <div class="step-title">Anchor — Block accepted into the GHOSTDAG DAG</div>
+          <div class="step-desc">If S_con ≥ θ_min and Ψ ≥ Ψ_min, the block is admitted. Block weight determines canonical ordering. Accepted knowledge is permanently anchored — tamper-evident, globally available.</div>
+          <div class="step-code">W(B) = Ψ_B · Σ_{A∈B} S_con(A)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- THREE PILLARS -->
+<section id="research">
+  <div class="section-inner">
+    <div class="section-label counter">03 / Research</div>
+    <h2>Three published <em>scientific pillars.</em></h2>
+    <p class="section-desc">AgentsProtocol rests on three independently published frameworks. Each is peer-reviewable, Bitcoin-timestamped, and available under CC BY 4.0.</p>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-num">Foundation · Meta-Bell Theory</div>
+        <div class="pillar-title">A Measure-Theoretic Extension of Bell's Inequalities</div>
+        <div class="pillar-desc">Derives the Ψ non-collusion statistic from quantum physics. Proves when validators work independently — without disclosing what they validated.</div>
+        <div class="pillar-formula">Ψ(X,Y) = 1 − |ρ(X,Y)|<br>Ψ=1 → independent · Ψ=0 → colluding</div>
+        <a class="pillar-link" href="https://poisv.com" target="_blank">poisv.com →</a>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">Quality · Proof of WiseWork</div>
+        <div class="pillar-title">A Four-Dimensional Knowledge Quality Score</div>
+        <div class="pillar-desc">WiseScore W(i) = T × C × R × E. Multiplicative — all four dimensions (Truth, Context, Relevance, Ethics) must be good for a block to be accepted.</div>
+        <div class="pillar-formula">W(i) = T(i) × C(i) × R(i) × E(i)<br>W ≥ 0.60 → accepted</div>
+        <a class="pillar-link" href="https://poisv.com" target="_blank">poisv.com →</a>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">Consensus · PoISV on GHOSTDAG</div>
+        <div class="pillar-title">Proof of Independent Semantic Validation</div>
+        <div class="pillar-desc">The first semantic application of GHOSTDAG. Block weight is semantic quality × validator independence. The heaviest path is the most truthful, not the most computationally expensive.</div>
+        <div class="pillar-formula">W(B) = Ψ_B · Σ S_con(A)<br>GHOSTDAG canonical ordering</div>
+        <a class="pillar-link" href="https://poisv.com" target="_blank">poisv.com →</a>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-tag">Formal · Bell-SPVU Paper</div>
+        <div class="pillar-label">Bell-Inequality-Inspired Semantic Validation</div>
+        <div class="pillar-title">Formal Proof of the MetaBell Operator</div>
+        <div class="pillar-desc">Derives Ψ ≈ 1 − |Ŝ|/(2√2), connecting the MetaBell operator to the Tsirelson bound. Formal Bell witness proof, ZK extension, Svetlichny multipartite inequality, EU AI Act incident log.</div>
+        <div class="pillar-formula">Ψ ≈ 1 − |Ŝ| / (2√2)<br>DOI: 10.5281/zenodo.19656679</div>
+        <a class="pillar-link" href="https://doi.org/10.5281/zenodo.19656679" target="_blank">Zenodo →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- COMPARISON -->
+<section id="position">
+  <div class="section-inner">
+    <div class="section-label counter">04 / Position</div>
+    <h2>AgentsProtocol vs. <em>everything else.</em></h2>
+    <table class="comp-table">
+      <thead><tr><th>Protocol</th><th>Does</th><th>Missing</th></tr></thead>
+      <tbody>
+        <tr><td>MCP (Anthropic)</td><td>AI ↔ services connection</td><td class="highlight">Content truth proof</td></tr>
+        <tr><td>A2A (Google)</td><td>Agent-to-agent communication</td><td class="highlight">Quality certificate</td></tr>
+        <tr><td>Chainlink</td><td>External data on-chain (price feeds)</td><td class="highlight">Semantic validation · independence proof</td></tr>
+        <tr><td>Bittensor</td><td>AI model competition for rewards</td><td class="highlight">Mathematical independence proof</td></tr>
+        <tr><td>PoW / PoS</td><td>Transaction ordering</td><td class="highlight">Content quality assessment</td></tr>
+        <tr style="background:rgba(200,164,90,.04)"><td style="color:var(--gold)">AgentsProtocol</td><td style="color:var(--gold)">Proves validators worked independently · ZK-compatible</td><td style="color:var(--muted)">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- SECURITY -->
+<section>
+  <div class="section-inner">
+    <div class="section-label counter">05 / Security</div>
+    <h2>Mathematically <em>verified</em> guarantees.</h2>
+    <p class="section-desc">All values below have been reproduced numerically. Formula: P_total = (q/(1−q))^z × exp(−2k × Ψ_min²)</p>
+    <table class="sec-table">
+      <thead><tr><th>Attacker Fraction q</th><th>Control Tasks k</th><th>Attack Success Probability</th></tr></thead>
+      <tbody>
+        <tr><td>10%</td><td>32</td><td class="good">< 10⁻¹²</td></tr>
+        <tr><td>20%</td><td>32</td><td class="good">< 10⁻⁸</td></tr>
+        <tr><td>30%</td><td>64</td><td class="good">< 10⁻⁷</td></tr>
+        <tr><td>40%</td><td>64</td><td class="good">< 10⁻⁴</td></tr>
+        <tr><td>49%</td><td>128</td><td class="good">< 10⁻³</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- DETECT EMBED -->
+<section id="detect-section">
+  <div class="section-inner">
+    <div class="section-label counter">06 / Live Demo</div>
+    <h2>Try the <em>Meta-Bell Detector</em> now.</h2>
+    <p class="section-desc">Enter any claim, tweet, or AI output. The Ψ statistic detects coordinated manipulation in real time — the same mathematics used in quantum physics to prove independence.</p>
+
+    <div id="detect-embed">
+      <div class="detect-header">
+        <div class="detect-title">⚡ Meta-Bell Ψ — Manipulation Detector · Live</div>
+        <a href="detect/" class="detect-link">Open full version ↗</a>
+      </div>
+      <div class="detect-body">
+        <textarea class="d-textarea" id="dInp" rows="4" placeholder="Paste any claim — tweet, headline, AI output, political statement…"></textarea>
+        <div class="d-pills" id="dDom">
+          <span class="d-pill active" data-v="general">General</span>
+          <span class="d-pill" data-v="finance">Finance</span>
+          <span class="d-pill" data-v="politics">Politics</span>
+          <span class="d-pill" data-v="science">Science</span>
+          <span class="d-pill" data-v="crypto">Crypto</span>
+        </div>
+        <div class="d-pills" style="margin-top:8px" id="dAmp">
+          <span style="font-size:.65em;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);align-self:center">Amplification:</span>
+          <span class="d-pill" data-v="isolated">Isolated</span>
+          <span class="d-pill active" data-v="trending">Trending</span>
+          <span class="d-pill coord" data-v="coordinated">Coordinated</span>
+        </div>
+        <div class="d-exs">
+          <button class="d-ex" onclick="dSetEx('Trump says the apocalypse is tomorrow! Markets will crash. Sell everything NOW.','politics','coordinated')"><span class="d-tag dm">Manip</span>Trump apocalypse / markets crash</button>
+          <button class="d-ex" onclick="dSetEx('The Federal Reserve raised interest rates by 0.25% at its May 2024 FOMC meeting.','finance','isolated')"><span class="d-tag df">Factual</span>Fed rate decision 0.25%</button>
+          <button class="d-ex" onclick="dSetEx('This crypto will 100x in 30 days. Biggest opportunity of the decade. Don\'t miss out!','crypto','trending')"><span class="d-tag dh">Hype</span>Crypto 100x opportunity</button>
+          <button class="d-ex" onclick="dSetEx('Scientists confirm: 5G towers cause cancer. Government hiding the truth. Share before deleted!','news','coordinated')"><span class="d-tag dm">Disinfo</span>5G cancer conspiracy</button>
+        </div>
+        <button class="d-btn" id="dBtn" onclick="dRun()">Run Meta-Bell Analysis →</button>
+
+        <div class="d-loading" id="dLoading">
+          <div class="d-spinner"></div>
+          <div style="font-size:.78em;color:var(--muted);margin-top:10px" id="dLoadTxt">Analysing</div>
+          <div class="d-prog-bar"><div class="d-prog-fill" id="dProg"></div></div>
+        </div>
+
+        <div class="d-results" id="dResults">
+          <div style="height:16px"></div>
+          <div class="d-wise">
+            <div class="d-wise-lbl">WiseScore W(i)</div>
+            <div class="d-wise-num" id="dWN">0.000</div>
+            <div class="d-wise-tag" id="dWT">—</div>
+          </div>
+          <div class="d-verdict" id="dVerd"></div>
+          <div class="d-signals" id="dSigs"></div>
+          <div class="d-sg">
+            <div class="d-sbox"><div class="d-slbl">T(i) Truth</div><div class="d-snum" id="dtN">0</div><div class="d-sbar"><div class="d-sfill" id="dtB" style="background:#60a5fa;width:0%"></div></div></div>
+            <div class="d-sbox"><div class="d-slbl">C(i) Context</div><div class="d-snum" id="dcN">0</div><div class="d-sbar"><div class="d-sfill" id="dcB" style="background:#4ade80;width:0%"></div></div></div>
+            <div class="d-sbox"><div class="d-slbl">R(i) Relevance</div><div class="d-snum" id="drN">0</div><div class="d-sbar"><div class="d-sfill" id="drB" style="background:#a78bfa;width:0%"></div></div></div>
+            <div class="d-sbox"><div class="d-slbl">E(i) Ethics</div><div class="d-snum" id="deN">0</div><div class="d-sbar"><div class="d-sfill" id="deB" style="background:#f59e0b;width:0%"></div></div></div>
+          </div>
+          <div class="d-psi-row">
+            <div><div class="d-psi-lbl">Meta-Bell Ψ — Non-Collusion Statistic</div><div class="d-psi-val" id="dPsiV">Ψ = —</div></div>
+            <div style="font-size:.8em;color:var(--muted);max-width:280px;text-align:right;font-family:var(--serif);font-style:italic" id="dPsiD">—</div>
+          </div>
+          <div class="d-risk-row">
+            <div class="d-risk-lbl">Manip. Risk</div>
+            <div class="d-risk-bar"><div class="d-risk-fill" id="dRBar" style="width:0%"></div></div>
+            <div class="d-risk-pct" id="dRPct">0%</div>
+          </div>
+          <div class="d-full-link"><a href="detect/" target="_blank">→ Open full analysis with source validators, Fear & Greed, market signals</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- DOCUMENTS -->
+<section id="docs">
+  <div class="section-inner">
+    <div class="section-label counter">07 / Documents</div>
+    <h2>17 published documents.<br><em>Three languages. One DOI.</em></h2>
+    <p class="section-desc">Every document is permanently anchored: Bitcoin Block #945,622 · Zenodo DOI 10.5281/zenodo.19642292 · SHA-256 verified.</p>
+    <div class="doc-grid">
+      <div class="doc-card"><div class="doc-num">Doc 01 <div class="doc-langs"><span>EN</span><span>DE</span><span>TR</span></div></div><div class="doc-title">AgentsProtocol Whitepaper v1.2</div><div class="doc-hash">c4d12fc1 8ec4cd2d 0be2fc94 18ec53c3…</div><a class="doc-dl" href="https://agentsprotocol.org/en/AgentsProtocol_Whitepaper_v1.2_EN.pdf">Download PDF →</a></div>
+      <div class="doc-card"><div class="doc-num">Doc 02 <div class="doc-langs"><span>EN</span><span>DE</span><span>TR</span></div></div><div class="doc-title">Executive Summary v1.0</div><div class="doc-hash">306dfdcb a16fde85 02d473ca 87fed3b5…</div><a class="doc-dl" href="https://agentsprotocol.org/en/AgentsProtocol_ExecutiveSummary_EN.pdf">Download PDF →</a></div>
+      <div class="doc-card"><div class="doc-num">Doc 03 <div class="doc-langs"><span>DE</span></div></div><div class="doc-title">Developer Documentation v1.0</div><div class="doc-hash">3a3ef4a4 e2504108 5037f1f3 08038aa4…</div><a class="doc-dl" href="https://agentsprotocol.org/de/AgentsProtocol_DevDocs_DE.pdf">Download PDF →</a></div>
+      <div class="doc-card"><div class="doc-num">Doc 04 <div class="doc-langs"><span>DE</span></div></div><div class="doc-title">Legal & Governance v1.0</div><div class="doc-hash">cc9ae3a3 cac9b56d 5a091fea fddf78f7…</div><a class="doc-dl" href="https://agentsprotocol.org/de/AgentsProtocol_Legal_Governance_DE.pdf">Download PDF →</a></div>
+      <div class="doc-card"><div class="doc-num">Doc 05–07 <div class="doc-langs"><span>EN</span><span>DE</span><span>TR</span></div></div><div class="doc-title">Meta-Bell Theory v1.0</div><div class="doc-hash">92c76ece d5c95129 08c658d9 654ca629…</div><a class="doc-dl" href="https://poisv.com/en/MetaBell_Theorie_v1_EN.pdf">Download PDF →</a></div>
+      <div class="doc-card"><div class="doc-num">Doc 08–10 <div class="doc-langs"><span>EN</span><span>DE</span><span>TR</span></div></div><div class="doc-title">Proof of WiseWork v2.0</div><div class="doc-hash">0138c1b3 00fca774 05f90f51 7accab80…</div><a class="doc-dl" href="https://poisv.com/en/PoWW_Whitepaper_v2_EN.pdf">Download PDF →</a></div>
+      <div class="doc-card"><div class="doc-num">Doc 11–13 <div class="doc-langs"><span>EN</span><span>DE</span><span>TR</span></div></div><div class="doc-title">PoISV Whitepaper v1.0</div><div class="doc-hash">f1bf6285 cd443e0e 40e9a285 f361d069…</div><a class="doc-dl" href="https://poisv.com/en/PoISV_Whitepaper_v1.0_EN.pdf">Download PDF →</a></div>
+      <div class="doc-card" style="border-color:rgba(200,164,90,.2)"><div class="doc-num" style="color:var(--gold)">All 18 Documents</div><div class="doc-title">Complete Archive · Zenodo</div><div class="doc-hash">DOI: 10.5281/zenodo.19642292</div><a class="doc-dl" href="https://doi.org/10.5281/zenodo.19642292" target="_blank">Open on Zenodo →</a></div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-inner">
+    <div class="section-label counter">08 / Roadmap</div>
+    <h2>From specification<br>to <em>mainnet.</em></h2>
+    <div class="roadmap">
+      <div class="rm-item"><div class="rm-phase done">Phase 0 ✓<br>Q2 2026</div><div><div class="rm-title">Foundation — Complete</div><div class="rm-desc">18 papers published. GitHub live. Zenodo DOI. Bitcoin timestamp. Reference implementation 62/62 tests green. GHOSTDAG bridge documented.</div></div></div>
+      <div class="rm-item"><div class="rm-phase next">Phase 1<br>Q3 2026</div><div><div class="rm-title">Specification</div><div class="rm-desc">Claim schema finalised. API endpoints specified. Developer documentation. Community building. Kaspa ecosystem integration.</div></div></div>
+      <div class="rm-item"><div class="rm-phase future">Phase 2<br>Q4 2026</div><div><div class="rm-title">Proof of Concept</div><div class="rm-desc">Rust validator client. GHOSTDAG testnet integration. S_con computation engine. Ψ on-chain via zkVM.</div></div></div>
+      <div class="rm-item"><div class="rm-phase future">Phase 3<br>Q2–Q4 2027</div><div><div class="rm-title">Testnet</div><div class="rm-desc">Public testnet launch. Security audit. zkVM integration. EU AI Act compliance module.</div></div></div>
+      <div class="rm-item"><div class="rm-phase future">Phase 4<br>Q1–Q2 2028</div><div><div class="rm-title">Mainnet</div><div class="rm-desc">Launch. AGENTS token distribution. Governance activation. Institutional API. EU compliance dashboard.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- TOKEN -->
+<section id="token">
+  <div class="section-inner">
+    <div class="section-label counter">09 / Token Economy</div>
+    <h2>AGENTS token.<br><em>1,000,000,000 hard cap.</em></h2>
+    <p class="section-desc">Halving every 2,100,000 blocks (~4 years). Initial block reward: 100 AGENTS. Validator rewards via semantic work, not hashpower.</p>
+    <div class="token-grid">
+      <div class="token-item"><div class="token-pct">40%</div><div class="token-lbl">Validator Rewards<br>(halving schedule)</div></div>
+      <div class="token-item"><div class="token-pct">25%</div><div class="token-lbl">Ecosystem Fund</div></div>
+      <div class="token-item"><div class="token-pct">15%</div><div class="token-lbl">Founding Team<br>(4y vest, 1y cliff)</div></div>
+      <div class="token-item"><div class="token-pct">10%</div><div class="token-lbl">Community Airdrop</div></div>
+      <div class="token-item"><div class="token-pct">10%</div><div class="token-lbl">Reserve</div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- INTEGRITY -->
+<section id="integrity">
+  <div class="section-inner">
+    <div class="section-label counter">10 / Integrity</div>
+    <h2>Every document is <em>permanently anchored.</em></h2>
+    <p class="section-desc">Three independent verification systems. Any discrepancy between text and anchored hash invalidates the copy.</p>
+    <div class="integrity-grid">
+      <div class="integrity-cell">
+        <span class="int-lbl">Zenodo DOI</span>
+        <div class="int-val"><a href="https://doi.org/10.5281/zenodo.19642292" target="_blank">10.5281/zenodo.19642292</a></div>
+        <a class="int-link" href="https://doi.org/10.5281/zenodo.19642292" target="_blank">Verify on Zenodo →</a>
+      </div>
+      <div class="integrity-cell">
+        <span class="int-lbl">Bitcoin Timestamp</span>
+        <div class="int-val">Block #945,622<br>2026-04-18 CET<br>OpenTimestamps</div>
+        <a class="int-link" href="https://poisv.com/verification/" target="_blank">Verify timestamp →</a>
+      </div>
+      <div class="integrity-cell">
+        <span class="int-lbl">SHA-256 · Whitepaper EN</span>
+        <div class="int-val" style="font-size:.72em">c4d12fc1 8ec4cd2d<br>0be2fc94 18ec53c3<br>ab565669 13deab45</div>
+        <a class="int-link" href="https://poisv.com/verification/" target="_blank">Verification page →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- SUPPORT -->
+<section id="support">
+  <div class="section-inner">
+    <div class="section-label counter">11 / Support</div>
+    <h2>Help build the <em>truth layer</em><br>the Internet needs.</h2>
+    <p class="section-desc">AgentsProtocol is 100% independent research — no VC, no institution, no budget. Every contribution funds the Rust validator client and public testnet. All code is open source.</p>
+
+    <div class="wallet-grid">
+      <div class="wallet-card wbtc"><div class="wallet-chain">⊕ Bitcoin (BTC)</div><div class="wallet-addr">bc1quq2fj7jp8y5y7ltrl8wv0guk50ufqcath2pv6y</div><div class="wallet-net">Native SegWit · Bitcoin Mainnet</div></div>
+      <div class="wallet-card weth"><div class="wallet-chain">Ξ Ethereum / USDC</div><div class="wallet-addr">0x077895Db25011347837e885ECE68Fa46a709C712</div><div class="wallet-net">Ethereum Mainnet + Optimism</div></div>
+      <div class="wallet-card wsol"><div class="wallet-chain">◎ Solana / USDC</div><div class="wallet-addr">6aWQvKL44ZvNLUNYu41BkNknPzutA4hVaiaSLzv4QW4K</div><div class="wallet-net">Solana Mainnet</div></div>
+      <div class="wallet-card wtrx"><div class="wallet-chain">◈ Tron / USDT</div><div class="wallet-addr">TEjYARcwYfBjeg59zFd2Z9vJDK4Tm86iBt</div><div class="wallet-net">Tron Mainnet · TRC-20</div></div>
+      <div class="wallet-card wkas"><div class="wallet-chain">⬡ Kaspa (KAS)</div><div class="wallet-addr">kaspa:qrhwltpxza3l8x4mqyhqqrz5xcuda6j49fu00dwlgha9vvpvragzypqpysc0n</div><div class="wallet-net">Kaspa Mainnet · GHOSTDAG</div></div>
+      <div class="wallet-card" style="border:1px solid rgba(200,164,90,.25);background:rgba(200,164,90,.04);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px">
+        <div class="wallet-chain" style="color:var(--gold)">Gitcoin Grants</div>
+        <div style="font-size:.8em;color:var(--muted);line-height:1.5">Quadratic funding — small donations multiplied</div>
+        <a href="https://gitcoin.co/grants" target="_blank" style="background:var(--gold);color:var(--navy);padding:7px 16px;border-radius:4px;font-size:.8em;font-weight:600;margin-top:4px;text-decoration:none">Support on Gitcoin →</a>
+      </div>
+    </div>
+
+    <div class="mailing">
+      <div class="section-label" style="margin-bottom:8px"><span class="dot" style="width:5px;height:5px;border-radius:50%;background:var(--gold);display:inline-block;margin-right:6px"></span>Mailing List</div>
+      <div style="font-size:.88em;color:var(--muted);line-height:1.6;max-width:500px;font-family:var(--serif)">Protocol updates, testnet announcements, research papers and grant news. No spam. Unsubscribe anytime.</div>
+      <div class="mail-row">
+        <input type="email" class="mail-input" id="mailInp" placeholder="your@email.com">
+        <button class="mail-btn" onclick="mailSub()">Subscribe →</button>
+      </div>
+      <div id="mailOk" style="display:none;margin-top:10px;color:var(--green);font-size:.8em">✓ Welcome to AgentsProtocol.</div>
+      <p style="margin-top:10px;font-size:.72em;color:var(--faint)">Or email <a href="mailto:fatdinhero@gmail.com?subject=Subscribe AgentsProtocol" style="color:rgba(255,255,255,.35)">fatdinhero@gmail.com</a> with subject "Subscribe"</p>
+    </div>
+
+    <div style="margin-top:24px">
+      <div class="section-label" style="margin-bottom:14px"><span style="width:5px;height:5px;border-radius:50%;background:var(--gold);display:inline-block;margin-right:6px"></span>Use of Funds — Full Transparency</div>
+      <div class="fund-grid">
+        <div class="fund-item"><div class="fund-pct">60%</div><div class="fund-lbl">Rust Validator Development</div></div>
+        <div class="fund-item"><div class="fund-pct">20%</div><div class="fund-lbl">Security Audit</div></div>
+        <div class="fund-item"><div class="fund-pct">15%</div><div class="fund-lbl">Infrastructure & Hosting</div></div>
+        <div class="fund-item"><div class="fund-pct">5%</div><div class="fund-lbl">Community & Docs</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-col">
+    <h4>AgentsProtocol</h4>
+    <a href="detect/">Live Demo</a>
+    <a href="https://github.com/fatdinhero/agentsprotocol" target="_blank">GitHub</a>
+    <a href="https://doi.org/10.5281/zenodo.19642292" target="_blank">Zenodo Archive</a>
+    <a href="https://poisv.com" target="_blank">poisv.com</a>
+    <a href="https://poisv.com/verification/" target="_blank">Verification</a>
+  </div>
+  <div class="foot-col">
+    <h4>Research</h4>
+    <a href="https://poisv.com/en/MetaBell_Theorie_v1_EN.pdf" target="_blank">Meta-Bell Theory</a>
+    <a href="https://poisv.com/en/PoWW_Whitepaper_v2_EN.pdf" target="_blank">Proof of WiseWork</a>
+    <a href="https://poisv.com/en/PoISV_Whitepaper_v1.0_EN.pdf" target="_blank">PoISV Whitepaper</a>
+    <a href="en/AgentsProtocol_Whitepaper_v1.2_EN.pdf" target="_blank">AgentsProtocol Whitepaper</a>
+    <a href="en/AgentsProtocol_ExecutiveSummary_EN.pdf" target="_blank">Executive Summary</a>
+  </div>
+  <div class="foot-col">
+    <h4>Contact</h4>
+    <a href="mailto:fatdinhero@gmail.com">fatdinhero@gmail.com</a>
+    <a href="https://github.com/fatdinhero" target="_blank">github.com/fatdinhero</a>
+    <a href="https://kaspa.org" target="_blank">Kaspa Ecosystem</a>
+  </div>
+</footer>
+<div class="foot-bottom">
+  <span>© 2026 Fatih Dinc · Pforzheim, Germany</span>
+  <span>Specification: Apache 2.0 · Documentation: CC BY 4.0</span>
+  <span>DOI: 10.5281/zenodo.19642292 · Block #945,622</span>
+</div>
+
+<script>
+/* ── Mailing ── */
+function mailSub(){
+  const v=document.getElementById('mailInp').value;
+  if(!v||!v.includes('@')){alert('Please enter a valid email.');return;}
+  window.location.href='mailto:fatdinhero@gmail.com?subject=Subscribe AgentsProtocol&body=Please add: '+encodeURIComponent(v);
+  document.getElementById('mailOk').style.display='block';
+  document.getElementById('mailInp').value='';
+}
+
+/* ── Embedded Detect Widget ── */
+function dSetEx(t,d,a){
+  document.getElementById('dInp').value=t;
+  dSetPill('dDom',d);dSetPill('dAmp',a);
+}
+function dSetPill(g,v){document.querySelectorAll('#'+g+' .d-pill').forEach(p=>p.classList.toggle('active',p.dataset.v===v))}
+document.querySelectorAll('#dDom .d-pill').forEach(p=>p.addEventListener('click',()=>dSetPill('dDom',p.dataset.v)));
+document.querySelectorAll('#dAmp .d-pill').forEach(p=>p.addEventListener('click',()=>dSetPill('dAmp',p.dataset.v)));
+
+function dAnalyse(text,domain,amp){
+  const lo=text.toLowerCase(),wc=text.split(/\s+/).filter(w=>w.length>1).length;
+  const S={
+    fear:/\b(crash|collapse|apocalypse|panic|disaster|meltdown|doom)\b/i.test(text),
+    urgency:/\b(now|immediately|urgent|sell|dump|before it.s too late|act fast)\b/i.test(text),
+    breaking:/\b(breaking|alert|just in|emergency)\b/i.test(text),
+    caps:(text.match(/[A-Z]{3,}/g)||[]).length>=2,
+    exclaim:(text.match(/!/g)||[]).length>=2,
+    moon:/\b(moon|100x|lambo|to the moon|generational)\b/i.test(lo),
+    conspiracy:/\b(hidden|government hiding|censored|deep state|wake up|cover.?up)\b/i.test(lo),
+    pseudo:/\b(5g.*cancer|vaccine.*autism|chemtrail)\b/i.test(lo),
+    numbers:/\d+(\.\d+)?(%|°|M\b|B\b|billion|million|bps)\b/i.test(text),
+    citation:/\b(according to|doi:|arxiv|reuters|bloomberg|published)\b/i.test(lo),
+    institution:/\b(federal reserve|ecb|government|parliament|congress|ministry)\b/i.test(lo),
+    absolutist:/\b(always|never|100%|conclusively|undeniable|everyone)\b/i.test(lo),
+    coordFmt:/^(BREAKING|ALERT|JUST IN|🚨|⚡)/i.test(text.trim()),
+  };
+  let T=0.70;
+  if(S.citation)T+=.12;if(S.numbers)T+=.10;if(S.institution)T+=.06;
+  if(S.conspiracy)T-=.38;if(S.pseudo)T-=.45;if(S.absolutist&&!S.numbers)T-=.18;
+  if(S.fear&&!S.numbers)T-=.14;if(S.moon)T-=.20;
+  T=Math.max(.04,Math.min(.97,T));
+  let C=0.68;
+  if(wc>=8&&wc<=100)C+=.08;if(S.numbers)C+=.06;
+  if(S.urgency)C-=.10;if(S.caps)C-=.08;if(S.conspiracy)C-=.22;
+  C=Math.max(.04,Math.min(.97,C));
+  const R=Math.max(.04,Math.min(.97,Math.log(1+(0.55+(Math.min(wc,90)/90)*0.35*(S.conspiracy?.4:1)))/Math.log(2)));
+  const EB={general:1,finance:.90,politics:.86,science:.95,news:.88,crypto:.87};
+  let E=EB[domain]||1;
+  if(S.urgency)E-=.07;if(S.moon)E-=.10;if(S.conspiracy)E-=.20;
+  E=Math.max(.04,Math.min(.99,E));
+  const W=T*C*R*E;
+  let cb=0.15;
+  if(S.coordFmt)cb+=.30;if(S.breaking)cb+=.15;if(S.caps)cb+=.10;if(S.conspiracy)cb+=.20;
+  if(amp==='coordinated')cb+=.25;if(amp==='isolated')cb-=.10;if(S.citation)cb-=.10;
+  cb=Math.max(.05,Math.min(.95,cb));
+  return{T,C,R,E,W,cb,S};
+}
+function dPearson(a,b){
+  const n=a.length,ma=a.reduce((s,v)=>s+v,0)/n,mb=b.reduce((s,v)=>s+v,0)/n;
+  const num=a.reduce((s,v,i)=>s+(v-ma)*(b[i]-mb),0);
+  const da=Math.sqrt(a.reduce((s,v)=>s+(v-ma)**2,0)),db=Math.sqrt(b.reduce((s,v)=>s+(v-mb)**2,0));
+  return(da===0||db===0)?1:num/(da*db);
+}
+function dPsi(cb,T,amp){
+  const cf=amp==='coordinated'?.92:amp==='trending'?.55:.12;
+  const base=[1-T+(.05*(Math.random()-.5)),cb+(.1*(Math.random()-.5)),Math.random()*.4];
+  const ev=(coord)=>coord&&cf>.4?base.map(v=>Math.max(0,Math.min(1,v+.04*(Math.random()-.5)))):[Math.random()*.5,Math.random()*.5,Math.random()*.5];
+  const evs=[ev(false),ev(true),ev(true),ev(true),ev(amp==='isolated'),ev(amp==='coordinated')];
+  const w=[Math.sqrt(3),Math.sqrt(2),Math.sqrt(1.5),Math.sqrt(1.5),Math.sqrt(2.5),Math.sqrt(2)];
+  let ws=0,cs=0;
+  for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const ww=w[i]*w[j];cs+=ww*Math.abs(dPearson(evs[i],evs[j]));ws+=ww;}
+  return ws===0?1:Math.max(0,Math.min(1,1-cs/ws));
+}
+
+function dRun(){
+  const text=document.getElementById('dInp').value.trim();
+  if(!text){alert('Please enter a claim.');return;}
+  const domain=document.querySelector('#dDom .d-pill.active')?.dataset.v||'general';
+  const amp=document.querySelector('#dAmp .d-pill.active')?.dataset.v||'trending';
+  const btn=document.getElementById('dBtn');
+  btn.disabled=true;btn.textContent='Analysing…';
+  document.getElementById('dResults').classList.remove('on');
+  document.getElementById('dLoading').classList.add('on');
+  document.getElementById('dProg').style.width='0%';
+
+  const STEPS=[[20,'Extracting signals'],[45,'Computing scores'],[70,'Running Ψ test'],[90,'Computing WiseScore'],[100,'Done']];
+  let si=0;
+  const tick=()=>{
+    if(si>=STEPS.length){setTimeout(dRender,150);return;}
+    document.getElementById('dProg').style.width=STEPS[si][0]+'%';
+    document.getElementById('dLoadTxt').textContent=STEPS[si][1];
+    si++;setTimeout(tick,280);
+  };
+  tick();
+
+  function dRender(){
+    const r=dAnalyse(text,domain,amp);
+    const psi=dPsi(r.cb,r.T,amp);
+    const ampM=amp==='coordinated'?1.4:amp==='trending'?1.1:0.7;
+    const risk=Math.min(100,Math.round((1-psi)*100*ampM*(r.T<.5?1.5:1.0)));
+    const f=v=>v.toFixed(3),accepted=r.W>=.60&&psi>=.70;
+
+    document.getElementById('dWN').textContent=f(r.W);
+    const ds=[[.85,"Exceptional quality"],[.70,"High quality — accepted"],[.60,"Acceptable"],[.40,"Below threshold"],[0,"Rejected by protocol"]];
+    document.getElementById('dWT').textContent=ds.find(([t])=>r.W>=t)[1];
+
+    const vEl=document.getElementById('dVerd');
+    vEl.className='d-verdict '+(accepted?'dv-ok':'dv-no');
+    vEl.textContent=accepted?`✓ BLOCK ACCEPTED — W=${f(r.W)} · Ψ=${f(psi)}`:`✗ BLOCK REJECTED — ${r.W<.60?`WiseScore ${f(r.W)} < 0.60`:`Ψ ${f(psi)} < 0.70 — coordination`}`;
+
+    const sigBad=['fear','urgency','breaking','caps','exclaim','moon','conspiracy','pseudo','absolutist','coordFmt'];
+    const sigGood=['numbers','citation','institution'];
+    const SL={fear:'Fear language',urgency:'Urgency/sell signal',breaking:'Breaking format',caps:'Caps abuse',exclaim:'Multi exclamation',moon:'Hype language',conspiracy:'Conspiracy lexicon',pseudo:'Pseudoscience',absolutist:'Absolutist language',coordFmt:'Coordinated format',numbers:'Numerical data',citation:'Source citation',institution:'Institutional ref.'};
+    let sigs='';
+    sigBad.forEach(k=>{if(r.S[k])sigs+=`<span class="d-sig ds-red">⚠ ${SL[k]}</span>`;});
+    sigGood.forEach(k=>{if(r.S[k])sigs+=`<span class="d-sig ds-green">✓ ${SL[k]}</span>`;});
+    if(!sigs)sigs='<span class="d-sig ds-blue">No strong signals — ambiguous</span>';
+    document.getElementById('dSigs').innerHTML=sigs;
+
+    [[r.T,'dtN','dtB','#60a5fa'],[r.C,'dcN','dcB','#4ade80'],[r.R,'drN','drB','#a78bfa'],[r.E,'deN','deB','#f59e0b']].forEach(([v,n,b,c])=>{document.getElementById(n).textContent=f(v);document.getElementById(b).style.cssText=`background:${c};width:${v*100}%`;});
+
+    const pe=document.getElementById('dPsiV');pe.textContent=`Ψ = ${f(psi)}`;pe.className='d-psi-val '+(psi>=.70?'':'');pe.style.color=psi>=.70?'#4ade80':psi>=.40?'#fbbf24':'#f87171';
+    document.getElementById('dPsiD').textContent=psi>=.70?'Independent validators — low coordination signal.':psi>=.40?'Partial correlation — possible soft coordination.':'High coordination — manipulation pattern detected.';
+
+    const rc=risk<25?'#22c55e':risk<50?'#eab308':risk<75?'#f97316':'#ef4444';
+    document.getElementById('dRBar').style.cssText=`background:${rc};width:${risk}%`;
+    document.getElementById('dRPct').textContent=risk+'%';document.getElementById('dRPct').style.color=rc;
+
+    document.getElementById('dLoading').classList.remove('on');
+    document.getElementById('dResults').classList.add('on');
+    btn.disabled=false;btn.textContent='Run Meta-Bell Analysis →';
+  }
+}
+</script>
+</body>
+</html>

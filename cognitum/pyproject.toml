@@ -1,0 +1,27 @@
+[project]
+name = "daysensos"
+version = "0.9.0"
+description = "Privacy-First Wearable AI OS — L1-L5 Pipeline"
+authors = [{name = "Fatih Dinc"}]
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "typer>=0.12.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "httpx>=0.27"]
+
+[project.scripts]
+daysensos = "daysensos.main:main"
+cognitum-cna = "cognitum.cna.cli:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

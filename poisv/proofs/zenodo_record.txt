@@ -1,0 +1,24 @@
+Zenodo Record
+=============
+
+DOI:           10.5281/zenodo.19642292
+Resolver:      https://doi.org/10.5281/zenodo.19642292
+Direct URL:    https://zenodo.org/records/19642292
+Title:         AgentsProtocol — Formal Archive v1.0
+Deposited:     2026-04 by Fatih Dinc (ORCID pending)
+License:       CC BY 4.0 (documentation), Apache-2.0 (code)
+
+Contents (17 PDFs):
+  AgentsProtocol_Whitepaper_v1_2.pdf            (DE)
+  AgentsProtocol_Whitepaper_v1.2_EN.pdf         (EN)
+  AgentsProtocol_Whitepaper_v1.2_TR.pdf         (TR)
+  AgentsProtocol_ExecutiveSummary.pdf           (DE)
+  AgentsProtocol_ExecutiveSummary_EN.pdf        (EN)
+  AgentsProtocol_ExecutiveSummary_TR.pdf        (TR)
+  AgentsProtocol_DevDocs.pdf                    (DE)
+  AgentsProtocol_Legal_Governance.pdf           (DE)
+  MetaBell_Theorie_v1_{DE,EN,TR}.pdf
+  PoWW_Whitepaper_v2_{DE,EN,TR}.pdf
+  PoISV_Whitepaper_v1.0_{DE,EN,TR}.pdf
+Additionally:
+  SHA256SUMS.txt — manifest, also timestamped on Bitcoin block 945622.

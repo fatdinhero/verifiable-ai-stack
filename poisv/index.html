@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PoISV — Proof of Independent Semantic Validation</title>
+  <style>
+    :root { --accent: #e07b39; --bg: #0d1117; --fg: #c9d1d9; --card: #161b22; --border: #30363d; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header { padding: 3rem 2rem 2rem; text-align: center; border-bottom: 1px solid var(--border); }
+    header h1 { font-size: 2rem; color: #fff; }
+    header .subtitle { color: #8b949e; margin-top: .5rem; }
+    .badges { margin-top: 1rem; display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+    main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    section { margin-bottom: 3rem; }
+    h2 { font-size: 1.3rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: .4rem; margin-bottom: 1.2rem; }
+    pre { background: #0d1117; border: 1px solid var(--border); padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th { background: var(--card); color: #fff; padding: .5rem .8rem; text-align: left; border: 1px solid var(--border); }
+    td { padding: .5rem .8rem; border: 1px solid var(--border); }
+    tr:nth-child(even) { background: var(--card); }
+    .doc-count { display: inline-block; background: var(--accent); color: #fff; border-radius: 4px; padding: .1rem .5rem; font-weight: bold; font-size: .9rem; margin-left: .5rem; }
+    .hash { font-family: monospace; font-size: .78rem; color: #8b949e; word-break: break-all; }
+    footer { background: var(--card); border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-size: .85rem; color: #8b949e; }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>PoISV: Proof of Independent Semantic Validation</h1>
+  <p class="subtitle">Scientific foundation for AgentsProtocol</p>
+  <div class="badges">
+    <a href="https://doi.org/10.5281/zenodo.19642292">
+      <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.19642292.svg" alt="DOI" />
+    </a>
+    <img src="https://img.shields.io/badge/Bitcoin_Block-945622-orange" alt="Bitcoin Block" />
+    <img src="https://img.shields.io/badge/license--docs-CC--BY--4.0-blue" alt="License" />
+  </div>
+</header>
+
+<main>
+
+  <section id="about">
+    <h2>About</h2>
+    <p>
+      This repository is the formally archived scientific layer: three whitepapers
+      (Meta-Bell Theory, Proof of WiseWork v2, PoISV v1.0), their reference
+      implementations, and interactive Jupyter notebooks.
+    </p>
+  </section>
+
+  <section id="architecture">
+    <h2>Architecture</h2>
+    <pre>
+    Meta-Bell Theory       [measure-theoretic foundation]
+          |
+          |  Psi entanglement measure
+          v
+    Proof of WiseWork       [truth x context x relevance x ethics]
+          |
+          |  W(i) = T C R E
+          v
+    PoISV                   [operational protocol]
+          |
+          |  S_con + Psi + GHOSTDAG ordering
+          v
+    AgentsProtocol          [application layer]
+    </pre>
+  </section>
+
+  <section id="archive">
+    <h2>Source Archive <span class="doc-count">18 Documents</span></h2>
+    <p style="margin-bottom:1rem;">
+      Hashes correspond to the SHA256SUMS manifest inside the published ZIP.
+      All 18 documents (DE/EN/TR) are anchored under the single Zenodo DOI
+      <strong><a href="https://doi.org/10.5281/zenodo.19642292">10.5281/zenodo.19642292</a></strong>.
+    </p>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Language / Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>AgentsProtocol_Whitepaper_v1.2_{DE,EN,TR}.pdf</code></td><td>DE/EN/TR</td></tr>
+        <tr><td><code>AgentsProtocol_ExecutiveSummary_{DE,EN,TR}.pdf</code></td><td>DE/EN/TR</td></tr>
+        <tr><td><code>AgentsProtocol_DevDocs.pdf</code></td><td>DE (EN translation in repo)</td></tr>
+        <tr><td><code>AgentsProtocol_Legal_Governance.pdf</code></td><td>DE</td></tr>
+        <tr><td><code>MetaBell_Theorie_v1_{DE,EN,TR}.pdf</code></td><td>DE/EN/TR</td></tr>
+        <tr><td><code>PoWW_Whitepaper_v2_{DE,EN,TR}.pdf</code></td><td>DE/EN/TR</td></tr>
+        <tr><td><code>PoISV_Whitepaper_v1.0_{DE,EN,TR}.pdf</code></td><td>DE/EN/TR</td></tr>
+        <tr>
+          <td>
+            <a href="https://doi.org/10.5281/zenodo.19656679"><strong>Bell-SPVU Paper</strong></a><br />
+            DOI: <code>10.5281/zenodo.19656679</code><br />
+            <span class="hash">SHA256: ac0b646d6889bd94ae676302086de0f42af6d7185da4aa2a4c58fb068eab2f45</span>
+          </td>
+          <td>EN — Formal proof of MetaBell operator</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="packages">
+    <h2>Three Reference Packages</h2>
+    <ul style="list-style:none; padding:0;">
+      <li style="margin-bottom:.5rem;">📦 <code>meta-bell/</code> — Psi entanglement measure (measure-theoretic).</li>
+      <li style="margin-bottom:.5rem;">📦 <code>poww/</code> — WiseScore T × C × R × E + Gambler's Ruin probability.</li>
+      <li style="margin-bottom:.5rem;">📦 <code>poisv/</code> — Full acceptance rule, block weight, DAG wrapper.</li>
+    </ul>
+  </section>
+
+  <section id="live">
+    <h2>Live Sites</h2>
+    <ul style="list-style:none; padding:0;">
+      <li><a href="https://poisv.com">https://poisv.com</a></li>
+      <li><a href="https://agentsprotocol.org">https://agentsprotocol.org</a></li>
+    </ul>
+  </section>
+
+  <section id="license">
+    <h2>License</h2>
+    <p>Documentation and notebooks: CC BY 4.0. Code snippets embedded in notebooks: Apache-2.0 (see <code>LICENSE-CODE</code>).</p>
+  </section>
+
+</main>
+
+<footer>
+  <p>
+    Fatih Dinc &mdash; Pforzheim, Germany &mdash;
+    <a href="https://github.com/fatdinhero/poisv">GitHub</a> &mdash;
+    <a href="https://doi.org/10.5281/zenodo.19642292">Zenodo DOI 10.5281/zenodo.19642292</a> &mdash;
+    <a href="https://doi.org/10.5281/zenodo.19656679">Bell-SPVU Paper</a>
+  </p>
+</footer>
+
+</body>
+</html>
