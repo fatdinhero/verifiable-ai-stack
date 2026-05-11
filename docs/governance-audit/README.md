@@ -91,7 +91,14 @@ Run multiple built-ins:
 python cognitum/scripts/export_governance_claims.py --validators baseline,kind-context
 ```
 
-External validators can be attached with `--validator-results path/to/results.json`.
+External validators can be attached with one or more comma-separated local files:
+
+```bash
+python cognitum/scripts/export_governance_claims.py \
+  --validator-results validator-a.json,validator-b.json \
+  --fail-on-reject
+```
+
 Expected shape:
 
 ```json
@@ -121,6 +128,8 @@ python cognitum/scripts/export_governance_claims.py \
 ```
 
 The API must return the same JSON shape as `--validator-results`. Network and schema errors fail closed before validation. API validators are executed in parallel with built-in validators and local result-file validators. Retries use bounded exponential backoff and are controlled by `--validator-api-timeout` and `--validator-api-retries`.
+
+If a validator fails, the error message includes the validator source and root cause. If `--require-signature` is enabled and no HMAC key is present, `quality_gate.failure_reasons` explicitly states that the signature requirement failed.
 
 ## Adding a new validator
 

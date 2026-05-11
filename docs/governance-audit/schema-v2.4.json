@@ -52,6 +52,10 @@
         "passed": {"type": "boolean"},
         "thresholds": {"type": "object"},
         "observed": {"type": "object"},
+        "failure_reasons": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
         "merge_check": {
           "type": "object",
           "required": ["workflow", "job", "required_status_check", "github_merge_queue_event"],

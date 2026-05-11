@@ -95,6 +95,7 @@ def test_can_require_hmac_signature(monkeypatch):
     unsigned = module.validate_governance_claims(claims, require_signature=True)
     assert unsigned["summary"]["accepted"] is True
     assert unsigned["quality_gate"]["passed"] is False
+    assert "Signature is required" in unsigned["quality_gate"]["failure_reasons"][0]
 
     monkeypatch.setenv("GOVERNANCE_AUDIT_HMAC_KEY", "test-secret")
     signed = module.validate_governance_claims(claims, require_signature=True)
@@ -131,6 +132,41 @@ def test_accepts_external_validator_results(tmp_path):
     assert {validator["type"] for validator in report["validators"]} == {
         "built-in",
         "external",
+    }
+    assert any(validator.get("source_sha256") for validator in report["validators"])
+
+
+def test_accepts_multiple_external_validator_files(tmp_path):
+    module = _load_module()
+
+    claims = module.export_governance_claims()[:3]
+    paths = []
+    for idx, score in enumerate((0.98, 0.97), start=1):
+        path = tmp_path / f"validator-{idx}.json"
+        path.write_text(
+            json.dumps(
+                {
+                    "validators": [
+                        {
+                            "name": f"file-validator-{idx}",
+                            "scores": {claim["id"]: score for claim in claims},
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        paths.append(path)
+
+    report = module.validate_governance_claims(
+        claims,
+        validator_results_paths=tuple(paths),
+    )
+
+    assert report["summary"]["validator_count"] == 3
+    assert {validator["name"] for validator in report["validators"]} >= {
+        "file-validator-1",
+        "file-validator-2",
     }
 
 
