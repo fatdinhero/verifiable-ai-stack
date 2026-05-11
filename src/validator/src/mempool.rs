@@ -27,6 +27,7 @@ use crate::consensus::Ghostdag;
 use crate::network::{publish_block, OutboundMsg};
 use crate::storage::{DagStore, StoredBlock, StoredClaim};
 use crate::validation::compute_s_con;
+use crate::zk::{MockZkBackend, ZkBackend, ZkBlockInput};
 
 // -- ScoredClaim --------------------------------------------------------------
 
@@ -201,6 +202,25 @@ impl BlockProducer {
         // GHOSTDAG parent selection
         let parent_hashes = Ghostdag::new(self.cfg.clone(), &self.store).select_parents();
 
+        // Attach development commitment (MockZkBackend).
+        // Not a cryptographic ZK proof — see zk.rs for details.
+        let s_con_mean = if s_con_scores.is_empty() {
+            0.0
+        } else {
+            s_con_scores.iter().sum::<f64>() / s_con_scores.len() as f64
+        };
+        let zk_input = ZkBlockInput::new(&hash, claim_ids.clone(), s_con_mean, psi);
+        let zk_proof = match MockZkBackend.prove_block(&zk_input) {
+            Ok(p) => {
+                info!("block {hash}: commitment attached (backend={})", p.backend);
+                Some(p)
+            }
+            Err(e) => {
+                warn!("block {hash}: commitment failed: {e}");
+                None
+            }
+        };
+
         let block = StoredBlock {
             hash: hash.clone(),
             parent_hashes,
@@ -208,6 +228,7 @@ impl BlockProducer {
             psi,
             cumulative_weight: weight,
             claim_ids,
+            zk_proof,
         };
 
         self.store.save_block(&block)?;

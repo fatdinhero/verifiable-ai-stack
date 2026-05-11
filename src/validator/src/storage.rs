@@ -31,6 +31,10 @@ pub struct StoredBlock {
     pub psi: f64,
     pub cumulative_weight: f64,
     pub claim_ids: Vec<String>,
+    /// Development commitment or ZK proof attached at block production time.
+    /// `None` for blocks produced before Phase 4 (backwards-compatible).
+    #[serde(default)]
+    pub zk_proof: Option<crate::zk::ZkProof>,
 }
 
 // -- DagStore -----------------------------------------------------------------
@@ -137,6 +141,7 @@ mod tests {
             psi: 1.0,
             cumulative_weight: weight,
             claim_ids: vec!["claim_abc".to_string()],
+            zk_proof: None,
         }
     }
 

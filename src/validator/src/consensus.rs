@@ -92,6 +92,7 @@ mod tests {
             psi: 1.0,
             cumulative_weight: weight,
             claim_ids: vec![],
+            zk_proof: None,
         }
     }
 
