@@ -1,0 +1,64 @@
+{
+    "version": "0.1.0",
+    "author": {
+        "email": "fatdinhero@gmail.com",
+        "url": "https://github.com/FatihX",
+        "name": "Fatih Dinc"
+    },
+    "license": "SEE LICENSE FILE",
+    "dependencies": {
+        "express": "^4.18.2"
+    },
+    "types": "dist/index.d.ts",
+    "name": "cos-backend",
+    "type": "module",
+    "bugs": {
+        "url": "https://github.com/fatdinhero/civilization-operating-system/issues"
+    },
+    "description": "Sharia-Compliant Civilization Operating System Backend - Riba Detection, Zakāt Calculator, Halal Validator",
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/jest": "^29.5.11",
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "@typescript-eslint/parser": "^6.19.0",
+        "eslint": "^8.56.0",
+        "jest": "^29.7.0",
+        "prettier": "^3.2.4",
+        "ts-jest": "^29.1.1",
+        "tsx": "^4.7.0",
+        "typescript": "^5.3.3"
+    },
+    "keywords": [
+        "sharia",
+        "islamic-finance",
+        "riba-detection",
+        "halal",
+        "zakat",
+        "sharia-compliant",
+        "islamic-banking",
+        "open-source",
+        "typescript"
+    ],
+    "scripts": {
+        "prepare": "npm run build",
+        "test:watch": "jest --watch",
+        "build": "tsc",
+        "lint": "eslint src/**/*.ts",
+        "format": "prettier --write 'src/**/*.ts'",
+        "test": "jest",
+        "lint:fix": "eslint src/**/*.ts --fix",
+        "test:coverage": "jest --coverage",
+        "dev": "tsx src/test.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fatdinhero/civilization-operating-system.git"
+    },
+    "homepage": "https://github.com/fatdinhero/civilization-operating-system#readme",
+    "main": "dist/index.js"
+}
