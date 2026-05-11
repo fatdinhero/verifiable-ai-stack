@@ -28,7 +28,7 @@ class TestAutopoiesisEngine:
 
     def test_send_to_mimo_exception(self):
         engine = AutopoiesisEngine()
-        with patch('builtins.split', side_effect=Exception()):
+        with patch.object(engine, '_send_to_mimo', side_effect=Exception('network error')):
             result = engine._send_to_mimo("code", "error")
             assert result is None
 
