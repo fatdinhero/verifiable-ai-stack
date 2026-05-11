@@ -26,6 +26,7 @@ use tokio::sync::mpsc;
 use tracing::{info, warn};
 
 use crate::config::ProtocolConfig;
+use crate::mempool::ClaimMempool;
 use crate::storage::{DagStore, StoredBlock, StoredClaim};
 
 // -- Topic constants ----------------------------------------------------------
@@ -74,12 +75,13 @@ impl P2p {
 
     /// Subscribe to all protocol topics, then run the event loop.
     ///
-    /// Incoming claims are stored via `store.save_claim`.
-    /// Incoming blocks are stored via `store.save_block`.
+    /// Incoming claims are routed to `mempool` (if provided) or directly to
+    /// `store.save_claim`. Incoming blocks go to `store.save_block`.
     /// mDNS peer discovery is handled automatically.
     pub async fn run(
         &mut self,
         store: &DagStore,
+        mempool: Option<&ClaimMempool>,
         listen_addr: Option<Multiaddr>,
     ) -> Result<()> {
         // -- Build swarm ------------------------------------------------------
@@ -176,7 +178,7 @@ impl P2p {
                         SwarmEvent::Behaviour(AgentsBehaviourEvent::Gossipsub(
                             gossipsub::Event::Message { message, .. },
                         )) => {
-                            handle_inbound(message, store);
+                            handle_inbound(message, store, mempool);
                         }
                         SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
                             mdns::Event::Discovered(peers),
@@ -227,15 +229,22 @@ fn publish_json<T: serde::Serialize>(
     Ok(())
 }
 
-/// Route an inbound gossipsub message to the appropriate store method.
+/// Route an inbound gossipsub message to the mempool (claims) or store.
 /// Errors are logged and swallowed — a bad message must not crash the loop.
-fn handle_inbound(message: gossipsub::Message, store: &DagStore) {
+fn handle_inbound(
+    message: gossipsub::Message,
+    store: &DagStore,
+    mempool: Option<&ClaimMempool>,
+) {
     let topic = message.topic.as_str();
     match topic {
         TOPIC_CLAIMS => {
             match serde_json::from_slice::<StoredClaim>(&message.data) {
                 Ok(claim) => {
-                    if let Err(e) = store.save_claim(&claim) {
+                    if let Some(pool) = mempool {
+                        // Score and queue for block assembly
+                        pool.insert(claim, &[]);
+                    } else if let Err(e) = store.save_claim(&claim) {
                         warn!("store claim {}: {e}", claim.id);
                     } else {
                         info!("stored inbound claim {}", claim.id);
