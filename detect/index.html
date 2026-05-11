@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Bell Ψ Detector — AgentsProtocol Live Demo</title>
+<meta name="description" content="Interactive Meta-Bell Ψ manipulation detector. Enter any claim, tweet, or AI output and get real-time semantic validation scores.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#07090f;--navy2:#0d1117;--navy3:#111620;
+  --gold:#c8a45a;--gold2:#d7b56b;--gold3:rgba(200,164,90,.12);
+  --white:#f5f5f0;--muted:rgba(245,245,240,.48);--faint:rgba(245,245,240,.2);
+  --rule:rgba(245,245,240,.07);--rule2:rgba(245,245,240,.12);
+  --green:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--purple:#a78bfa;
+  --mono:'IBM Plex Mono',monospace;--serif:'EB Garamond',Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--white);font-family:var(--mono);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(7,9,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--rule);padding:13px 40px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-back{font-size:.77em;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;transition:color .2s}
+.nav-back:hover{color:var(--gold);text-decoration:none}
+.nav-back::before{content:'←';font-size:1em}
+.nav-logo{font-size:1.05em;font-weight:600;letter-spacing:-.01em;color:var(--white)}
+.nav-logo span{color:var(--gold)}
+.nav-tag{font-size:.64em;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:3px;border:1px solid rgba(200,164,90,.3);color:var(--gold)}
+
+/* HERO */
+.hero{padding:60px 40px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(200,164,90,.06),transparent 70%);pointer-events:none}
+.hero-eyebrow{font-size:.7em;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';display:block;width:24px;height:1px;background:var(--gold)}
+.hero h1{font-family:var(--serif);font-size:clamp(1.8em,4vw,3em);font-weight:600;line-height:1.15;letter-spacing:-.02em;margin-bottom:14px}
+.hero h1 em{color:var(--gold);font-style:italic}
+.hero-sub{font-family:var(--serif);font-size:1.05em;color:var(--muted);line-height:1.75;max-width:560px;margin:0 auto}
+
+/* MAIN LAYOUT */
+.main{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+
+/* INPUT CARD */
+.card{background:var(--navy2);border:1px solid rgba(200,164,90,.15);border-radius:14px;overflow:hidden;margin-bottom:24px}
+.card-header{background:rgba(200,164,90,.05);padding:14px 24px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px}
+.card-label{font-size:.68em;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.card-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.card-body{padding:24px}
+
+textarea{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--white);font-family:var(--serif);font-size:1.05em;line-height:1.7;padding:14px 16px;resize:vertical;min-height:110px;outline:none;transition:border-color .2s}
+textarea:focus{border-color:rgba(200,164,90,.45)}
+textarea::placeholder{color:var(--faint);font-style:italic}
+
+/* CONTROLS */
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+@media(max-width:520px){.controls{grid-template-columns:1fr}}
+.ctrl-group label{display:block;font-size:.65em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+select{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:6px;color:var(--white);font-family:var(--mono);font-size:.85em;padding:9px 12px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c8a45a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:border-color .2s}
+select:focus{border-color:rgba(200,164,90,.45)}
+
+/* EXAMPLES */
+.exs-label{font-size:.65em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+.exs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.ex-btn{padding:10px 14px;background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:7px;color:var(--muted);font-size:.82em;text-align:left;cursor:pointer;font-family:var(--serif);line-height:1.45;transition:all .2s;display:flex;flex-direction:column;gap:5px}
+.ex-btn:hover{border-color:rgba(200,164,90,.3);color:var(--white);background:rgba(200,164,90,.04)}
+.ex-tag{font-family:var(--mono);font-size:.68em;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:3px;width:fit-content}
+.tag-manip{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.tag-fact{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25)}
+.tag-hype{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.tag-dis{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25)}
+
+/* RUN BUTTON */
+.run-btn{margin-top:20px;width:100%;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:8px;font-size:.9em;font-weight:600;cursor:pointer;font-family:var(--mono);letter-spacing:.05em;transition:all .2s}
+.run-btn:hover:not(:disabled){background:var(--gold2);transform:translateY(-1px)}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* PROGRESS */
+.progress-wrap{display:none;padding:28px;text-align:center}
+.progress-wrap.on{display:block}
+.spinner{width:26px;height:26px;border-radius:50%;border:2px solid rgba(200,164,90,.15);border-top-color:var(--gold);animation:spin .9s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.prog-label{font-size:.78em;color:var(--muted);margin-bottom:10px}
+.prog-bar{width:200px;height:2px;background:var(--rule);border-radius:1px;margin:0 auto;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:1px;width:0%;transition:width .32s ease}
+
+/* RESULTS */
+.results{display:none}
+.results.on{display:block}
+
+.verdict{padding:14px 20px;border-radius:8px;font-weight:600;font-size:.9em;letter-spacing:.03em;margin-bottom:20px;border:1px solid}
+.verdict.ok{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);color:var(--green)}
+.verdict.no{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);color:var(--red)}
+
+/* SCORE GRID */
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:480px){.score-grid{grid-template-columns:1fr}}
+.score-card{background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.score-main{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.score-val{font-family:var(--serif);font-size:2.2em;font-weight:600;line-height:1;color:var(--white)}
+.score-lbl{font-size:.65em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.score-tag{font-size:.72em;margin-top:4px}
+
+/* COMPONENT BARS */
+.components{background:rgba(255,255,255,.02);border:1px solid var(--rule);border-radius:10px;padding:18px;margin-bottom:14px}
+.comp-title{font-size:.65em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.comp-row{display:grid;grid-template-columns:90px 1fr 46px;align-items:center;gap:10px;margin-bottom:10px}
+.comp-row:last-child{margin-bottom:0}
+.comp-name{font-size:.75em;color:var(--muted)}
+.comp-bar-wrap{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.comp-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.comp-num{font-size:.78em;font-weight:600;text-align:right}
+
+/* PSI ROW */
+.psi-card{background:rgba(200,164,90,.04);border:1px solid rgba(200,164,90,.15);border-radius:10px;padding:18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.psi-left{}
+.psi-sublbl{font-size:.64em;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.psi-val{font-family:var(--serif);font-size:2em;font-weight:600}
+.psi-desc{font-family:var(--serif);font-size:.9em;font-style:italic;color:var(--muted);max-width:280px;text-align:right}
+
+/* RISK BAR */
+.risk-wrap{background:rgba(255,255,255,.025);border:1px solid var(--rule);border-radius:10px;padding:18px;margin-bottom:16px}
+.risk-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.risk-label{font-size:.65em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.risk-pct{font-family:var(--serif);font-size:1.4em;font-weight:600}
+.risk-bar-wrap{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.risk-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* SIGNALS */
+.signals{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.sig{font-size:.72em;padding:3px 9px;border-radius:4px;font-family:var(--mono)}
+.sig-red{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.sig-green{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.sig-blue{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.2)}
+
+/* VALIDATOR TABLE */
+.vtable-wrap{background:rgba(255,255,255,.02);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.vtable-hdr{padding:12px 18px;border-bottom:1px solid var(--rule);font-size:.65em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+table.vtable{width:100%;border-collapse:collapse;font-size:.82em}
+.vtable td{padding:10px 18px;border-bottom:1px solid var(--rule)}
+.vtable tr:last-child td{border-bottom:none}
+.vtable td:first-child{color:var(--muted);width:130px}
+.vtable td:nth-child(2){font-weight:600}
+.vtable td:last-child{text-align:right}
+.v-ind{font-size:.68em;padding:2px 8px;border-radius:3px;font-family:var(--mono)}
+.v-high{background:rgba(74,222,128,.1);color:var(--green)}
+.v-mid{background:rgba(251,191,36,.1);color:var(--amber)}
+.v-low{background:rgba(248,113,113,.1);color:var(--red)}
+
+/* RESET */
+.reset-btn{display:block;width:100%;padding:10px;background:transparent;border:1px solid var(--rule);border-radius:7px;color:var(--muted);font-size:.8em;font-family:var(--mono);cursor:pointer;letter-spacing:.04em;transition:all .2s;margin-top:8px}
+.reset-btn:hover{border-color:rgba(200,164,90,.3);color:var(--gold)}
+
+/* FOOTER */
+footer{border-top:1px solid var(--rule);padding:28px 40px;text-align:center;font-size:.78em;color:var(--faint)}
+footer a{color:var(--muted)}footer a:hover{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="https://agentsprotocol.org">agentsprotocol.org</a>
+  <span class="nav-logo">Agents<span>Protocol</span></span>
+  <span class="nav-tag">Live Demo</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Meta-Bell Ψ Detector</div>
+  <h1>Is this claim <em>independent</em>?</h1>
+  <p class="hero-sub">Enter any claim, tweet, headline, or AI output. The Meta-Bell Ψ statistic detects coordinated manipulation using the same mathematics that proves independence in quantum physics.</p>
+</div>
+
+<div class="main">
+
+  <!-- INPUT CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-dot"></div>
+      <span class="card-label">Claim Input</span>
+    </div>
+    <div class="card-body">
+      <textarea id="claimInp" rows="4" placeholder="Paste any claim — tweet, headline, AI output, political statement, financial advice…"></textarea>
+
+      <div class="controls">
+        <div class="ctrl-group">
+          <label>Domain / Category</label>
+          <select id="domSel">
+            <option value="general">General</option>
+            <option value="finance">Finance</option>
+            <option value="politics">Politics</option>
+            <option value="science">Science</option>
+            <option value="crypto">Crypto</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Amplification Pattern</label>
+          <select id="ampSel">
+            <option value="isolated">Isolated — single source</option>
+            <option value="trending" selected>Trending — multiple sources</option>
+            <option value="coordinated">Coordinated — synchronized</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="exs-label">Quick examples →</div>
+      <div class="exs">
+        <button class="ex-btn" onclick="fillEx('Trump says the apocalypse is tomorrow! Markets will crash. Sell everything NOW.','politics','coordinated')">
+          <span class="ex-tag tag-manip">MANIP</span>Trump apocalypse / markets crash
+        </button>
+        <button class="ex-btn" onclick="fillEx('The Federal Reserve raised interest rates by 0.25% at its May 2024 FOMC meeting.','finance','isolated')">
+          <span class="ex-tag tag-fact">FACTUAL</span>Fed rate decision 0.25%
+        </button>
+        <button class="ex-btn" onclick="fillEx('This crypto will 100x in 30 days. Biggest opportunity of the decade. Don\'t miss out!','crypto','trending')">
+          <span class="ex-tag tag-hype">HYPE</span>Crypto 100x opportunity
+        </button>
+        <button class="ex-btn" onclick="fillEx('Scientists confirm: 5G towers cause cancer. Government hiding the truth. Share before deleted!','general','coordinated')">
+          <span class="ex-tag tag-dis">DISINFO</span>5G cancer conspiracy
+        </button>
+      </div>
+
+      <button class="run-btn" id="runBtn" onclick="runAnalysis()">Run Meta-Bell Analysis →</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="card" id="progressCard" style="display:none">
+    <div class="card-body">
+      <div class="progress-wrap on">
+        <div class="spinner"></div>
+        <div class="prog-label" id="progLabel">Extracting signals…</div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsWrap" class="results">
+
+    <!-- VERDICT -->
+    <div id="verdictEl" class="verdict"></div>
+
+    <!-- WISE + PSI SCORES -->
+    <div class="score-grid">
+      <div class="score-card">
+        <div class="score-lbl">WiseScore W(i)</div>
+        <div class="score-main">
+          <div class="score-val" id="wiseVal">—</div>
+        </div>
+        <div class="score-tag" id="wiseTag" style="color:var(--muted)">—</div>
+      </div>
+      <div class="score-card">
+        <div class="score-lbl">S_con (Semantic Consistency)</div>
+        <div class="score-main">
+          <div class="score-val" id="sconVal">—</div>
+        </div>
+        <div class="score-tag" id="sconTag" style="color:var(--muted)">—</div>
+      </div>
+    </div>
+
+    <!-- PSI CARD -->
+    <div class="psi-card">
+      <div class="psi-left">
+        <div class="psi-sublbl">Meta-Bell Ψ — Non-Collusion Statistic</div>
+        <div class="psi-val" id="psiVal">—</div>
+      </div>
+      <div class="psi-desc" id="psiDesc">—</div>
+    </div>
+
+    <!-- RISK -->
+    <div class="risk-wrap">
+      <div class="risk-header">
+        <span class="risk-label">Manipulation Risk</span>
+        <span class="risk-pct" id="riskPct">—</span>
+      </div>
+      <div class="risk-bar-wrap"><div class="risk-bar-fill" id="riskBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- COMPONENTS -->
+    <div class="components">
+      <div class="comp-title">Score Components</div>
+      <div class="comp-row">
+        <div class="comp-name">T(i) Truth</div>
+        <div class="comp-bar-wrap"><div class="comp-bar-fill" id="barT" style="background:#60a5fa;width:0%"></div></div>
+        <div class="comp-num" id="numT" style="color:#60a5fa">—</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">C(i) Context</div>
+        <div class="comp-bar-wrap"><div class="comp-bar-fill" id="barC" style="background:#4ade80;width:0%"></div></div>
+        <div class="comp-num" id="numC" style="color:#4ade80">—</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">R(i) Relevance</div>
+        <div class="comp-bar-wrap"><div class="comp-bar-fill" id="barR" style="background:#a78bfa;width:0%"></div></div>
+        <div class="comp-num" id="numR" style="color:#a78bfa">—</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">E(i) Ethics</div>
+        <div class="comp-bar-wrap"><div class="comp-bar-fill" id="barE" style="background:#f59e0b;width:0%"></div></div>
+        <div class="comp-num" id="numE" style="color:#f59e0b">—</div>
+      </div>
+    </div>
+
+    <!-- SIGNALS -->
+    <div class="card">
+      <div class="card-header"><span class="card-label">Detected Signals</span></div>
+      <div class="card-body">
+        <div class="signals" id="signalsEl"></div>
+      </div>
+    </div>
+
+    <!-- VALIDATOR TABLE -->
+    <div class="vtable-wrap">
+      <div class="vtable-hdr">Simulated Validator Panel</div>
+      <table class="vtable" id="vtable">
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <button class="reset-btn" onclick="resetForm()">← Analyse another claim</button>
+  </div>
+
+</div>
+
+<footer>
+  <p>
+    <a href="https://agentsprotocol.org">agentsprotocol.org</a> ·
+    <a href="https://doi.org/10.5281/zenodo.19642292" target="_blank">DOI 10.5281/zenodo.19642292</a> ·
+    <a href="https://github.com/fatdinhero/agentsprotocol" target="_blank">GitHub</a>
+  </p>
+  <p style="margin-top:6px">Meta-Bell Ψ statistic · Fatih Dinc · Apache 2.0</p>
+</footer>
+
+<script>
+/* ── helpers ── */
+const $=id=>document.getElementById(id);
+const f3=v=>v.toFixed(3);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ── fill example ── */
+function fillEx(text,dom,amp){
+  $('claimInp').value=text;
+  $('domSel').value=dom;
+  $('ampSel').value=amp;
+  $('claimInp').focus();
+}
+
+/* ── signal extraction ── */
+function extractSignals(text){
+  return{
+    fear:    /\b(crash|collapse|apocalypse|panic|disaster|meltdown|doom)\b/i.test(text),
+    urgency: /\b(now|immediately|urgent|sell|dump|before it.s too late|act fast)\b/i.test(text),
+    breaking:/\b(breaking|alert|just in|emergency)\b/i.test(text),
+    caps:    (text.match(/[A-Z]{3,}/g)||[]).length>=2,
+    exclaim: (text.match(/!/g)||[]).length>=2,
+    moon:    /\b(moon|100x|lambo|to the moon|generational)\b/i.test(text.toLowerCase()),
+    conspiracy:/\b(hidden|government hiding|censored|deep state|wake up|cover.?up)\b/i.test(text.toLowerCase()),
+    pseudo:  /\b(5g.*cancer|vaccine.*autism|chemtrail)\b/i.test(text.toLowerCase()),
+    numbers: /\d+(\.\d+)?(%|°|M\b|B\b|billion|million|bps)\b/i.test(text),
+    citation:/\b(according to|doi:|arxiv|reuters|bloomberg|published)\b/i.test(text.toLowerCase()),
+    institution:/\b(federal reserve|ecb|government|parliament|congress|ministry)\b/i.test(text.toLowerCase()),
+    absolutist:/\b(always|never|100%|conclusively|undeniable|everyone)\b/i.test(text.toLowerCase()),
+    coordFmt:/^(BREAKING|ALERT|JUST IN|🚨|⚡)/i.test(text.trim()),
+  };
+}
+
+/* ── score computation ── */
+function computeScores(text, domain, amp){
+  const S = extractSignals(text);
+  const wc = text.split(/\s+/).filter(w=>w.length>1).length;
+
+  /* T(i) — Truth plausibility */
+  let T=0.70;
+  if(S.citation)   T+=.12;
+  if(S.numbers)    T+=.10;
+  if(S.institution)T+=.06;
+  if(S.conspiracy) T-=.38;
+  if(S.pseudo)     T-=.45;
+  if(S.absolutist&&!S.numbers)T-=.18;
+  if(S.fear&&!S.numbers)T-=.14;
+  if(S.moon)       T-=.20;
+  T=clamp(T,.04,.97);
+
+  /* C(i) — Context coherence */
+  let C=0.68;
+  if(wc>=8&&wc<=100)C+=.08;
+  if(S.numbers)    C+=.06;
+  if(S.urgency)    C-=.10;
+  if(S.caps)       C-=.08;
+  if(S.conspiracy) C-=.22;
+  C=clamp(C,.04,.97);
+
+  /* R(i) — Relevance density */
+  const rBase=0.55+(Math.min(wc,90)/90)*0.35*(S.conspiracy?.4:1);
+  const R=clamp(Math.log(1+rBase)/Math.log(2),.04,.97);
+
+  /* E(i) — Ethical alignment */
+  const EB={general:1,finance:.90,politics:.86,science:.95,crypto:.87};
+  let E=EB[domain]||1;
+  if(S.urgency)E-=.07;
+  if(S.moon)   E-=.10;
+  if(S.conspiracy)E-=.20;
+  E=clamp(E,.04,.99);
+
+  /* W(i) = T × C × R × E */
+  const W=T*C*R*E;
+
+  /* S_con = max(0, (cosine_sim - 0.7) / 0.3) — approximated */
+  const cosSim=clamp(T*0.6+C*0.4,.04,.99);
+  const Scon=clamp((cosSim-0.70)/0.30,0,1);
+
+  /* coordination bias */
+  let cb=0.15;
+  if(S.coordFmt)cb+=.30;
+  if(S.breaking) cb+=.15;
+  if(S.caps)     cb+=.10;
+  if(S.conspiracy)cb+=.20;
+  if(amp==='coordinated')cb+=.25;
+  if(amp==='isolated')   cb-=.10;
+  if(S.citation) cb-=.10;
+  cb=clamp(cb,.05,.95);
+
+  /* Ψ = 1 - |correlation| */
+  const corrBase=amp==='coordinated'?.85:amp==='trending'?.45:.12;
+  const correlation=clamp(corrBase+cb*0.3+(S.coordFmt?.1:0)+(S.conspiracy?.1:0),0,1);
+  const Psi=clamp(1-correlation,.04,.97);
+
+  /* Manipulation risk */
+  const ampM=amp==='coordinated'?1.4:amp==='trending'?1.1:0.7;
+  const risk=Math.min(100,Math.round((1-Psi)*100*ampM*(T<.5?1.5:1.0)));
+
+  return{T,C,R,E,W,Scon,Psi,risk,cb,S,wc};
+}
+
+/* ── validator simulation ── */
+function simulateValidators(sc){
+  const {T,Psi,amp} = {...sc, amp: $('ampSel').value};
+  const validators=[
+    {name:'Validator Alpha', score: clamp(T+.05+(Math.random()-.5)*.08,.04,.99)},
+    {name:'Validator Beta',  score: clamp(T-.02+(Math.random()-.5)*.12,.04,.99)},
+    {name:'Validator Gamma', score: clamp(T+.03+(Math.random()-.5)*.10,.04,.99)},
+    {name:'Validator Delta', score: clamp(T-.04+(Math.random()-.5)*.09,.04,.99)},
+  ];
+  return validators.map(v=>({
+    ...v,
+    independent: Psi>=.70,
+    label: v.score>=.80?'High':v.score>=.55?'Medium':'Low'
+  }));
+}
+
+/* ── render ── */
+function render(sc){
+  const accepted=sc.W>=.60&&sc.Psi>=.70;
+
+  /* verdict */
+  const vEl=$('verdictEl');
+  vEl.className='verdict '+(accepted?'ok':'no');
+  vEl.textContent=accepted
+    ?`✓ BLOCK ACCEPTED — W=${f3(sc.W)} · Ψ=${f3(sc.Psi)}`
+    :`✗ BLOCK REJECTED — ${sc.W<.60?`WiseScore ${f3(sc.W)} < 0.60`:`Ψ ${f3(sc.Psi)} < 0.70 — coordination detected`}`;
+
+  /* WiseScore */
+  $('wiseVal').textContent=f3(sc.W);
+  const ws=[[.85,'Exceptional quality'],[.70,'High quality — accepted'],[.60,'Acceptable'],[.40,'Below threshold'],[0,'Rejected by protocol']];
+  $('wiseTag').textContent=ws.find(([t])=>sc.W>=t)[1];
+  $('wiseTag').style.color=sc.W>=.60?'var(--green)':sc.W>=.40?'var(--amber)':'var(--red)';
+
+  /* S_con */
+  $('sconVal').textContent=f3(sc.Scon);
+  $('sconTag').textContent=sc.Scon>=.50?'Consistent with corpus':sc.Scon>=.20?'Partial consistency':'Low corpus alignment';
+  $('sconTag').style.color=sc.Scon>=.50?'var(--green)':sc.Scon>=.20?'var(--amber)':'var(--red)';
+
+  /* Ψ */
+  const pColor=sc.Psi>=.70?'var(--green)':sc.Psi>=.40?'var(--amber)':'var(--red)';
+  $('psiVal').textContent=`Ψ = ${f3(sc.Psi)}`;
+  $('psiVal').style.color=pColor;
+  $('psiDesc').textContent=sc.Psi>=.70
+    ?'Independent validators — low coordination signal detected.'
+    :sc.Psi>=.40?'Partial correlation — possible soft coordination.'
+    :'High coordination — manipulation pattern detected.';
+
+  /* Risk */
+  const rc=sc.risk<25?'#22c55e':sc.risk<50?'#eab308':sc.risk<75?'#f97316':'#ef4444';
+  $('riskPct').textContent=sc.risk+'%';
+  $('riskPct').style.color=rc;
+  $('riskBar').style.cssText=`background:${rc};width:${sc.risk}%`;
+
+  /* Components */
+  [['T',sc.T,'#60a5fa'],['C',sc.C,'#4ade80'],['R',sc.R,'#a78bfa'],['E',sc.E,'#f59e0b']].forEach(([k,v,c])=>{
+    $(`bar${k}`).style.cssText=`background:${c};width:${v*100}%`;
+    $(`num${k}`).textContent=f3(v);
+  });
+
+  /* Signals */
+  const SL={
+    fear:'Fear language',urgency:'Urgency signal',breaking:'Breaking format',
+    caps:'Caps abuse',exclaim:'Multi exclamation',moon:'Hype language',
+    conspiracy:'Conspiracy lexicon',pseudo:'Pseudoscience',absolutist:'Absolutist language',
+    coordFmt:'Coordinated format',numbers:'Numerical data',citation:'Source citation',
+    institution:'Institutional ref.'
+  };
+  const bad=['fear','urgency','breaking','caps','exclaim','moon','conspiracy','pseudo','absolutist','coordFmt'];
+  const good=['numbers','citation','institution'];
+  let sigs='';
+  bad.forEach(k=>{if(sc.S[k])sigs+=`<span class="sig sig-red">⚠ ${SL[k]}</span>`;});
+  good.forEach(k=>{if(sc.S[k])sigs+=`<span class="sig sig-green">✓ ${SL[k]}</span>`;});
+  if(!sigs)sigs='<span class="sig sig-blue">No strong signals detected — ambiguous</span>';
+  $('signalsEl').innerHTML=sigs;
+
+  /* Validator table */
+  const vs=simulateValidators(sc);
+  const tbody=$('vtable').querySelector('tbody');
+  tbody.innerHTML=vs.map(v=>`
+    <tr>
+      <td>${v.name}</td>
+      <td>${f3(v.score)}</td>
+      <td><span class="v-ind ${v.score>=.80?'v-high':v.score>=.55?'v-mid':'v-low'}">${v.label}</span></td>
+    </tr>`).join('');
+
+  /* Show results */
+  $('resultsWrap').className='results on';
+  $('resultsWrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ── main run ── */
+function runAnalysis(){
+  const text=$('claimInp').value.trim();
+  if(!text){$('claimInp').focus();$('claimInp').style.borderColor='rgba(248,113,113,.5)';setTimeout(()=>$('claimInp').style.borderColor='',1200);return;}
+
+  const domain=$('domSel').value;
+  const amp=$('ampSel').value;
+
+  $('runBtn').disabled=true;
+  $('resultsWrap').className='results';
+  $('progressCard').style.display='block';
+
+  const steps=[[15,'Extracting signals…'],[35,'Computing T, C, R, E…'],[58,'Running Ψ test…'],[80,'Computing WiseScore…'],[95,'Simulating validators…'],[100,'Done']];
+  let si=0;
+  const tick=()=>{
+    if(si>=steps.length){
+      setTimeout(()=>{
+        $('progressCard').style.display='none';
+        const sc=computeScores(text,domain,amp);
+        render(sc);
+        $('runBtn').disabled=false;
+      },200);
+      return;
+    }
+    $('progFill').style.width=steps[si][0]+'%';
+    $('progLabel').textContent=steps[si][1];
+    si++;
+    setTimeout(tick,260);
+  };
+  tick();
+}
+
+/* ── reset ── */
+function resetForm(){
+  $('claimInp').value='';
+  $('domSel').value='general';
+  $('ampSel').value='trending';
+  $('resultsWrap').className='results';
+  $('progressCard').style.display='none';
+  $('runBtn').disabled=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* enter key submit */
+$('claimInp').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)runAnalysis();});
+</script>
+</body>
+</html>
