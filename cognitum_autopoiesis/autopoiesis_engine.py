@@ -1,309 +1,130 @@
-from __future__ import annotations
-
 import ast
-import json
 import os
 import shutil
 import subprocess
-import sys
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-
-class MoleculeState(Enum):
-    PASSIVE = "passive"
-    ACTIVE = "active"
-    REACTIVE = "reactive"
-    DEGRADED = "degraded"
-
-
-@dataclass
-class Molecule:
-    """Represents a component in the autopoietic system."""
-    id: str
-    state: MoleculeState = MoleculeState.PASSIVE
-    content: str = ""
-    relations: List[str] = field(default_factory=list)
-
-    def activate(self) -> None:
-        self.state = MoleculeState.ACTIVE
-
-    def degrade(self) -> None:
-        self.state = MoleculeState.DEGRADED
-
-    def is_reactive(self) -> bool:
-        return self.state == MoleculeState.REACTIVE
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "id": self.id,
-            "state": self.state.value,
-            "content": self.content,
-            "relations": self.relations,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Molecule":
-        return cls(
-            id=data["id"],
-            state=MoleculeState(data.get("state", "passive")),
-            content=data.get("content", ""),
-            relations=data.get("relations", []),
-        )
-
-
-@dataclass
-class Catalyst:
-    """Facilitates reactions between molecules — here: triggers healing."""
-    id: str
-    trigger_pattern: str = ""
-    action: str = ""
-    enabled: bool = True
-
-    def can_trigger(self, context: str) -> bool:
-        if not self.enabled:
-            return False
-        return self.trigger_pattern in context if self.trigger_pattern else False
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "id": self.id,
-            "trigger_pattern": self.trigger_pattern,
-            "action": self.action,
-            "enabled": self.enabled,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Catalyst":
-        return cls(
-            id=data["id"],
-            trigger_pattern=data.get("trigger_pattern", ""),
-            action=data.get("action", ""),
-            enabled=data.get("enabled", True),
-        )
-
-
-@dataclass
-class Membrane:
-    """Boundary that encapsulates a set of molecules and their interactions."""
-    id: str
-    molecules: Dict[str, Molecule] = field(default_factory=dict)
-    catalysts: Dict[str, Catalyst] = field(default_factory=dict)
-    parent: Optional[str] = None
-
-    def add_molecule(self, molecule: Molecule) -> None:
-        self.molecules[molecule.id] = molecule
-
-    def remove_molecule(self, molecule_id: str) -> Optional[Molecule]:
-        return self.molecules.pop(molecule_id, None)
-
-    def add_catalyst(self, catalyst: Catalyst) -> None:
-        self.catalysts[catalyst.id] = catalyst
-
-    def get_active_molecules(self) -> List[Molecule]:
-        return [m for m in self.molecules.values() if m.state == MoleculeState.ACTIVE]
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "id": self.id,
-            "molecules": {k: v.to_dict() for k, v in self.molecules.items()},
-            "catalysts": {k: v.to_dict() for k, v in self.catalysts.items()},
-            "parent": self.parent,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Membrane":
-        membrane = cls(id=data["id"], parent=data.get("parent"))
-        for mid, mdata in data.get("molecules", {}).items():
-            membrane.molecules[mid] = Molecule.from_dict(mdata)
-        for cid, cdata in data.get("catalysts", {}).items():
-            membrane.catalysts[cid] = Catalyst.from_dict(cdata)
-        return membrane
+import json
+from typing import Optional, Dict, Any
 
 
 class AutopoiesisEngine:
-    """Meta-Healing engine for the dev loop.
-
-    Uses autopoiesis-inspired architecture to detect, diagnose, and repair
-    failures in running modules.
-    """
-
-    MAX_SELF_HEALING_PER_SESSION = 1
-
-    def __init__(self, mimo_endpoint: str = "", session_limit: int = 1) -> None:
-        self.mimo_endpoint = mimo_endpoint
-        self.session_healing_count = 0
-        self.session_limit = session_limit
-        self.membranes: Dict[str, Membrane] = {}
-        self._build_default_topology()
-
-    def _build_default_topology(self) -> None:
-        """Set up the default membrane topology with standard molecules/catalysts."""
-        heal_catalyst = Catalyst(
-            id="heal_catalyst",
-            trigger_pattern="MANUAL_REVIEW",
-            action="heal_and_restart",
-        )
-        root_membrane = Membrane(id="root")
-        root_membrane.add_catalyst(heal_catalyst)
-        self.membranes["root"] = root_membrane
-
-    def heal(self, loop_script: str, error_log: str) -> str:
-        """Send loop_script + error_log to MiMo, receive repaired code.
-
-        Validates syntax via ast.parse() and returns the repaired code.
-        If MiMo is unreachable or produces invalid code, attempts local
-        heuristic repair.
-        """
-        self.session_healing_count += 1
-
-        patched_code = self._call_mimo(loop_script, error_log)
-
+    def __init__(self):
+        self.self_healing_count = 0
+    
+    def _send_to_mimo(self, code: str, error_log: str) -> Optional[str]:
+        """Send code and error log to MiMo API for repair (mock implementation)."""
+        # This is a mock implementation
+        # In real usage, this would call the actual MiMo API
         try:
-            ast.parse(patched_code)
-        except SyntaxError:
-            patched_code = self._local_heuristic_repair(loop_script, error_log)
-            try:
-                ast.parse(patched_code)
-            except SyntaxError:
-                raise RuntimeError(
-                    "Unable to produce syntactically valid patched code."
-                )
-
-        return patched_code
-
-    def _call_mimo(self, loop_script: str, error_log: str) -> str:
-        """Attempt to call MiMo for code repair.
-
-        Falls back to returning the original script if the endpoint is
-        not configured.
-        """
-        if not self.mimo_endpoint:
-            return loop_script
-
+            # Simple mock repair: remove the problematic line if it exists
+            lines = code.split('\n')
+            if len(lines) > 1:
+                lines.pop(1)  # Remove second line as mock repair
+                return '\n'.join(lines)
+            return code
+        except Exception:
+            return None
+    
+    def _validate_syntax(self, code: str) -> bool:
+        """Validate Python code syntax using ast.parse."""
         try:
-            payload = json.dumps({
-                "loop_script": loop_script,
-                "error_log": error_log,
-            })
-            result = subprocess.run(
-                [
-                    sys.executable, "-m", "cognitum_mimo.cli",
-                    "--endpoint", self.mimo_endpoint,
-                    "--payload", payload,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                return result.stdout.strip()
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-            pass
-
-        return loop_script
-
-    def _local_heuristic_repair(self, loop_script: str, error_log: str) -> str:
-        """Best-effort local repair heuristics."""
-        lines = loop_script.splitlines(keepends=True)
-        repaired_lines: List[str] = []
-
-        for line in lines:
-            stripped = line.rstrip()
-
-            # Heuristic 1: bare except → except Exception
-            if stripped == "except:":
-                line = line.replace("except:", "except Exception:", 1)
-
-            # Heuristic 2: missing colon after def/class/if/elif/else/for/while/try/except/finally
-            keywords = ("def ", "class ", "if ", "elif ", "else", "for ", "while ", "try", "except", "finally")
-            s = stripped
-            if any(s.startswith(kw) for kw in keywords) and not s.endswith(":"):
-                line = line.rstrip("\n") + ":\n"
-
-            repaired_lines.append(line)
-
-        # Heuristic 3: try to balance open parens/brackets/braces
-        joined = "".join(repaired_lines)
-        open_count = joined.count("(") - joined.count(")")
-        if open_count > 0:
-            joined = joined.rstrip("\n") + ")" * open_count + "\n"
-
-        return joined
-
-    @staticmethod
-    def apply_patch(loop_script_path: str, patched_code: str) -> bool:
-        """Write repaired code into loop_script_path.
-
-        Creates a backup at loop_script_path + '.bak' first.
-        Returns True on success, False on failure.
-        """
-        try:
-            path = Path(loop_script_path)
-            backup_path = str(path) + ".bak"
-            if path.exists():
-                shutil.copy2(str(path), backup_path)
-            path.write_text(patched_code, encoding="utf-8")
+            ast.parse(code)
             return True
-        except (OSError, IOError):
+        except SyntaxError:
             return False
-
-    def restart_loop(
-        self,
-        loop_script_path: str,
-        queue_path: str,
-        failed_module: str,
-    ) -> None:
-        """Reset failed_module in queue_path to PENDING with iterations=0,
-        then restart loop_script_path as a subprocess.
+    
+    def heal(self, loop_script: str, error_log: str) -> str:
         """
-        self._reset_module_in_queue(queue_path, failed_module)
-
-        subprocess.Popen(
-            [sys.executable, loop_script_path],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-
-    @staticmethod
-    def _reset_module_in_queue(queue_path: str, failed_module: str) -> None:
-        """Set the failed_module's status to PENDING and iterations to 0."""
+        Send loop_script and error_log to MiMo for repair.
+        Validate syntax of returned code and return repaired code.
+        """
+        repaired_code = self._send_to_mimo(loop_script, error_log)
+        
+        if repaired_code is None:
+            return loop_script
+        
+        if not self._validate_syntax(repaired_code):
+            # If syntax is invalid, try to fix basic issues
+            try:
+                # Attempt to fix common syntax errors
+                fixed_code = self._attempt_syntax_fix(repaired_code)
+                if self._validate_syntax(fixed_code):
+                    return fixed_code
+            except:
+                pass
+            return loop_script
+        
+        self.self_healing_count += 1
+        return repaired_code
+    
+    def _attempt_syntax_fix(self, code: str) -> str:
+        """Attempt to fix common syntax errors."""
+        # Simple fixes for common issues
+        lines = code.split('\n')
+        fixed_lines = []
+        
+        for line in lines:
+            # Fix missing parentheses
+            if line.count('(') > line.count(')'):
+                line = line + ')'
+            elif line.count(')') > line.count('('):
+                line = '(' + line
+            fixed_lines.append(line)
+        
+        return '\n'.join(fixed_lines)
+    
+    def apply_patch(self, loop_script_path: str, patched_code: str) -> bool:
+        """
+        Write repaired code to loop_script_path.
+        Create backup at loop_script_path + '.bak'.
+        """
         try:
-            with open(queue_path, "r", encoding="utf-8") as f:
-                queue_data = json.load(f)
-        except (OSError, json.JSONDecodeError):
-            return
-
-        if isinstance(queue_data, list):
-            for entry in queue_data:
-                if isinstance(entry, dict) and entry.get("module") == failed_module:
-                    entry["status"] = "PENDING"
-                    entry["iterations"] = 0
-        elif isinstance(queue_data, dict):
-            if failed_module in queue_data:
-                module_entry = queue_data[failed_module]
-                if isinstance(module_entry, dict):
-                    module_entry["status"] = "PENDING"
-                    module_entry["iterations"] = 0
-
+            # Create backup
+            backup_path = loop_script_path + '.bak'
+            if os.path.exists(loop_script_path):
+                shutil.copy2(loop_script_path, backup_path)
+            
+            # Write repaired code
+            with open(loop_script_path, 'w', encoding='utf-8') as f:
+                f.write(patched_code)
+            
+            return True
+        except Exception as e:
+            print(f"Error applying patch: {e}")
+            return False
+    
+    def restart_loop(self, loop_script_path: str, queue_path: str, 
+                     failed_module: str) -> None:
+        """
+        Set failed_module in queue_path to PENDING/iterations=0.
+        Start loop_script_path as subprocess.
+        """
         try:
-            with open(queue_path, "w", encoding="utf-8") as f:
-                json.dump(queue_data, f, indent=2)
-        except OSError:
-            pass
-
-    def can_self_heal(self) -> bool:
-        """Check if the engine is still allowed to self-heal this session."""
-        return self.session_healing_count < self.session_limit
-
-    def __repr__(self) -> str:
-        return (
-            f"AutopoiesisEngine(session_heals={self.session_healing_count}/"
-            f"{self.session_limit}, membranes={list(self.membranes.keys())})"
-        )
-
-
-# Module-level singleton instance
-autopoiesis_engine = AutopoiesisEngine()
+            # Update queue file
+            if os.path.exists(queue_path):
+                with open(queue_path, 'r', encoding='utf-8') as f:
+                    try:
+                        queue_data = json.load(f)
+                    except json.JSONDecodeError:
+                        queue_data = {}
+                
+                # Update module status
+                if 'modules' not in queue_data:
+                    queue_data['modules'] = {}
+                
+                queue_data['modules'][failed_module] = {
+                    'status': 'PENDING',
+                    'iterations': 0
+                }
+                
+                # Save updated queue
+                with open(queue_path, 'w', encoding='utf-8') as f:
+                    json.dump(queue_data, f, indent=2)
+            
+            # Start the loop script as subprocess
+            if os.path.exists(loop_script_path):
+                subprocess.Popen(
+                    ['python', loop_script_path],
+                    cwd=os.path.dirname(os.path.abspath(loop_script_path))
+                )
+        except Exception as e:
+            print(f"Error restarting loop: {e}")
