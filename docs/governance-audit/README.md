@@ -43,7 +43,7 @@ python cognitum/scripts/export_governance_claims.py --fail-on-reject
 
 Each report contains:
 
-- `report_schema` (`verifiable-ai-stack/governance-audit/v2.3`)
+- `report_schema` (`verifiable-ai-stack/governance-audit/v2.4`)
 - `report_version`
 - structured `metadata` with report ID, tool/runtime/dependency versions, Git commit/status, and GitHub Actions context when available
 - `source_sha256` for `cognitum/governance/masterplan.yaml`
@@ -51,6 +51,8 @@ Each report contains:
 - `quality_gate` with thresholds, observed values, and pass/fail status
 - `integrity.report_payload_sha256`
 - optional HMAC-SHA256 signature metadata
+
+The machine-readable report contract is documented in [`schema-v2.4.json`](schema-v2.4.json).
 
 To sign a report without storing a secret in Git:
 
@@ -60,6 +62,11 @@ python cognitum/scripts/export_governance_claims.py
 ```
 
 If the environment variable is absent, the report is explicitly marked as `unsigned`.
+Use `--require-signature` when a signed report is mandatory:
+
+```bash
+python cognitum/scripts/export_governance_claims.py --require-signature --fail-on-reject
+```
 
 ### Key management
 
@@ -141,6 +148,8 @@ Recommended validator metadata:
 4. writes a GitHub Step Summary with quality-gate details,
 5. uploads the audit report as a workflow artifact with run-specific naming and 90-day retention,
 6. fails the job when `check_acceptance` rejects the report.
+
+The workflow also runs on GitHub merge queue (`merge_group`) events. Configure branch protection to require the `Cognitum Governance Audit / governance-audit` status check before merging. See [`../../.github/required-checks.md`](../../.github/required-checks.md).
 
 The workflow includes a commented Slack/Teams notification template for regulated deployments. Keep notification payloads free of secrets and private user data.
 

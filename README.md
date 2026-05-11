@@ -116,6 +116,7 @@ Reports include:
 - multi-validator `Psi` support.
 
 See [`docs/governance-audit/README.md`](docs/governance-audit/README.md).
+For GitHub branch protection, require the `Cognitum Governance Audit / governance-audit` status check; see [`.github/required-checks.md`](.github/required-checks.md).
 
 ## Quick start
 

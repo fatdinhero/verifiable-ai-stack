@@ -46,8 +46,8 @@ DEFAULT_MASTERPLAN = COGNITUM_ROOT / "governance" / "masterplan.yaml"
 DEFAULT_AUDIT_DIR = REPO_ROOT / "docs" / "governance-audit"
 AGENTSPROTOCOL_SRC = REPO_ROOT / "agentsprotocol" / "src"
 
-REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.3"
-REPORT_VERSION = "2.3.0"
+REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.4"
+REPORT_VERSION = "2.4.0"
 CLAIM_SCHEMA = "verifiable-ai-stack/governance-claim/v1"
 DEFAULT_VALIDATORS = ("baseline",)
 DEFAULT_HMAC_ENV = "GOVERNANCE_AUDIT_HMAC_KEY"
@@ -726,6 +726,7 @@ def validate_governance_claims(
     generated_at: datetime | None = None,
     masterplan_path: Path = DEFAULT_MASTERPLAN,
     hmac_key_env: str = DEFAULT_HMAC_ENV,
+    require_signature: bool = False,
     validator_api_timeout_seconds: int = DEFAULT_API_TIMEOUT_SECONDS,
     validator_api_retries: int = DEFAULT_API_RETRIES,
     max_workers: int = DEFAULT_MAX_WORKERS,
@@ -758,19 +759,34 @@ def validate_governance_claims(
     psi = compute_psi(error_vectors)
     accepted = check_acceptance(aggregate_scores, psi, theta_min=theta_min, psi_min=psi_min)
     mean_s_con = sum(aggregate_scores) / len(aggregate_scores) if aggregate_scores else 0.0
+    report_hash_placeholder = "computed-after-payload-render"
+    signature_preview = _signature_block(report_hash_placeholder, hmac_key_env)
+    signature_present = signature_preview["status"] == "signed"
+    quality_gate_passed = accepted and (signature_present or not require_signature)
     quality_gate = {
         "name": "governance-audit",
-        "status": "passed" if accepted else "failed",
-        "passed": accepted,
+        "status": "passed" if quality_gate_passed else "failed",
+        "passed": quality_gate_passed,
         "thresholds": {
             "theta_min": theta_min,
             "psi_min": psi_min,
+            "signature_required": require_signature,
         },
         "observed": {
             "mean_s_con": round(mean_s_con, 6),
             "psi": round(psi, 6),
+            "signature_present": signature_present,
         },
-        "rule": "check_acceptance(mean_s_con, psi, theta_min, psi_min)",
+        "rule": (
+            "check_acceptance(mean_s_con, psi, theta_min, psi_min) "
+            "AND (signature_present OR NOT signature_required)"
+        ),
+        "merge_check": {
+            "workflow": "Governance Audit",
+            "job": "Cognitum Governance Audit / governance-audit",
+            "required_status_check": "Cognitum Governance Audit / governance-audit",
+            "github_merge_queue_event": "merge_group",
+        },
     }
 
     report_without_integrity: dict[str, Any] = {
@@ -818,6 +834,7 @@ def validate_governance_claims(
             "validator_api_retries": validator_api_retries,
             "max_workers": max_workers,
             "execution_mode": "parallel",
+            "signature_required": require_signature,
         },
         "quality_gate": quality_gate,
         "quality_model": {
@@ -834,6 +851,7 @@ def validate_governance_claims(
                 "report payload SHA-256",
                 "optional HMAC-SHA256 signature",
                 "multi-validator Psi evidence",
+                "merge-check quality gate",
             ],
         },
         "summary": {
@@ -934,6 +952,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--validator-api-retries", type=int, default=DEFAULT_API_RETRIES)
     parser.add_argument("--max-workers", type=int, default=DEFAULT_MAX_WORKERS)
     parser.add_argument("--hmac-key-env", default=DEFAULT_HMAC_ENV)
+    parser.add_argument(
+        "--require-signature",
+        action="store_true",
+        help="Fail the quality gate unless an HMAC signature is present.",
+    )
     parser.add_argument("--stdout", action="store_true", help="Print report instead of writing")
     parser.add_argument(
         "--fail-on-reject",
@@ -959,6 +982,7 @@ def main() -> None:
             psi_min=args.psi_min,
             masterplan_path=args.masterplan,
             hmac_key_env=args.hmac_key_env,
+            require_signature=args.require_signature,
             validator_api_timeout_seconds=args.validator_api_timeout,
             validator_api_retries=args.validator_api_retries,
             max_workers=args.max_workers,
@@ -972,11 +996,12 @@ def main() -> None:
         report_path = write_audit_report(report, args.audit_dir)
         print(f"Wrote governance audit report: {report_path}")
 
-    if args.fail_on_reject and not report["summary"]["accepted"]:
+    if args.fail_on_reject and not report["quality_gate"]["passed"]:
         raise SystemExit(
             "Governance audit quality gate rejected: "
             f"mean_s_con={report['summary']['mean_s_con']} "
-            f"psi={report['summary']['psi']}"
+            f"psi={report['summary']['psi']} "
+            f"signature_present={report['quality_gate']['observed']['signature_present']}"
         )
 
 
