@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "zkhalal": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "/path/to/zkHalal_v1",
+      "env": {
+        "NEXUS_RPC": "https://rpc.nexus.xyz/http"
+      },
+      "description": "Zero-Knowledge Sharia Compliance Engine"
+    }
+  }
+}
