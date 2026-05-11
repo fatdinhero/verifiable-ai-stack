@@ -16,8 +16,8 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 use libp2p::{
     gossipsub, mdns, noise,
-    swarm::{NetworkBehaviour, SwarmEvent},
-    tcp, yamux,
+    swarm::SwarmEvent,
+    tcp, yamux, NetworkBehaviour,
 };
 use tokio::select;
 use tokio::sync::mpsc;
@@ -98,16 +98,20 @@ impl P2p {
                     .validation_mode(gossipsub::ValidationMode::Strict)
                     .message_id_fn(message_id_fn)
                     .build()
-                    .map_err(std::io::Error::other)?;
+                    .map_err(|e| Box::<dyn std::error::Error + Send + Sync>::from(e))?;
 
                 let gossipsub = gossipsub::Behaviour::new(
                     gossipsub::MessageAuthenticity::Signed(key.clone()),
                     gossipsub_cfg,
-                )?;
+                )
+                .map_err(|e| Box::<dyn std::error::Error + Send + Sync>::from(e))?;
+
                 let mdns = mdns::tokio::Behaviour::new(
                     mdns::Config::default(),
                     key.public().to_peer_id(),
-                )?;
+                )
+                .map_err(|e| Box::<dyn std::error::Error + Send + Sync>::from(e))?;
+
                 Ok(AgentsBehaviour { gossipsub, mdns })
             })?
             .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
@@ -158,12 +162,12 @@ impl P2p {
                 }
 
                 event = swarm.select_next_some() => match event {
-                    SwarmEvent::Behaviour(AgentsBehaviourEvent::Gossipsub(
+                    SwarmEvent::Behaviour(AgentsBehaviour::Gossipsub(
                         gossipsub::Event::Message { message, .. },
                     )) => {
                         handle_inbound(message, store, mempool);
                     }
-                    SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
+                    SwarmEvent::Behaviour(AgentsBehaviour::Mdns(
                         mdns::Event::Discovered(peers),
                     )) => {
                         for (peer_id, addr) in peers {
@@ -171,7 +175,7 @@ impl P2p {
                             swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
                         }
                     }
-                    SwarmEvent::Behaviour(AgentsBehaviourEvent::Mdns(
+                    SwarmEvent::Behaviour(AgentsBehaviour::Mdns(
                         mdns::Event::Expired(peers),
                     )) => {
                         for (peer_id, _) in peers {
