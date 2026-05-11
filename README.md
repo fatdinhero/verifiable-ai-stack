@@ -118,6 +118,23 @@ Reports include:
 See [`docs/governance-audit/README.md`](docs/governance-audit/README.md).
 For GitHub branch protection, require the `Cognitum Governance Audit / governance-audit` status check; see [`.github/required-checks.md`](.github/required-checks.md).
 
+## VeriMCP server
+
+The first runnable product facade is available under `mcp/server/`:
+
+```bash
+python -m pip install fastapi uvicorn pydantic pyyaml numpy scipy
+uvicorn app:app --app-dir mcp/server --host 127.0.0.1 --port 8088
+```
+
+It exposes:
+
+- `POST /governance/claims`
+- `POST /governance/audit`
+- `POST /compliance/check`
+
+See [`mcp/README.md`](mcp/README.md).
+
 ## Quick start
 
 ```bash

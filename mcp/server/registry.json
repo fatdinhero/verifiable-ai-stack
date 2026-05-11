@@ -2,6 +2,11 @@
   "name": "verimcp",
   "version": "0.1.0",
   "description": "Registry for governance, semantic validation, and compliance tools in verifiable-ai-stack.",
+  "server": {
+    "framework": "FastAPI",
+    "entrypoint": "mcp/server/app.py",
+    "run": "uvicorn app:app --app-dir mcp/server --host 127.0.0.1 --port 8088"
+  },
   "tools": [
     {
       "id": "governance-claims-export",
