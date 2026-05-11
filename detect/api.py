@@ -152,6 +152,20 @@ def validate(req: ValidateRequest) -> ValidateResponse:
     )
 
 
+@app.get("/")
+def root() -> dict:
+    return {
+        "service": "agentsprotocol-detect-api",
+        "version": "1.3.0",
+        "status": "ok",
+        "endpoints": {
+            "validate": "POST /validate",
+            "health": "GET /health",
+            "docs": "GET /docs",
+        },
+    }
+
+
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok"}
+    return {"status": "ok", "version": "1.3.0"}
