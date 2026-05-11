@@ -1,0 +1,105 @@
+# AgentsProtocol local testnet — 3 validator nodes
+#
+# Topology:
+#   validator-1  P2P :9000  RPC :8545  (seed node, submits genesis claim)
+#   validator-2  P2P :9001  RPC :8546
+#   validator-3  P2P :9002  RPC :8547
+#
+# mDNS discovery works across the shared bridge network.
+# validator-1 waits for its RPC to be ready, then posts a signed seed claim.
+#
+# Usage:
+#   docker compose up --build
+#   docker compose logs -f validator-1
+#   curl http://localhost:8545/status
+#   curl http://localhost:8545/get_block/<hash>
+
+version: "3.9"
+
+networks:
+  ap-net:
+    driver: bridge
+
+services:
+  validator-1:
+    build:
+      context: src/validator
+      dockerfile: Dockerfile
+    container_name: ap-validator-1
+    networks: [ap-net]
+    ports:
+      - "9000:9000"
+      - "8545:8545"
+    volumes:
+      - ap-data-1:/data
+    environment:
+      AP_NODE_ID: validator-1
+      AP_DATA_DIR: /data
+      AP_LISTEN_ADDR: /ip4/0.0.0.0/tcp/9000
+      AP_RPC_ADDR: "0.0.0.0:8545"
+      AP_MIN_CLAIMS: "1"
+      AP_BLOCK_TIMEOUT_SECS: "10"
+      AP_TAU: "0.0"
+      RUST_LOG: "info"
+
+  validator-2:
+    build:
+      context: src/validator
+      dockerfile: Dockerfile
+    container_name: ap-validator-2
+    networks: [ap-net]
+    ports:
+      - "9001:9000"
+      - "8546:8545"
+    volumes:
+      - ap-data-2:/data
+    environment:
+      AP_NODE_ID: validator-2
+      AP_DATA_DIR: /data
+      AP_LISTEN_ADDR: /ip4/0.0.0.0/tcp/9000
+      AP_RPC_ADDR: "0.0.0.0:8545"
+      AP_MIN_CLAIMS: "1"
+      AP_BLOCK_TIMEOUT_SECS: "10"
+      AP_TAU: "0.0"
+      RUST_LOG: "info"
+    depends_on: [validator-1]
+
+  validator-3:
+    build:
+      context: src/validator
+      dockerfile: Dockerfile
+    container_name: ap-validator-3
+    networks: [ap-net]
+    ports:
+      - "9002:9000"
+      - "8547:8545"
+    volumes:
+      - ap-data-3:/data
+    environment:
+      AP_NODE_ID: validator-3
+      AP_DATA_DIR: /data
+      AP_LISTEN_ADDR: /ip4/0.0.0.0/tcp/9000
+      AP_RPC_ADDR: "0.0.0.0:8545"
+      AP_MIN_CLAIMS: "1"
+      AP_BLOCK_TIMEOUT_SECS: "10"
+      AP_TAU: "0.0"
+      RUST_LOG: "info"
+    depends_on: [validator-1]
+
+  # Seed service: generates a real Ed25519 keypair, signs a claim, and
+  # POSTs it to validator-1 via /submit_claim. Exits after submission.
+  seed:
+    image: python:3.11-slim
+    container_name: ap-seed
+    networks: [ap-net]
+    depends_on: [validator-1, validator-2, validator-3]
+    volumes:
+      - ./scripts:/scripts
+    command: >
+      sh -c "pip install -q cryptography requests &&
+             python /scripts/seed_claim.py http://validator-1:8545"
+
+volumes:
+  ap-data-1:
+  ap-data-2:
+  ap-data-3:
