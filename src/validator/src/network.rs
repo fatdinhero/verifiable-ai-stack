@@ -17,7 +17,7 @@ use anyhow::{Context, Result};
 use libp2p::{
     gossipsub, mdns, noise,
     swarm::SwarmEvent,
-    tcp, yamux, NetworkBehaviour,
+    tcp, yamux,
 };
 use tokio::select;
 use tokio::sync::mpsc;
@@ -87,7 +87,7 @@ impl P2p {
                 noise::Config::new,
                 yamux::Config::default,
             )?
-            .with_behaviour(|key| {
+            .with_behaviour(|key| -> Result<AgentsBehaviour, Box<dyn std::error::Error + Send + Sync>> {
                 let message_id_fn = |msg: &gossipsub::Message| {
                     let mut s = DefaultHasher::new();
                     msg.data.hash(&mut s);

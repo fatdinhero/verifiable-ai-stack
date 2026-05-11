@@ -12,7 +12,7 @@ serde          = { version = "1", features = ["derive"] }
 serde_json     = "1"
 sha2           = "0.10"
 ed25519-dalek  = { version = "2", features = ["rand_core"] }
-libp2p         = { version = "0.54", features = ["tcp","quic","noise","yamux","gossipsub","mdns","tokio"] }
+libp2p         = { version = "0.54", features = ["tcp","quic","noise","yamux","gossipsub","mdns","tokio","macros"] }
 anyhow         = "1"
 thiserror      = "1"
 rocksdb        = "0.22"
