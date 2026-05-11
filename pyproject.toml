@@ -30,6 +30,7 @@ dependencies = [
 [project.optional-dependencies]
 kaspa = ["aiohttp>=3.9"]
 dev   = ["pytest>=7", "flake8>=6"]
+detect = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
 
 [project.urls]
 Homepage      = "https://agentsprotocol.org"

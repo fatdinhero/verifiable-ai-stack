@@ -524,6 +524,40 @@ function render(sc){
   $('resultsWrap').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+/* ── API endpoint (detect/api.py via uvicorn) ── */
+const API_URL = (()=>{
+  // Same origin in production; localhost:8000 for local dev
+  const base = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : window.location.origin;
+  return base + '/validate';
+})();
+
+async function fetchFromAPI(text, category){
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({claim: text, category}),
+    signal: AbortSignal.timeout(5000),
+  });
+  if(!res.ok) throw new Error('API '+res.status);
+  return res.json();
+}
+
+function apiToScores(api, text, domain, amp){
+  // Map API response onto the shape render() expects
+  const sc = computeScores(text, domain, amp); // keep T/C/R/E/S for signal display
+  sc.W    = api.wise_score;
+  sc.Scon = api.s_con;
+  sc.Psi  = api.psi;
+  sc.risk = Math.round(api.manipulation_risk);
+  sc._apiUsed = true;
+  sc._confidence = api.confidence;
+  sc._unverified = api.unverified;
+  sc._detail = api.detail;
+  return sc;
+}
+
 /* ── main run ── */
 function runAnalysis(){
   const text=$('claimInp').value.trim();
@@ -540,9 +574,17 @@ function runAnalysis(){
   let si=0;
   const tick=()=>{
     if(si>=steps.length){
-      setTimeout(()=>{
+      setTimeout(async ()=>{
         $('progressCard').style.display='none';
-        const sc=computeScores(text,domain,amp);
+        let sc;
+        try {
+          const api = await fetchFromAPI(text, domain);
+          sc = apiToScores(api, text, domain, amp);
+        } catch(_){
+          // API not reachable — fall back to JS computation
+          sc = computeScores(text, domain, amp);
+          sc._apiUsed = false;
+        }
         render(sc);
         $('runBtn').disabled=false;
       },200);
