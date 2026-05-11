@@ -1,14 +1,15 @@
 # Contributing to verifiable-ai-stack
 
-This monorepo is organized as a layered system. Contributions should preserve clear ownership boundaries and keep COGNITUM's `governance/masterplan.yaml` as the governance Single Source of Truth.
+Thank you for contributing. This monorepo is a layered system for privacy-first wearable AI, semantic validation, and compliance. Contributions should improve the system without weakening governance traceability, privacy boundaries, or component ownership.
 
-## Development principles
+## Engineering principles
 
-1. **Separation of concerns:** change the layer that owns the behavior.
-2. **No hidden coupling:** cross-repo integration belongs in `mcp/`, `docs/architecture/`, or explicit public APIs.
-3. **Governance first:** product, compliance, and architecture decisions that affect the stack should be represented in COGNITUM governance artifacts.
-4. **Local-first validation:** tests and smoke checks should not require private user data.
-5. **Structured outputs:** machine-consumed LLM output should use schemas and, where appropriate, `llmjson`.
+1. **Single Source of Truth:** COGNITUM governance starts in `cognitum/governance/masterplan.yaml`.
+2. **Separation of concerns:** change the layer that owns the behavior.
+3. **No hidden coupling:** cross-component integration belongs in documented APIs, `mcp/`, or central `docs/`.
+4. **Auditability:** governance and compliance changes should be reproducible and reviewable.
+5. **Local-first validation:** tests and examples must not require private user data.
+6. **Schema-first outputs:** machine-consumed LLM output should use explicit JSON contracts.
 
 ## Layer ownership
 
@@ -18,40 +19,89 @@ This monorepo is organized as a layered system. Contributions should preserve cl
 | `agentsprotocol/` | Semantic validation protocol, Python SDK, Rust validator. |
 | `poisv/` | Scientific foundation and reference implementations. |
 | `compliance/` | EU AI Act, halal, zkHalal, and related regulatory tools. |
-| `mcp/` | VeriMCP composition, routing, bridge scripts, integration contracts. |
-| `civilization-operating-system/` | Larger COS backend and vision. |
+| `mcp/` | VeriMCP composition, routing, compatibility wrappers, integration contracts. |
+| `civilization-operating-system/` | Larger COS backend and system vision. |
 | `llmjson/` | Structured JSON generation utility. |
-| `platform/` | Future application and platform surfaces. |
+| `platform/` | Future application and developer-platform surfaces. |
+| `docs/` | Cross-component architecture, quality, and integration documentation. |
 
-## Before opening a change
+## Development setup
 
-Run the checks relevant to the touched layers:
+Use the component-native tooling. A full environment usually needs:
+
+- Python 3.10+
+- Rust stable
+- Node 20+
+- `pytest`, `pyyaml`, `numpy`, `scipy`, `pydantic`
+
+## Required checks before submitting
+
+Run checks for the layers you touched. For broad changes, run:
 
 ```bash
-python -m compileall -q mcp llmjson/llmjson compliance/eu-ai-act/veriethiccore compliance/zkhalal-mcp/server.py
+git diff --check
+python -m compileall -q \
+  cognitum \
+  agentsprotocol/src/agentsprotocol \
+  agentsprotocol/detect \
+  poisv/reference-impl \
+  compliance/eu-ai-act/veriethiccore \
+  compliance/zkhalal-mcp/server.py \
+  llmjson/llmjson \
+  mcp
+
+python cognitum/scripts/export_governance_claims.py --fail-on-reject
 
 cd cognitum
 python -m pytest validation/tests tests -q
 
 cd ../agentsprotocol
 python -m pytest tests -q
-rustup run stable cargo test --manifest-path src/validator/Cargo.toml
-```
 
-For TypeScript changes:
+cd ..
+rustup run stable cargo test --manifest-path agentsprotocol/src/validator/Cargo.toml
 
-```bash
-cd civilization-operating-system
+cd llmjson
+python -m pytest tests -q
+
+cd ../civilization-operating-system
 npm ci
 npm run build
+npm test -- --runInBand
 ```
+
+## Governance audit changes
+
+If you change `cognitum/governance/masterplan.yaml` or `cognitum/scripts/export_governance_claims.py`, regenerate and inspect:
+
+```bash
+python cognitum/scripts/export_governance_claims.py --fail-on-reject
+```
+
+Tracked audit files:
+
+- `docs/governance-audit/latest.json`
+- selected minute-versioned reports under `docs/governance-audit/`
+
+Do not commit secrets. Signing uses the `GOVERNANCE_AUDIT_HMAC_KEY` environment variable.
 
 ## Import policy
 
-External repositories are imported with unsquashed `git subtree` where history preservation matters. Do not replace imported component histories with copied snapshots.
+External repositories should be imported with unsquashed `git subtree` when history preservation matters. Do not replace imported component histories with copied snapshots.
 
 ## Documentation policy
 
 - Component-specific docs remain inside the component.
 - Cross-component architecture and integration docs live under `docs/`.
 - Public bridge contracts should be documented before they become runtime-critical.
+
+## Pull request quality bar
+
+A high-quality change should include:
+
+- concise scope,
+- tests or smoke checks,
+- documentation for cross-layer behavior,
+- no unrelated refactors,
+- no generated noise unless explicitly required,
+- clean `git diff --check`.

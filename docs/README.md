@@ -9,6 +9,8 @@ Central documentation for the monorepo. Component-specific documentation stays i
 - Layer architecture: [`architecture/layers.md`](architecture/layers.md)
 - Integration map: [`architecture/integration-map.md`](architecture/integration-map.md)
 - Quality standards: [`architecture/quality-standards.md`](architecture/quality-standards.md)
+- Governance audit: [`governance-audit/README.md`](governance-audit/README.md)
+- Security policy: [`../SECURITY.md`](../SECURITY.md)
 - Root overview: [`../README.md`](../README.md)
 
 ## Component docs

@@ -1,21 +1,40 @@
 # verifiable-ai-stack
 
+[![Monorepo Smoke](https://github.com/fatdinhero/verifiable-ai-stack/actions/workflows/monorepo-smoke.yml/badge.svg)](https://github.com/fatdinhero/verifiable-ai-stack/actions/workflows/monorepo-smoke.yml)
+[![Governance Audit](https://github.com/fatdinhero/verifiable-ai-stack/actions/workflows/governance-audit.yml/badge.svg)](https://github.com/fatdinhero/verifiable-ai-stack/actions/workflows/governance-audit.yml)
+![License](https://img.shields.io/badge/license-mixed%20component%20licenses-blue)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Rust](https://img.shields.io/badge/rust-stable-orange)
+![Node](https://img.shields.io/badge/node-20-green)
+
 **Privacy-First Wearable AI Operating System with strict governance, decentralized semantic validation, and regulatory compliance.**
 
-`verifiable-ai-stack` is the unified monorepo for a coherent, extensible ecosystem around local-first wearable AI. It brings together governance, protocol validation, scientific foundations, compliance engines, MCP integration, structured-output tooling, and the broader civilization operating vision.
+`verifiable-ai-stack` is a professional monorepo for a local-first, auditable AI ecosystem. It combines COGNITUM governance, AgentsProtocol semantic validation, PoISV scientific foundations, compliance engines, MCP integration, structured-output utilities, and a future platform layer.
 
-## North Star
+## Why this repository exists
 
-Build a privacy-first wearable AI stack where:
+Modern wearable AI needs more than model output. It needs traceable governance, validation, privacy boundaries, and compliance evidence. This monorepo is organized so that:
 
-- user data stays local by default,
-- governance decisions are versioned and testable,
-- AI-generated claims can be semantically validated,
-- compliance checks are modular and auditable,
-- structured outputs are machine-verifiable,
-- future platform capabilities can grow without collapsing component boundaries.
+- user and sensor data stay local by default,
+- `cognitum/governance/masterplan.yaml` remains the governance Single Source of Truth,
+- governance statements become verifiable claims,
+- AgentsProtocol scores those claims with `S_con`, `Psi`, and `check_acceptance`,
+- audit reports are hash-addressable and optionally signed,
+- regulatory modules stay separate from protocol and product logic,
+- future platform work can grow on stable contracts.
 
-## Required structure
+## Architecture at a glance
+
+```text
+COGNITUM governance SSoT
+  -> governance claims
+  -> AgentsProtocol semantic validation
+  -> governance audit report
+  -> future VeriMCP facade
+  -> compliance and platform workflows
+```
+
+## Repository structure
 
 ```text
 verifiable-ai-stack/
@@ -39,86 +58,122 @@ verifiable-ai-stack/
 │   ├── server/
 │   ├── compliance/
 │   └── semantic-layer/
-├── civilization-operating-system/    # Vision & larger system
-├── llmjson/                          # Helper tools & utilities
-├── platform/                         # Future platform
+├── civilization-operating-system/    # Larger system vision
+├── llmjson/                          # Structured-output utilities
+├── platform/                         # Future product/platform surface
 ├── docs/                             # Central documentation
 │   ├── architecture/
+│   ├── governance-audit/
 │   ├── vision.md
 │   └── getting-started.md
 ├── .github/workflows/
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── LICENSE
 ├── README.md
 └── .gitignore
 ```
 
-## Layer model
+## Layers and responsibilities
 
-| Layer | Component | Responsibility |
+| Layer | Path | Responsibility |
 | --- | --- | --- |
-| Governance SSoT | `cognitum/` | Masterplan, ADRs, privacy invariants, DaySensOS architecture, generation pipeline. |
-| Semantic protocol | `agentsprotocol/` | `S_con`, `Psi`, WiseScore, Python SDK, Rust validator, DAG/order layer. |
-| Scientific base | `poisv/` | Meta-Bell Theory, Proof of WiseWork, PoISV reference implementations, notebooks, proofs. |
-| Compliance | `compliance/` | EU AI Act MCP server, halal finance logic, zkHalal proof tooling. |
-| Integration | `mcp/` | VeriMCP facade, routing contracts, governance-claim export, semantic validation bridge. |
-| System vision | `civilization-operating-system/` | Larger Sharia-compliant system and operating backend vision. |
-| Utility | `llmjson/` | Constrained JSON generation for structured, contract-safe local LLM outputs. |
-| Product platform | `platform/` | Future apps, developer portal, hosted/local orchestration, dashboards. |
+| Governance SSoT | `cognitum/` | Masterplan, ADRs, privacy invariants, DaySensOS architecture, generated agent context. |
+| Semantic validation | `agentsprotocol/` | `S_con`, `Psi`, WiseScore, Python SDK, Rust validator, DAG/order layer. |
+| Scientific foundation | `poisv/` | Meta-Bell Theory, Proof of WiseWork, PoISV references, notebooks, proofs. |
+| Compliance | `compliance/` | EU AI Act, halal policy, zkHalal proof tooling. |
+| Integration | `mcp/` | VeriMCP routing, registry metadata, compatibility wrappers. |
+| System vision | `civilization-operating-system/` | Sharia-compliant backend and larger operating-system concept. |
+| Utilities | `llmjson/` | Schema-constrained JSON generation for local LLM workflows. |
+| Platform | `platform/` | Future UI, developer portal, orchestration, dashboards. |
 
-## What connects the repositories
+## Governance audit quality gate
 
-The monorepo intentionally keeps each imported project independently usable, then adds small connective tissue between them:
-
-- `mcp/semantic-layer/governance_claims.py` exports COGNITUM masterplan entries as stable bridge claims.
-- `mcp/semantic-layer/validate_governance_claims.py` scores those claims through AgentsProtocol's semantic validation primitives.
-- `mcp/server/registry.json` records the current MCP and service endpoints without hard-coding runtime coupling.
-- `compliance/README.md` and `mcp/compliance/README.md` define how EU AI Act, halal, zkHalal, and COS responsibilities are separated.
-- `docs/architecture/` documents the layer boundaries, integration map, and evolution path.
-
-## Local development
-
-Work from each component folder until a unified task runner is introduced.
+The first production-grade integration is already implemented:
 
 ```bash
-# Governance / DaySensOS
+python cognitum/scripts/export_governance_claims.py --fail-on-reject
+```
+
+It reads `cognitum/governance/masterplan.yaml`, exports governance claims for constitution articles, ADRs, modules, ISO 23894 risks, and privacy invariants, then validates them with AgentsProtocol.
+
+Audit reports are written to:
+
+```text
+docs/governance-audit/YYYY-MM-DD_HH-MM.json
+docs/governance-audit/latest.json
+```
+
+Reports include:
+
+- report schema and version,
+- SHA-256 of the masterplan source,
+- SHA-256 of each original claim,
+- report payload SHA-256,
+- optional HMAC-SHA256 signature via `GOVERNANCE_AUDIT_HMAC_KEY`,
+- VDI 2221/2225 and ISO 25010 quality-model metadata,
+- multi-validator `Psi` support.
+
+See [`docs/governance-audit/README.md`](docs/governance-audit/README.md).
+
+## Quick start
+
+```bash
+# Clone
+git clone https://github.com/fatdinhero/verifiable-ai-stack.git
+cd verifiable-ai-stack
+
+# Run the governance audit quality gate
+python -m pip install pyyaml numpy scipy pydantic
+python cognitum/scripts/export_governance_claims.py --fail-on-reject
+
+# Run core Python tests
 cd cognitum
-python scripts/generate.py --validate-only
 python -m pytest validation/tests tests -q
 
-# Semantic validation
 cd ../agentsprotocol
-python -m pip install -e ".[dev]"
 python -m pytest tests -q
-cd src/validator && cargo test
 
-# Scientific references
-cd ../../../poisv
-python -m compileall -q reference-impl
+# Run Rust validator tests
+cd ..
+rustup run stable cargo test --manifest-path agentsprotocol/src/validator/Cargo.toml
 
-# Compliance
-cd ../compliance/eu-ai-act
-python -m compileall -q veriethiccore
-cd ../zkhalal-mcp
-python -m compileall -q server.py
-
-# Bridge: governance claims -> semantic validation
-cd ../..
-python mcp/semantic-layer/governance_claims.py --limit 5
-python mcp/semantic-layer/validate_governance_claims.py --limit 5
+# Run COS TypeScript smoke
+cd civilization-operating-system
+npm ci
+npm run build
+npm test -- --runInBand
 ```
+
+## CI/CD
+
+Root workflows:
+
+- `.github/workflows/monorepo-smoke.yml` checks structure, Python syntax, Rust validator tests, and TypeScript build.
+- `.github/workflows/governance-audit.yml` runs the governance audit as a quality gate and uploads the generated report artifact.
+
+## Documentation
+
+- [Vision](docs/vision.md)
+- [Getting started](docs/getting-started.md)
+- [Layer architecture](docs/architecture/layers.md)
+- [Integration map](docs/architecture/integration-map.md)
+- [Quality standards](docs/architecture/quality-standards.md)
+- [Governance audit](docs/governance-audit/README.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 ## Import and history strategy
 
 - `cognitum` was moved into `cognitum/` from the original repository root.
 - `agentsprotocol`, `poisv`, `zkhalal-mcp`, `civilization-operating-system`, and `llmjson` were imported via unsquashed `git subtree`.
-- Existing code remains in prefix-isolated components; new cross-repo glue lives in `mcp/`, `docs/`, `platform/`, and `compliance/`.
-- Component-specific licenses remain authoritative inside their folders.
+- Existing code remains prefix-isolated.
+- Cross-repo glue lives in `cognitum/scripts/`, `mcp/`, `docs/`, `platform/`, and `compliance/`.
 
-## Strategic next step
+## Licensing
 
-The first production-grade integration should be:
+This monorepo aggregates components with different license terms. The root [`LICENSE`](LICENSE) is an aggregation notice. Component-level license files remain authoritative.
 
-1. Export COGNITUM masterplan and ADR statements as bridge claims.
-2. Validate those claims with AgentsProtocol `S_con` and `Psi`.
-3. Attach compliance findings from EU AI Act and halal modules.
-4. Emit a signed audit artifact through the future VeriMCP server.
-5. Use `llmjson` for schema-safe local LLM outputs in every governance/compliance flow.
+## Security
+
+Do not open public issues for vulnerabilities or secret exposure. Follow [`SECURITY.md`](SECURITY.md).
