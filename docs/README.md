@@ -1,22 +1,26 @@
 # verifiable-ai-stack docs
 
-Gemeinsame Dokumentation fuer das Monorepo.
+Central documentation for the monorepo. Component-specific documentation stays in each imported project; this folder explains cross-cutting architecture, integration flows, and operating principles.
 
-## Einstieg
+## Start here
 
-- Root-Vision und Komponentenuebersicht: [`../README.md`](../README.md)
-- COGNITUM Governance-Details: [`../cognitum/README.md`](../cognitum/README.md)
-- AgentsProtocol Spezifikation und Validator: [`../agentsprotocol/README.md`](../agentsprotocol/README.md)
-- PoISV wissenschaftliche Grundlage: [`../poisv/README.md`](../poisv/README.md)
-- zkHalal MCP Compliance-Modul: [`../zkhalal-mcp/README.md`](../zkhalal-mcp/README.md)
+- Vision: [`vision.md`](vision.md)
+- Getting started: [`getting-started.md`](getting-started.md)
+- Layer architecture: [`architecture/layers.md`](architecture/layers.md)
+- Integration map: [`architecture/integration-map.md`](architecture/integration-map.md)
+- Quality standards: [`architecture/quality-standards.md`](architecture/quality-standards.md)
+- Root overview: [`../README.md`](../README.md)
 
-## Gemeinsame Dokumentationsbereiche
+## Component docs
 
-Dieser Ordner ist fuer komponentenuebergreifende Inhalte vorgesehen:
+- COGNITUM governance: [`../cognitum/README.md`](../cognitum/README.md)
+- AgentsProtocol: [`../agentsprotocol/README.md`](../agentsprotocol/README.md)
+- PoISV: [`../poisv/README.md`](../poisv/README.md)
+- EU AI Act compliance: [`../compliance/eu-ai-act/README.md`](../compliance/eu-ai-act/README.md)
+- zkHalal MCP: [`../compliance/zkhalal-mcp/README.md`](../compliance/zkhalal-mcp/README.md)
+- Civilization Operating System: [`../civilization-operating-system/README.md`](../civilization-operating-system/README.md)
+- llmjson: [`../llmjson/README.md`](../llmjson/README.md)
 
-- Integrationsarchitektur zwischen Governance, semantischer Validierung und Compliance.
-- Gemeinsame ADRs fuer Entscheidungen, die mehrere Unterprojekte betreffen.
-- Release-, CI/CD- und Operations-Dokumentation fuer das Monorepo.
-- Spezifikation der zukuenftigen VeriMCP-Fassade unter `mcp/`.
+## Documentation rule
 
-Komponentenspezifische Dokumente bleiben in den jeweiligen Unterordnern, damit Herkunft, Historie und Verantwortungsgrenzen klar bleiben.
+Cross-repo decisions belong here. Single-component implementation details belong inside the component folder.

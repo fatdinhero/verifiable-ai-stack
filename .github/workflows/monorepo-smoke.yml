@@ -15,8 +15,14 @@ jobs:
           test -d cognitum
           test -d agentsprotocol
           test -d poisv
-          test -d zkhalal-mcp
+          test -d compliance
+          test -d compliance/eu-ai-act
+          test -d compliance/halal
+          test -d compliance/zkhalal-mcp
           test -d mcp
+          test -d civilization-operating-system
+          test -d llmjson
+          test -d platform
           test -f README.md
 
   python-syntax:
@@ -33,10 +39,11 @@ jobs:
             cognitum \
             agentsprotocol/src/agentsprotocol \
             agentsprotocol/detect \
-            poisv/poisv \
-            poisv/meta-bell \
-            poisv/poww \
-            zkhalal-mcp/server.py
+            poisv/reference-impl \
+            compliance/eu-ai-act/veriethiccore \
+            compliance/zkhalal-mcp/server.py \
+            llmjson/llmjson \
+            mcp
 
   agentsprotocol-rust:
     name: AgentsProtocol Rust validator
@@ -46,3 +53,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Test validator crate
         run: cargo test --manifest-path agentsprotocol/src/validator/Cargo.toml
+
+  node-syntax:
+    name: TypeScript smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: civilization-operating-system/package-lock.json
+      - name: Install COS dependencies
+        working-directory: civilization-operating-system
+        run: npm ci
+      - name: Build COS
+        working-directory: civilization-operating-system
+        run: npm run build

@@ -1,0 +1,32 @@
+{
+  "name": "verimcp",
+  "version": "0.1.0",
+  "description": "Registry for governance, semantic validation, and compliance tools in verifiable-ai-stack.",
+  "tools": [
+    {
+      "id": "governance-claims-export",
+      "layer": "semantic",
+      "entrypoint": "mcp/semantic-layer/governance_claims.py",
+      "produces": "governance-bridge-claims"
+    },
+    {
+      "id": "governance-claims-validation",
+      "layer": "semantic",
+      "entrypoint": "mcp/semantic-layer/validate_governance_claims.py",
+      "consumes": "governance-bridge-claims",
+      "produces": "semantic-validation-report"
+    },
+    {
+      "id": "eu-ai-act",
+      "layer": "compliance",
+      "entrypoint": "compliance/eu-ai-act/veriethiccore/server.py",
+      "domain": "eu-ai-act"
+    },
+    {
+      "id": "zkhalal",
+      "layer": "compliance",
+      "entrypoint": "compliance/zkhalal-mcp/server.py",
+      "domain": "halal"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+This monorepo aggregates multiple projects with different license terms.
+
+The license files inside each component directory remain authoritative for that
+component:
+
+- `cognitum/LICENSE`
+- `agentsprotocol/LICENSE`
+- `poisv/LICENSE` and `poisv/LICENSE-CODE`
+- `compliance/zkhalal-mcp/LICENSE`
+- `civilization-operating-system/LICENSE`
+- `llmjson/LICENSE`
+
+New monorepo-level documentation and integration scaffolding outside imported
+component directories are provided under the same terms as the owning component
+they integrate with unless a more specific license file is added.
+
+This file is intentionally a license notice, not a relicensing of imported code.
