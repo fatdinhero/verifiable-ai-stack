@@ -39,6 +39,15 @@ Use the component-native tooling. A full environment usually needs:
 Run checks for the layers you touched. For broad changes, run:
 
 ```bash
+make smoke
+make test-python
+make test-rust
+make test-node
+```
+
+Equivalent manual commands:
+
+```bash
 git diff --check
 python -m compileall -q \
   cognitum \
@@ -105,3 +114,7 @@ A high-quality change should include:
 - no unrelated refactors,
 - no generated noise unless explicitly required,
 - clean `git diff --check`.
+
+## Code ownership
+
+Root CODEOWNERS live in `.github/CODEOWNERS`. Governance, audit, compliance, and protocol changes require owner review in regulated workflows.

@@ -43,9 +43,9 @@ python cognitum/scripts/export_governance_claims.py --fail-on-reject
 
 Each report contains:
 
-- `report_schema` (`verifiable-ai-stack/governance-audit/v2.2`)
+- `report_schema` (`verifiable-ai-stack/governance-audit/v2.3`)
 - `report_version`
-- structured `metadata` with tool, runtime, Git commit, and GitHub Actions context when available
+- structured `metadata` with report ID, tool/runtime/dependency versions, Git commit/status, and GitHub Actions context when available
 - `source_sha256` for `cognitum/governance/masterplan.yaml`
 - `original_claim_sha256` for each exported governance claim
 - `quality_gate` with thresholds, observed values, and pass/fail status
@@ -113,7 +113,7 @@ python cognitum/scripts/export_governance_claims.py \
   --fail-on-reject
 ```
 
-The API must return the same JSON shape as `--validator-results`. Network and schema errors fail closed before validation. API validators are executed in parallel with built-in validators and local result-file validators. Retries use bounded exponential backoff.
+The API must return the same JSON shape as `--validator-results`. Network and schema errors fail closed before validation. API validators are executed in parallel with built-in validators and local result-file validators. Retries use bounded exponential backoff and are controlled by `--validator-api-timeout` and `--validator-api-retries`.
 
 ## Adding a new validator
 

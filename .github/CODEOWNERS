@@ -1,0 +1,21 @@
+# Global owners
+* @fatdinhero
+
+# Governance and audit-critical paths
+/cognitum/governance/ @fatdinhero
+/cognitum/scripts/export_governance_claims.py @fatdinhero
+/docs/governance-audit/ @fatdinhero
+/.github/workflows/governance-audit.yml @fatdinhero
+
+# Protocol and validator layer
+/agentsprotocol/ @fatdinhero
+
+# Compliance layer
+/compliance/ @fatdinhero
+
+# Documentation and monorepo metadata
+/README.md @fatdinhero
+/CONTRIBUTING.md @fatdinhero
+/SECURITY.md @fatdinhero
+/LICENSE @fatdinhero
+/docs/ @fatdinhero

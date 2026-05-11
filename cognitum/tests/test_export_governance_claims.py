@@ -39,10 +39,13 @@ def test_validates_claims_with_agentsprotocol_primitives():
     report = module.validate_governance_claims(claims)
 
     assert report["validator"] == "agentsprotocol"
-    assert report["report_version"] == "2.2.0"
+    assert report["report_version"] == "2.3.0"
     assert report["metadata"]["tool"] == "cognitum-governance-audit"
+    assert report["metadata"]["report_id"]
+    assert report["metadata"]["dependencies"]["agentsprotocol"]
     assert report["metadata"]["runtime"]["python"]
     assert "git_commit" in report["metadata"]
+    assert "git" in report["metadata"]
     assert report["summary"]["claim_count"] == 6
     assert report["summary"]["accepted"] is True
     assert report["quality_gate"]["passed"] is True
@@ -67,6 +70,7 @@ def test_validates_with_multiple_builtin_validators():
         "kind-context",
     }
     assert 0.0 <= report["summary"]["psi"] <= 1.0
+    assert report["parameters"]["execution_mode"] == "parallel"
 
 
 def test_report_can_be_hmac_signed(monkeypatch):

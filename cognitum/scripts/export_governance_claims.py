@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import hmac
+import importlib.metadata
 import json
 import os
 import platform
@@ -45,8 +46,8 @@ DEFAULT_MASTERPLAN = COGNITUM_ROOT / "governance" / "masterplan.yaml"
 DEFAULT_AUDIT_DIR = REPO_ROOT / "docs" / "governance-audit"
 AGENTSPROTOCOL_SRC = REPO_ROOT / "agentsprotocol" / "src"
 
-REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.2"
-REPORT_VERSION = "2.2.0"
+REPORT_SCHEMA = "verifiable-ai-stack/governance-audit/v2.3"
+REPORT_VERSION = "2.3.0"
 CLAIM_SCHEMA = "verifiable-ai-stack/governance-claim/v1"
 DEFAULT_VALIDATORS = ("baseline",)
 DEFAULT_HMAC_ENV = "GOVERNANCE_AUDIT_HMAC_KEY"
@@ -57,6 +58,7 @@ DEFAULT_MAX_WORKERS = 4
 if str(AGENTSPROTOCOL_SRC) not in sys.path:
     sys.path.insert(0, str(AGENTSPROTOCOL_SRC))
 
+import agentsprotocol as agentsprotocol_module  # noqa: E402
 from agentsprotocol import check_acceptance, compute_psi, compute_s_con  # noqa: E402
 
 
@@ -149,6 +151,49 @@ def _git_commit_hash() -> str | None:
     except (OSError, subprocess.CalledProcessError):
         return None
     return result.stdout.strip() or None
+
+
+def _git_metadata() -> dict[str, Any]:
+    """Return safe Git metadata for audit traceability."""
+    def run_git(args: list[str]) -> str | None:
+        try:
+            result = subprocess.run(
+                ["git", *args],
+                cwd=REPO_ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            return None
+        return result.stdout.strip() or None
+
+    status = run_git(["status", "--porcelain"]) or ""
+    branch = run_git(["branch", "--show-current"]) or run_git(["rev-parse", "--abbrev-ref", "HEAD"])
+    return {
+        "commit": _git_commit_hash(),
+        "branch": branch,
+        "dirty": bool(status),
+        "tracked_changes": len(status.splitlines()) if status else 0,
+    }
+
+
+def _package_version(distribution: str) -> str | None:
+    try:
+        return importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def _dependency_versions() -> dict[str, str | None]:
+    """Return dependency versions relevant to reproducing audit results."""
+    return {
+        "agentsprotocol": getattr(agentsprotocol_module, "__version__", None),
+        "numpy": _package_version("numpy"),
+        "scipy": _package_version("scipy"),
+        "pydantic": _package_version("pydantic"),
+        "pyyaml": _package_version("PyYAML"),
+    }
 
 
 def _as_list(value: Any) -> list[Any]:
@@ -732,17 +777,28 @@ def validate_governance_claims(
         "report_schema": REPORT_SCHEMA,
         "report_version": REPORT_VERSION,
         "metadata": {
+            "report_id": _sha256_data(
+                {
+                    "generated_at": generated_at.isoformat(),
+                    "source": "cognitum/governance/masterplan.yaml",
+                    "source_sha256": _file_sha256(masterplan_path),
+                    "claim_ids": [claim["id"] for claim in claims],
+                    "validators": list(validator_names),
+                }
+            ),
             "tool": "cognitum-governance-audit",
             "tool_version": REPORT_VERSION,
             "claim_schema": CLAIM_SCHEMA,
             "generated_at": generated_at.isoformat(),
             "generated_date": generated_at.date().isoformat(),
+            "git": _git_metadata(),
             "git_commit": _git_commit_hash(),
             "runtime": {
                 "python": platform.python_version(),
                 "python_executable": sys.executable,
                 "platform": platform.platform(),
             },
+            "dependencies": _dependency_versions(),
             "github": _github_context(),
         },
         "generated_at": generated_at.isoformat(),
@@ -761,6 +817,7 @@ def validate_governance_claims(
             "validator_api_timeout_seconds": validator_api_timeout_seconds,
             "validator_api_retries": validator_api_retries,
             "max_workers": max_workers,
+            "execution_mode": "parallel",
         },
         "quality_gate": quality_gate,
         "quality_model": {
