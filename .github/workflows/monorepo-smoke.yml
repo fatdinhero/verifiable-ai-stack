@@ -45,6 +45,9 @@ jobs:
             llmjson/llmjson \
             mcp
 
+      - name: VeriMCP API smoke tests
+        run: python -m pytest mcp/tests -q
+
   agentsprotocol-rust:
     name: AgentsProtocol Rust validator
     runs-on: ubuntu-latest

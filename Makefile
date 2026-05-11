@@ -26,6 +26,7 @@ test-python:
 	cd cognitum && python3 -m pytest validation/tests tests -q
 	cd agentsprotocol && python3 -m pytest tests -q
 	cd llmjson && python3 -m pytest tests -q
+	python3 -m pytest mcp/tests -q
 
 test-rust:
 	rustup run stable cargo test --manifest-path agentsprotocol/src/validator/Cargo.toml

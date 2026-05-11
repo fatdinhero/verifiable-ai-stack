@@ -1,12 +1,23 @@
-# VeriMCP server
+# VeriMCP FastAPI server
 
-This folder is reserved for the future VeriMCP server: a unified MCP facade over governance, semantic validation, and compliance.
+This folder contains the first runnable VeriMCP server.
 
-## Planned responsibilities
+## Run
 
-- Discover available compliance and semantic-validation tools.
-- Route governance claims to validation and compliance checks.
-- Emit structured audit artifacts.
-- Keep user data local and avoid implicit retention.
+```bash
+uvicorn app:app --app-dir mcp/server --host 127.0.0.1 --port 8088
+```
 
-The initial `registry.json` records available component entry points without starting a runtime server.
+## API surface
+
+- `GET /health`
+- `POST /governance/claims`
+- `POST /governance/audit`
+- `POST /compliance/check`
+
+## Implementation notes
+
+- Governance and semantic validation are delegated to `cognitum/scripts/export_governance_claims.py`.
+- EU AI Act checks use `compliance/eu-ai-act/veriethiccore/eu_ai_act_rules.py`.
+- Halal screening is a small baseline adapter aligned with zkHalal/COS categories and designed to be replaced by a direct `zkhalal-mcp` adapter later.
+- Errors at API boundaries are converted to HTTP responses and logged through the `verimcp` logger.

@@ -6,6 +6,7 @@ testpaths = [
   "cognitum/validation/tests",
   "agentsprotocol/tests",
   "llmjson/tests",
+  "mcp/tests",
 ]
 
 [tool.ruff]
