@@ -22,3 +22,6 @@ tracing        = "0.1"
 default = []
 zkvm-risc0 = []
 zkvm-nexus = []
+
+[dev-dependencies]
+tempfile = "3"
