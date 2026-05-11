@@ -1,0 +1,140 @@
+tasks:
+- coverage: 100.0
+  iterations: 2
+  last_error: 'Test syntax error (markdown still present?): unterminated triple-quoted
+    string literal (detected at line 233) (<unknown>, line 233)'
+  module: cognitum_agents
+  spec: 'Implementiere BaseAgent Klasse in Python.
+
+    - __init__(self, name: str, policy_engine=None)
+
+    - run(self, task: dict) -> dict mit { summary, detail, sources, confidence }
+
+    - log(self, message: str) -> None
+
+    - confidence < 0.8 automatisch [Unverified] im summary
+
+    Keine externen Abhängigkeiten außer stdlib und SQLite.
+
+    '
+  status: DONE
+  target: cognitum_agents/base_agent.py
+- coverage: 100.0
+  iterations: 1
+  module: cognitum_governance
+  spec: 'Implementiere PolicyEngine Klasse.
+
+    - check(output: dict) -> dict mit compliance_passed bool
+
+    - Integriert cognitum/cna/rules.py (12 Norm-Regeln)
+
+    - Gibt { compliance_passed, violations, confidence } zurück
+
+    - confidence < 0.8 setzt [Unverified] Flag
+
+    '
+  status: DONE
+  target: cognitum_governance/policy_engine.py
+- coverage: 100.0
+  iterations: 1
+  module: cognitum_memory
+  spec: 'Implementiere MemoryStore Klasse.
+
+    - save(run_id: str, data: dict) -> None
+
+    - load(run_id: str) -> dict
+
+    - SQLite backend unter cognitum_memory.db
+
+    - Alle Einträge mit Timestamp versehen
+
+    '
+  status: DONE
+  target: cognitum_memory/memory_store.py
+- coverage: 100.0
+  iterations: 1
+  module: cognitum_audit
+  spec: 'Implementiere AuditLogger Klasse.
+
+    - log(agent: str, action: str, result: dict, confidence: float) -> None
+
+    - Schreibt in cognitum_audit.db (SQLite)
+
+    - Einträge sind unveränderlich (INSERT only, kein UPDATE/DELETE)
+
+    - Felder: id, timestamp, agent, action, result_json, confidence
+
+    '
+  status: DONE
+  target: cognitum_audit/audit_logger.py
+- coverage: 100.0
+  iterations: 1
+  module: cognitum_core
+  spec: "Implementiere Runtime Klasse.\n- __init__(agent, policy_engine, memory_store,\
+    \ audit_logger)\n- run_agent(task: dict) -> dict\n- Orchestriert: Agent.run()\
+    \ → PolicyEngine.check() →\n  MemoryStore.save() → AuditLogger.log() → return\
+    \ output\n- Output folgt Schema { summary, detail, sources, confidence }\n"
+  status: DONE
+  target: cognitum_core/runtime.py
+- iterations: 4
+  module: cognitum_autopoiesis
+  spec: "Implementiere AutopoiesisEngine Klasse — Meta-Healing für den Dev Loop.\n\
+    \nMethoden:\n- heal(loop_script: str, error_log: str) -> str\n  Sendet loop_script\
+    \ + error_log an MiMo, empfängt reparierten Code,\n  validiert Syntax via ast.parse(),\
+    \ gibt reparierten Code zurück.\n\n- apply_patch(loop_script_path: str, patched_code:\
+    \ str) -> bool\n  Schreibt reparierten Code in loop_script_path,\n  erstellt vorher\
+    \ ein Backup unter loop_script_path + '.bak'\n\n- restart_loop(loop_script_path:\
+    \ str, queue_path: str, \n               failed_module: str) -> None\n  Setzt\
+    \ failed_module in queue_path auf PENDING/iterations=0,\n  startet loop_script_path\
+    \ als subprocess neu.\n\nIntegration in cognitum_dev_loop.py:\nBei MANUAL_REVIEW\
+    \ wird AutopoiesisEngine.heal() aufgerufen,\napply_patch() patcht den Loop, restart_loop()\
+    \ startet neu.\nMaximal 1 Selbst-Heilung pro Session um Endlosschleifen zu vermeiden.\n"
+  status: PENDING
+  target: cognitum_autopoiesis/autopoiesis_engine.py
+  coverage: 51.0
+  last_error: ':test_creation_with_values PASSED [ 66%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_enabled_match
+    PASSED [ 70%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_enabled_no_match
+    PASSED [ 75%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_disabled PASSED
+    [ 79%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_empty_pattern
+    PASSED [ 83%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_to_dict PASSED      [ 87%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_to_dict_defaults PASSED [
+    91%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_from_dict_minimal PASSED
+    [ 95%]
+
+    tests/test_autopoiesis_engine.py::TestCatalyst::test_from_dict_full PASSED [100%]
+
+
+    ================================ tests coverage ================================
+
+    _______________ coverage: platform darwin, python 3.14.4-final-0 _______________
+
+
+    Name                                         Stmts   Miss  Cover   Missing
+
+    --------------------------------------------------------------------------
+
+    cognitum_autopoiesis/__init__.py                 0      0   100%
+
+    cognitum_autopoiesis/autopoiesis_engine.py     167     81    51%   97, 100, 106,
+    109, 118-123, 160-175, 183-206, 210-234, 243-251, 262-264, 273-295, 299, 302
+
+    --------------------------------------------------------------------------
+
+    TOTAL                                          167     81    51%
+
+    ============================== 24 passed in 0.05s ==============================
+
+    '
