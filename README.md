@@ -25,7 +25,7 @@ blocks that clear both thresholds enter the canonical DAG.
 ## Quick Start
 
 ```bash
-pip install agentsprotocol
+pip install agentsprotocol==1.3.0
 ```
 
 ```python
