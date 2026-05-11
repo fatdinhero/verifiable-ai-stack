@@ -117,6 +117,29 @@ impl DagStore {
         Ok(())
     }
 
+    /// Return up to `limit` blocks from the blocks column family.
+    /// Order is RocksDB key order (lexicographic by hash) — callers sort by
+    /// weight themselves. This is sufficient for parent selection over a
+    /// bounded candidate window.
+    pub fn list_recent_blocks(&self, limit: usize) -> Result<Vec<StoredBlock>> {
+        let cf = self
+            .db
+            .cf_handle(CF_BLOCKS)
+            .context("blocks column family not found")?;
+        let mut out = Vec::new();
+        let iter = self.db.iterator_cf(&cf, rocksdb::IteratorMode::End);
+        for item in iter {
+            let (_key, value) = item?;
+            if let Ok(block) = serde_json::from_slice::<StoredBlock>(&value) {
+                out.push(block);
+            }
+            if out.len() >= limit {
+                break;
+            }
+        }
+        Ok(out)
+    }
+
     /// Retrieve a block by hash. Returns `None` if not found.
     pub fn get_block(&self, block_hash: &str) -> Result<Option<StoredBlock>> {
         let cf = self

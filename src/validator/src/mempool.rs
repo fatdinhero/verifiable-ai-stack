@@ -23,6 +23,7 @@ use tokio::time::{interval, Instant};
 use tracing::{info, warn};
 
 use crate::config::ProtocolConfig;
+use crate::consensus::Ghostdag;
 use crate::network::{publish_block, OutboundMsg};
 use crate::storage::{DagStore, StoredBlock, StoredClaim};
 use crate::validation::compute_s_con;
@@ -197,9 +198,12 @@ impl BlockProducer {
         let hash_input = format!("{}{}", claim_ids.join(","), timestamp);
         let hash = format!("{:x}", Sha256::digest(hash_input.as_bytes()));
 
+        // GHOSTDAG parent selection
+        let parent_hashes = Ghostdag::new(self.cfg.clone(), &self.store).select_parents();
+
         let block = StoredBlock {
             hash: hash.clone(),
-            parent_hashes: vec![], // Phase 3: wire up GHOSTDAG parent selection
+            parent_hashes,
             timestamp,
             psi,
             cumulative_weight: weight,
