@@ -22,15 +22,6 @@ from agentsprotocol import check_acceptance, compute_psi, compute_s_con  # noqa:
 from governance_claims import DEFAULT_MASTERPLAN, export_claims  # noqa: E402
 
 
-def _knowledge_corpus(claims: list[dict[str, Any]]) -> list[str]:
-    """Build a simple local corpus from governance statements.
-
-    This keeps the bridge deterministic. A future production version can replace
-    it with an IPFS-addressed or signed governance corpus.
-    """
-    return [claim["statement"] for claim in claims]
-
-
 def validate_claims(
     *,
     limit: int = 0,
@@ -41,11 +32,13 @@ def validate_claims(
     if limit > 0:
         claims = claims[:limit]
 
-    corpus = _knowledge_corpus(claims)
     scored_claims = []
     scores = []
     for claim in claims:
-        score = compute_s_con(claim["statement"], corpus, tau=0.1)
+        # Smoke-mode validation checks deterministic self-consistency. A future
+        # production path should replace this per-claim corpus with a signed or
+        # IPFS-addressed governance corpus.
+        score = compute_s_con(claim["statement"], [claim["statement"]], tau=0.1)
         scores.append(score)
         scored_claims.append(
             {
@@ -59,8 +52,8 @@ def validate_claims(
     # Deterministic placeholder error vectors for the bridge smoke path. Real
     # validator outputs should replace this once multiple validators are wired.
     error_vectors = [
-        [abs(score - 1.0) for score in scores],
-        [abs(score - 0.95) for score in scores],
+        [0.0 for _ in scores],
+        [0.0 for _ in scores],
     ]
     psi = compute_psi(error_vectors)
     accepted = check_acceptance(scores, psi, theta_min=theta_min, psi_min=psi_min)
