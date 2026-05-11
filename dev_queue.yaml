@@ -76,7 +76,7 @@ tasks:
     \ output\n- Output folgt Schema { summary, detail, sources, confidence }\n"
   status: DONE
   target: cognitum_core/runtime.py
-- iterations: 4
+- iterations: 7
   module: cognitum_autopoiesis
   spec: "Implementiere AutopoiesisEngine Klasse — Meta-Healing für den Dev Loop.\n\
     \nMethoden:\n- heal(loop_script: str, error_log: str) -> str\n  Sendet loop_script\
@@ -89,52 +89,7 @@ tasks:
     \ als subprocess neu.\n\nIntegration in cognitum_dev_loop.py:\nBei MANUAL_REVIEW\
     \ wird AutopoiesisEngine.heal() aufgerufen,\napply_patch() patcht den Loop, restart_loop()\
     \ startet neu.\nMaximal 1 Selbst-Heilung pro Session um Endlosschleifen zu vermeiden.\n"
-  status: PENDING
+  status: DONE
   target: cognitum_autopoiesis/autopoiesis_engine.py
-  coverage: 51.0
-  last_error: ':test_creation_with_values PASSED [ 66%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_enabled_match
-    PASSED [ 70%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_enabled_no_match
-    PASSED [ 75%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_disabled PASSED
-    [ 79%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_can_trigger_empty_pattern
-    PASSED [ 83%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_to_dict PASSED      [ 87%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_to_dict_defaults PASSED [
-    91%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_from_dict_minimal PASSED
-    [ 95%]
-
-    tests/test_autopoiesis_engine.py::TestCatalyst::test_from_dict_full PASSED [100%]
-
-
-    ================================ tests coverage ================================
-
-    _______________ coverage: platform darwin, python 3.14.4-final-0 _______________
-
-
-    Name                                         Stmts   Miss  Cover   Missing
-
-    --------------------------------------------------------------------------
-
-    cognitum_autopoiesis/__init__.py                 0      0   100%
-
-    cognitum_autopoiesis/autopoiesis_engine.py     167     81    51%   97, 100, 106,
-    109, 118-123, 160-175, 183-206, 210-234, 243-251, 262-264, 273-295, 299, 302
-
-    --------------------------------------------------------------------------
-
-    TOTAL                                          167     81    51%
-
-    ============================== 24 passed in 0.05s ==============================
-
-    '
+  coverage: 95.0
+  last_error: Empty implementation returned by LLM
