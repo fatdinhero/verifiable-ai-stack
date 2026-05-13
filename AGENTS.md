@@ -25,6 +25,10 @@ uvicorn app:app --app-dir mcp/server --host 127.0.0.1 --port 8088
 
 Endpoints: `GET /health`, `POST /governance/claims`, `POST /governance/audit`, `POST /compliance/check`. See `mcp/server/app.py` and `mcp/README.md`.
 
+### GitHub mirror pushes
+
+The default `origin` remote in Cursor Cloud may point at GitLab. If asked to push to the GitHub mirror (`github.com/fatdinhero/verifiable-ai-stack.git`), use the `GITHUB_TOKEN` secret for that push and avoid writing the token into committed files or persistent git remote URLs.
+
 ### Gotchas discovered during setup
 
 - `agentsprotocol` must be installed as an editable package (`pip install -e agentsprotocol/`) before Python tests can import `agentsprotocol.s_con`. Without this, `agentsprotocol/tests/` will fail with `ModuleNotFoundError`.
