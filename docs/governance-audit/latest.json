@@ -850,10 +850,10 @@
       }
     }
   ],
-  "generated_at": "2026-05-11T13:43:00+00:00",
-  "generated_date": "2026-05-11",
+  "generated_at": "2026-05-13T08:23:00+00:00",
+  "generated_date": "2026-05-13",
   "integrity": {
-    "report_payload_sha256": "95dc2d93dbac7e61767f0b5798a31a5ec08fd28f6de6f3181abc12936068ec73",
+    "report_payload_sha256": "af19fcffcfce9d3c05951cf7e73d97a29fe6a7e05b2d46bc4f987080a8dbac48",
     "signature": {
       "algorithm": null,
       "key_id": "GOVERNANCE_AUDIT_HMAC_KEY",
@@ -871,18 +871,18 @@
       "pyyaml": "6.0.1",
       "scipy": "1.17.1"
     },
-    "duration_ms": 15.202,
-    "generated_at": "2026-05-11T13:43:00+00:00",
-    "generated_date": "2026-05-11",
+    "duration_ms": 13.414,
+    "generated_at": "2026-05-13T08:23:00+00:00",
+    "generated_date": "2026-05-13",
     "git": {
-      "branch": "cursor/verifiable-ai-stack-monorepo-5a74",
-      "commit": "8e16b678654a255e35d99ca8a6d697c71638d400",
+      "branch": "main",
+      "commit": "904e37c52596918a69b7c3b757db6f660b5f6901",
       "dirty": true,
-      "tracked_changes": 4
+      "tracked_changes": 1
     },
-    "git_commit": "8e16b678654a255e35d99ca8a6d697c71638d400",
+    "git_commit": "904e37c52596918a69b7c3b757db6f660b5f6901",
     "github": {},
-    "report_id": "9ba48d391448c98ea89446e5b9d534f4db21690b8895086d086496351cec0404",
+    "report_id": "3e23747a85115c16b031d5da156ebdc1a3f47dd32842d7bc1037233cbb87680a",
     "runtime": {
       "platform": "Linux-6.12.58+-x86_64-with-glibc2.39",
       "python": "3.12.3",
@@ -969,7 +969,7 @@
     {
       "corpus_mode": "self",
       "description": "Deterministic self-consistency validator for CI quality gates.",
-      "duration_ms": 1.18,
+      "duration_ms": 1.021,
       "name": "baseline",
       "source": null,
       "source_sha256": null,
